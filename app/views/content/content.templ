@@ -1,0 +1,59 @@
+package content
+
+import (
+	"fmt"
+	"shopTemplate/app/config"
+	"shopTemplate/app/services"
+	"shopTemplate/app/views/layouts"
+	"shopTemplate/app/models"
+)
+
+templ Livraison(user models.AuthUser, cfg *config.Config, categories []models.Category, cartCount int) {
+	@layouts.BaseLayout(user, cfg, categories, cartCount) {
+		<div class="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+			<h1 class="text-3xl font-extrabold text-gray-900 mb-8">{ services.GetI18n().T(ctx, "delivery") }</h1>
+			<div class="prose prose-indigo max-w-none text-gray-600 space-y-6">
+				<h2 class="text-xl font-bold text-gray-900 mt-6">{ services.GetI18n().T(ctx, "delivery_times_title") }</h2>
+				<p>{ services.GetI18n().T(ctx, "delivery_desc") }</p>
+				<ul class="list-disc pl-6">
+					<li>{ services.GetI18n().T(ctx, "delivery_tunis") }</li>
+					<li>{ services.GetI18n().T(ctx, "delivery_other") }</li>
+				</ul>
+
+				<h2 class="text-xl font-bold text-gray-900 mt-6">{ services.GetI18n().T(ctx, "delivery_fees_title") }</h2>
+				<p>{ services.GetI18n().T(ctx, "delivery_fees_desc") }</p>
+
+				<h2 class="text-xl font-bold text-gray-900 mt-6">{ services.GetI18n().T(ctx, "order_tracking_title") }</h2>
+				<p>{ services.GetI18n().T(ctx, "order_tracking_desc") }</p>
+
+				<h2 class="text-xl font-bold text-gray-900 mt-6">{ services.GetI18n().T(ctx, "returns_title") }</h2>
+				<p>{ services.GetI18n().T(ctx, "returns_desc") }</p>
+			</div>
+		</div>
+	}
+}
+
+templ APropos(user models.AuthUser, cfg *config.Config, categories []models.Category, cartCount int) {
+	@layouts.BaseLayout(user, cfg, categories, cartCount) {
+		<div class="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+			<h1 class="text-3xl font-extrabold text-gray-900 mb-8">{ services.GetI18n().T(ctx, "about_us") }</h1>
+			<div class="prose prose-indigo max-w-none text-gray-600 space-y-6">
+				<p>{ fmt.Sprintf(services.GetI18n().T(ctx, "about_welcome"), cfg.Site.Name) }</p>
+
+				<h2 class="text-xl font-bold text-gray-900 mt-6">{ services.GetI18n().T(ctx, "our_story") }</h2>
+				<p>{ services.GetI18n().T(ctx, "our_story_desc") }</p>
+
+				<h2 class="text-xl font-bold text-gray-900 mt-6">{ services.GetI18n().T(ctx, "our_mission") }</h2>
+				<p>{ services.GetI18n().T(ctx, "our_mission_desc") }</p>
+
+				<h2 class="text-xl font-bold text-gray-900 mt-6">{ services.GetI18n().T(ctx, "why_choose_us") }</h2>
+				<ul class="list-disc pl-6">
+					<li>{ services.GetI18n().T(ctx, "why_quality") }</li>
+					<li>{ services.GetI18n().T(ctx, "why_expert_advice") }</li>
+					<li>{ services.GetI18n().T(ctx, "why_fast_delivery") }</li>
+					<li>{ services.GetI18n().T(ctx, "why_customer_service") }</li>
+				</ul>
+			</div>
+		</div>
+	}
+}

@@ -1,0 +1,49 @@
+package auth
+
+import (
+	"fmt"
+
+	"shopTemplate/app/services"
+	v "github.com/anthdm/superkit/validate"
+)
+
+templ ProfileShow(formValues ProfileFormValues) {
+	<div class="mt-32 flex flex-col items-center gap-12">
+		<div class="flex flex-col items-center gap-2">
+			<h1 class="text-4xl">{ services.GetI18n().T(ctx, "welcome_comma") } <span class="font-medium">{ formValues.FirstName } { formValues.LastName }</span></h1>
+			<div class="flex gap-4">
+				<a href="/" class="text-sm underline">{ services.GetI18n().T(ctx, "back_to_home") }</a>
+				<button hx-delete="/logout" class="text-sm underline">{ services.GetI18n().T(ctx, "sign_me_out") }</button>
+			</div>
+		</div>
+		@ProfileForm(formValues, v.Errors{})
+	</div>
+}
+
+templ ProfileForm(values ProfileFormValues, errors v.Errors) {
+	<form hx-put="/profile" class="w-full max-w-sm flex flex-col gap-6">
+		<input type="hidden" name="id" value={ fmt.Sprint(values.ID) }/>
+		<div class="flex flex-col gap-2">
+			<label for="firstName">{ services.GetI18n().T(ctx, "first_name") }</label>
+			<input { inputAttrs(errors.Has("firstName"))... } name="firstName" id="firstName" value={ values.FirstName }/>
+			if errors.Has("firstName") {
+				<div class="text-red-500 text-xs">{ errors.Get("firstName")[0] }</div>
+			}
+		</div>
+		<div class="flex flex-col gap-2">
+			<label for="lastName">{ services.GetI18n().T(ctx, "last_name") }</label>
+			<input { inputAttrs(errors.Has("lastName"))... } name="lastName" id="lastName" value={ values.LastName }/>
+			if errors.Has("lastName") {
+				<div class="text-red-500 text-xs">{ errors.Get("lastName")[0] }</div>
+			}
+		</div>
+		<div class="flex flex-col gap-2">
+			<label for="email">{ services.GetI18n().T(ctx, "email_label") }</label>
+			<div { inputAttrs(false)... }>{ values.Email }</div>
+		</div>
+		<button { buttonAttrs()... }>{ services.GetI18n().T(ctx, "update_profile") }</button>
+		if len(values.Success) > 0 {
+			<div>{ values.Success }</div>
+		}
+	</form>
+}

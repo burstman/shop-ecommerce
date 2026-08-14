@@ -1,0 +1,19 @@
+package components
+
+import (
+	"shopTemplate/app/models"
+	"shopTemplate/app/config"
+)
+
+templ Section(cfg *config.Config, title string, products []models.Product) {
+	<section class="py-16 bg-background">
+		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+			<h2 class="text-3xl font-bold mb-10 text-center text-foreground">{ title }</h2>
+			<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-y-10 gap-x-6 xl:gap-x-8">
+				for _, product := range products {
+					@ProductCard(product, cfg)
+				}
+			</div>
+		</div>
+	</section>
+}

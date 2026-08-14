@@ -1,0 +1,185 @@
+package checkout
+
+import (
+	"fmt"
+	"shopTemplate/app/models"
+	"github.com/anthdm/superkit/validate"
+	"shopTemplate/app/config"
+	"shopTemplate/app/views/layouts"
+	"shopTemplate/app/views/components"
+	"shopTemplate/app/helpers"
+	"shopTemplate/app/services"
+)
+
+templ Index(cart *models.Cart, values map[string]string, errors validate.Errors, cfg *config.Config) {
+	<div 
+		class="w-full px-4 sm:px-6 lg:px-8 py-12"
+		style={ layouts.GetContentStyle(cfg) }
+	>
+		<!-- Progress Stepper -->
+		<div class="max-w-2xl mx-auto mb-12">
+			<div class="flex items-center justify-center">
+				<div class="flex items-center">
+					<div class="flex items-center justify-center w-10 h-10 rounded-full bg-primary text-primary-foreground text-sm font-bold">1</div>
+					<span class="ml-2 text-sm font-medium text-gray-900">{ services.GetI18n().T(ctx, "shopping_cart") }</span>
+				</div>
+				<div class="w-16 h-0.5 mx-3 bg-primary"></div>
+				<div class="flex items-center">
+					<div class="flex items-center justify-center w-10 h-10 rounded-full bg-primary text-primary-foreground text-sm font-bold">2</div>
+					<span class="ml-2 text-sm font-medium text-primary">{ services.GetI18n().T(ctx, "checkout") }</span>
+				</div>
+				<div class="w-16 h-0.5 mx-3 bg-gray-200"></div>
+				<div class="flex items-center">
+					<div class="flex items-center justify-center w-10 h-10 rounded-full bg-gray-200 text-gray-400 text-sm font-bold">3</div>
+					<span class="ml-2 text-sm text-gray-400">{ services.GetI18n().T(ctx, "confirmation") }</span>
+				</div>
+			</div>
+		</div>
+
+		<div class="grid grid-cols-1 lg:grid-cols-5 gap-8 max-w-6xl mx-auto">
+			<div class="lg:col-span-3">
+				@CheckoutForm(values, errors)
+			</div>
+			<div class="lg:col-span-2">
+				<div class="lg:sticky lg:top-28">
+					<div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+						<div class="px-6 py-4 border-b border-gray-100">
+							<h2 class="text-lg font-semibold text-gray-900">{ services.GetI18n().T(ctx, "order_summary") }</h2>
+						</div>
+						if len(cart.Items) == 0 {
+							<div class="px-6 py-8 text-center">
+								<p class="text-gray-500">{ services.GetI18n().T(ctx, "cart_empty") }</p>
+							</div>
+						} else {
+							<ul role="list" class="divide-y divide-gray-100">
+								for _, item := range cart.Items {
+									<li class="px-6 py-4 flex items-center gap-4">
+										<div class="flex-shrink-0 h-16 w-16 rounded-lg overflow-hidden bg-gray-100">
+											if item.Product.Image != "" {
+												<img class="h-full w-full object-cover" src={ item.Product.Image } alt={ item.Product.Name }/>
+											} else {
+												<div class="h-full w-full flex items-center justify-center text-gray-400 text-xs">{ services.GetI18n().T(ctx, "no_image") }</div>
+											}
+										</div>
+										<div class="flex-1 min-w-0">
+											<h3 class="text-sm font-medium text-gray-900 truncate">{ item.Product.Name }</h3>
+											<p class="text-sm text-gray-500 mt-0.5">{ services.GetI18n().T(ctx, "qty") } { fmt.Sprint(item.Quantity) }</p>
+											<button 
+												hx-delete={ fmt.Sprintf("/cart/remove/%d", item.Product.ID) }
+												class="text-xs text-red-500 hover:text-red-700 cursor-pointer mt-1"
+											>
+												{ services.GetI18n().T(ctx, "remove") }
+											</button>
+										</div>
+										<p class="text-sm font-medium text-gray-900">{ helpers.CalculateItemPrice(item, cfg.Site.Bundles).String() }</p>
+									</li>
+								}
+							</ul>
+							<div class="px-6 py-4 bg-gray-50 border-t border-gray-100">
+								<div class="flex justify-between text-base font-semibold text-gray-900">
+									<p>{ services.GetI18n().T(ctx, "total") }</p>
+									<p>{ helpers.CalculateCartTotal(cart, cfg.Site.Bundles).String() } { cfg.Site.Currency }</p>
+								</div>
+								<p class="mt-1 text-xs text-gray-500">{ services.GetI18n().T(ctx, "shipping_taxes_calc") }</p>
+							</div>
+						}
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+}
+
+
+templ CheckoutForm(values map[string]string, errors validate.Errors) {
+	<div class="bg-white shadow rounded-lg p-6 border border-gray-200">
+		<h2 class="text-xl font-semibold mb-6">{ services.GetI18n().T(ctx, "shipping_info") }</h2>
+		<form hx-post="/checkout" class="space-y-4" x-data="{ abandonedTimer: null }" x-on:submit="clearTimeout(abandonedTimer)">
+			<div class="grid grid-cols-2 gap-4">
+				<div>
+					<label for="firstName" class="block text-sm font-medium text-gray-700">{ services.GetI18n().T(ctx, "first_name") }</label>
+					<input type="text" name="firstName" id="firstName" value={ values["firstName"] } required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"/>
+				</div>
+				<div>
+					<label for="lastName" class="block text-sm font-medium text-gray-700">{ services.GetI18n().T(ctx, "last_name") }</label>
+					<input type="text" name="lastName" id="lastName" value={ values["lastName"] } required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"/>
+				</div>
+			</div>
+			<div>
+				<label for="email" class="block text-sm font-medium text-gray-700">{ services.GetI18n().T(ctx, "email_optional") }</label>
+				<input type="email" name="email" id="email" value={ values["email"] } class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"/>
+			</div>
+			<div>
+				<label for="address" class="block text-sm font-medium text-gray-700">{ services.GetI18n().T(ctx, "address") }</label>
+				<input type="text" name="address" id="address" value={ values["address"] } required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"/>
+			</div>
+			<div class="grid grid-cols-2 gap-4">
+				<div>
+					<label for="city" class="block text-sm font-medium text-gray-700">{ services.GetI18n().T(ctx, "city") }</label>
+					<input type="text" name="city" id="city" value={ values["city"] } required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"/>
+				</div>
+				<div>
+					<label for="phone" class="block text-sm font-medium text-gray-700">{ services.GetI18n().T(ctx, "phone") }</label>
+					<input 
+						type="tel" 
+						name="phone" 
+						id="phone" 
+						value={ values["phone"] } 
+						pattern="[0-9]{8}" 
+						title={ services.GetI18n().T(ctx, "phone_8_digits") } 
+						required 
+						class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+						x-on:input="
+							clearTimeout(abandonedTimer);
+							if ($el.value.length === 8) {
+								abandonedTimer = setTimeout(() => {
+									const form = $el.closest('form');
+									if (!form) return;
+									htmx.ajax('POST', '/checkout/abandoned', {
+										values: Object.fromEntries(new FormData(form)),
+										swap: 'none'
+									});
+								}, 120000);
+							}
+						"
+					/>
+					if errors.Has("phone") {
+						<p class="mt-1 text-xs text-red-600">{ errors.Get("phone")[0] }</p>
+					}
+				</div>
+			</div>
+			<div class="pt-4 border-t border-gray-200 mt-4">
+				<h2 class="text-xl font-semibold mb-4">{ services.GetI18n().T(ctx, "payment_details") }</h2>
+				<div class="bg-gray-50 p-4 rounded text-sm text-gray-500 mb-4">
+					{ services.GetI18n().T(ctx, "payment_simulated") }
+				</div>
+			</div>
+			<button type="submit" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors">
+				{ services.GetI18n().T(ctx, "place_order") }
+			</button>
+		</form>
+	</div>
+}
+
+templ Success(cfg *config.Config, orderTotal float64) {
+	@components.FacebookPixelPurchase(cfg, orderTotal)
+	<div 
+		class="w-full px-4 sm:px-6 lg:px-8 py-24 text-center"
+		style={ layouts.GetContentStyle(cfg) }
+	>
+		<div class="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-6 text-green-600">
+			<svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+			</svg>
+		</div>
+		<h1 class="text-4xl font-extrabold text-gray-900 mb-4">{ services.GetI18n().T(ctx, "order_placed") }</h1>
+		<p class="text-lg text-gray-600 mb-8">
+			{ services.GetI18n().T(ctx, "thank_you_purchase") }
+			<br/>
+			{ services.GetI18n().T(ctx, "confirmation_email_shortly") }
+		</p>
+		<a href="/" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+			{ services.GetI18n().T(ctx, "back_to_home_btn") }
+		</a>
+	</div>
+}

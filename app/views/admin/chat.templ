@@ -1,0 +1,150 @@
+package admin
+
+import (
+	"fmt"
+	"shopTemplate/app/models"
+	"shopTemplate/app/config"
+	"shopTemplate/app/views/components"
+)
+
+templ ChatIndex(sessions []models.ChatSession, onlineMap map[string]bool) {
+	<div class="max-w-7xl mx-auto px-0 sm:px-6 lg:px-8 py-0 sm:py-10" x-data="{ showDetail: false }">
+		<h1 class="text-3xl font-bold text-gray-900 mb-8 hidden lg:block">Live Customer Support</h1>
+		<div class="flex h-[calc(100vh-8rem)] sm:h-[calc(100vh-20rem)] bg-white sm:rounded-lg shadow-sm sm:border border-gray-200 overflow-hidden">
+		<!-- Sidebar: Session List -->
+		<div :class="{ 'hidden': showDetail, 'flex': !showDetail }" class="w-full lg:w-1/3 border-r border-gray-200 flex-col lg:flex">
+			<div class="p-4 border-b border-gray-200 bg-gray-50">
+				<h2 class="font-bold text-gray-700">Conversations</h2>
+			</div>
+			<div class="flex-1 overflow-y-auto">
+				if len(sessions) == 0 {
+					<div class="p-8 text-center text-gray-400 text-sm">Aucune conversation en cours.</div>
+				}
+				<ul id="sidebar-session-list" class="divide-y divide-gray-100">
+					for _, s := range sessions {
+						@ChatSessionItem(s, onlineMap[s.Identifier], templ.Attributes{"@click": "showDetail = true"})
+					}
+				</ul>
+			</div>
+		</div>
+
+		<!-- Chat Detail Area -->
+		<div id="admin-chat-detail" :class="{ 'flex': showDetail, 'hidden': !showDetail }" class="flex-1 lg:flex flex-col bg-gray-50">
+			<div class="flex-1 flex items-center justify-center text-gray-400 italic p-4 text-center">
+				Sélectionnez une conversation pour répondre
+			</div>
+		</div>
+		</div>
+	</div>
+}
+
+templ ChatSessionItem(s models.ChatSession, isOnline bool, attrs templ.Attributes) {
+	<li id={ fmt.Sprintf("chat-session-item-%d", s.ID) } { attrs... } class="relative group">
+		<button 
+			hx-get={ fmt.Sprintf("/admin/chat/%d", s.ID) }
+			hx-target="#admin-chat-detail"
+			hx-push-url="true"
+			class="w-full text-left p-3 sm:p-4 hover:bg-gray-50 transition-colors focus:outline-none focus:bg-green-50"
+		>
+			<div class="flex justify-between items-center">
+				<div class="flex items-center gap-2">
+					@components.ChatStatusDot(isOnline, s.ID)
+					<span class={ "font-medium text-sm", templ.KV("text-gray-900", !s.IsBanned), templ.KV("text-red-600 line-through", s.IsBanned) }>
+						if s.CustomerName != "" {
+							{ s.CustomerName }
+						} else {
+							Session #{ fmt.Sprint(s.ID) }
+						}
+						if s.IsBanned {
+							(Banned)
+						}
+					</span>
+				</div>
+				<span class="text-[10px] text-gray-400">{ s.UpdatedAt.Format("15:04") }</span>
+			</div>
+			if len(s.Identifier) >= 8 {
+				<p class="text-[10px] text-gray-500 truncate mt-1">ID: { s.Identifier[:8] }...</p>
+			} else {
+				<p class="text-[10px] text-gray-500 truncate mt-1">ID: { s.Identifier }</p>
+			}
+		</button>
+		<div class="absolute right-4 bottom-2 opacity-0 group-hover:opacity-100 transition-opacity">
+			<button 
+				onclick="event.stopPropagation()"
+				hx-post={ fmt.Sprintf("/admin/chat/%d/ban", s.ID) }
+				hx-target={ fmt.Sprintf("#chat-session-item-%d", s.ID) }
+				hx-swap="outerHTML"
+				hx-confirm={ fmt.Sprintf("Confirm %s this user?", func() string { if s.IsBanned { return "unban" }; return "ban" }()) }
+				class={ "text-[10px] px-2 py-1 rounded border transition-colors", templ.KV("bg-gray-100 text-gray-600 border-gray-300 hover:bg-gray-200", s.IsBanned), templ.KV("bg-red-50 text-red-600 border-red-200 hover:bg-red-100", !s.IsBanned) }
+			>
+				if s.IsBanned {
+					Unban
+				} else {
+					Ban User
+				}
+			</button>
+		</div>
+	</li>
+}
+
+templ ChatDetail(session models.ChatSession, cfg *config.Config, isOnline bool) {
+	<div class="flex flex-col h-full" x-init="showDetail = true">
+		<!-- Header -->
+		<div class="p-3 sm:p-4 border-b border-gray-200 bg-white shadow-sm z-10">
+			<div class="flex justify-between items-center">
+				<div class="flex items-center gap-2">
+					<button @click="showDetail = false" class="lg:hidden p-1 -ml-1 text-gray-500 hover:text-gray-700">
+						<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+						</svg>
+					</button>
+					<h3 id={ fmt.Sprintf("chat-header-%d", session.ID) } class="font-bold text-gray-900">
+						if session.CustomerName != "" {
+							{ session.CustomerName }
+						} else {
+							Client Session #{ fmt.Sprint(session.ID) }
+						}
+					</h3>
+				</div>
+				@components.ChatStatusIndicator(isOnline, session.ID)
+			</div>
+		</div>
+
+		<!-- Messages -->
+		<div 
+			id={ fmt.Sprintf("chat-messages-%d", session.ID) }
+			class="flex-1 p-2 sm:p-6 overflow-y-auto space-y-2 sm:space-y-4 scroll-smooth"
+			style="overflow-anchor: none;"
+		>
+			@components.ChatMessages(cfg, session.Messages)
+		</div>
+
+		<div id={ fmt.Sprintf("typing-indicator-%d", session.ID) } class="px-4 sm:px-6 py-1 text-[10px] sm:text-xs text-gray-400 italic h-6 bg-gray-50 border-t border-gray-100"></div>
+
+		<!-- Input -->
+		<div class="p-2 sm:p-4 bg-white border-t border-gray-200">
+			<form 
+				hx-post={ fmt.Sprintf("/admin/chat/%d/send", session.ID) }
+				hx-target={ fmt.Sprintf("#chat-messages-%d", session.ID) }
+				hx-swap="beforeend"
+				@htmx:after-request="$el.reset()"
+				class="flex gap-2"
+			>
+				<input type="text" name="message" placeholder="Répondre..." required class="flex-1 border-gray-300 rounded-lg px-3 sm:px-4 py-1.5 sm:py-2 text-sm focus:ring-green-500 focus:border-green-500"/>
+				<button type="submit" class="bg-green-600 text-white px-4 sm:px-6 py-1.5 sm:py-2 rounded-lg text-sm font-bold hover:bg-green-700 transition-colors">Envoyer</button>
+			</form>
+		</div>
+	</div>
+}
+
+// ChatSessionList is a component that renders only the list of sessions for polling
+templ ChatSessionList(sessions []models.ChatSession, onlineMap map[string]bool) {
+	<ul 
+		id="sidebar-session-list" 
+		class="divide-y divide-gray-100"
+	>
+		for _, s := range sessions {
+			@ChatSessionItem(s, onlineMap[s.Identifier], nil)
+		}
+	</ul>
+}

@@ -1,0 +1,10 @@
+package cart
+
+import (
+	"shopTemplate/app/views/components"
+)
+
+templ AddToCartResponse(total int, message string) {
+	<div hx-swap-oob="innerHTML:#cart-icon-container">@components.CartIcon(total, nil)</div>
+	// Toast message removed as per user request
+}

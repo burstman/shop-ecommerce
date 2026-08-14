@@ -1,0 +1,25 @@
+package products
+
+import (
+	"shopTemplate/app/models"
+	"shopTemplate/app/config"
+)
+
+templ New(categories []models.Category, form CreateForm, cfg *config.Config, csrfToken string) {
+	<div class="max-w-2xl mx-auto">
+		<h1 class="text-2xl font-bold mb-6">Add New Product</h1>
+		<form action="/products" method="POST" enctype="multipart/form-data" class="bg-white shadow rounded-lg p-6">
+			<input type="hidden" name="csrf_token" value={ csrfToken } />
+			@ProductFormFields(FormParams{
+				AllCategories: categories,
+				Values: form.Values,
+				Errors: form.Errors,
+				SelectedCatIDs: stringsToUintMap(form.SelectedCategoryIDs),
+			}, cfg)
+			<div class="mt-6 flex justify-end gap-3">
+				<a href="/admin/products" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">Cancel</a>
+				<button type="submit" class="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90">Create Product</button>
+			</div>
+		</form>
+	</div>
+}

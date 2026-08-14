@@ -1,0 +1,43 @@
+package components
+
+import (
+	"shopTemplate/app/models"
+	"shopTemplate/app/config"
+	"fmt"
+)
+
+templ ChatMessages(cfg *config.Config, messages []models.ChatMessage) {
+	if len(messages) == 0 {
+		<div class="text-center text-xs text-gray-400">Démarrer une conversation</div>
+	} else {
+		for _, msg := range messages {
+			@ChatMessageBubble(cfg, msg)
+		}
+	}
+}
+
+templ ChatMessageBubble(cfg *config.Config, msg models.ChatMessage) {
+	<div 
+		x-data
+		x-init="$nextTick(() => { 
+			const container = $el.closest('.overflow-y-auto');
+			if (container) { container.scrollTop = container.scrollHeight; }
+		})"
+		class={ "flex w-full", templ.KV("justify-end", msg.Sender == "client"), templ.KV("justify-start", msg.Sender == "admin") }>
+		<div class={ "max-w-[80%] rounded-2xl px-4 py-2 text-sm shadow-sm", templ.KV("rounded-br-none", msg.Sender == "client"), templ.KV("border border-gray-100 rounded-bl-none", msg.Sender == "admin") }
+			style={ getBubbleStyle(cfg, msg.Sender) }>
+			<p class="break-words">{ msg.Content }</p>
+			<span class={ "text-[10px] block mt-1 opacity-70", 
+				templ.KV("text-right", msg.Sender == "client") }>
+				{ msg.CreatedAt.Format("15:04") }
+			</span>
+		</div>
+	</div>
+}
+
+func getBubbleStyle(cfg *config.Config, sender string) string {
+	if sender == "client" {
+		return fmt.Sprintf("background-color: %s; color: %s;", cfg.Chat.ClientBubbleColor, cfg.Chat.ClientTextColor)
+	}
+	return fmt.Sprintf("background-color: %s; color: %s;", cfg.Chat.AdminBubbleColor, cfg.Chat.AdminTextColor)
+}

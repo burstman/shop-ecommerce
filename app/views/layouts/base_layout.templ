@@ -1,0 +1,245 @@
+package layouts
+
+import (
+	
+	"github.com/anthdm/superkit/view"
+
+ "shopTemplate/app/views/components"
+ "shopTemplate/app/config"
+ "shopTemplate/app/models"
+)
+
+var (
+	imagePlaceholder = "public/images/No_Image_Available.jpg"
+)
+
+templ BaseLayout(user models.AuthUser, cfg *config.Config, categories []models.Category, cartCount int) {
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<title>{ cfg.Site.Name }</title>
+			<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛍️</text></svg>"/>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<!-- Google Fonts: Inter -->
+			<link rel="preconnect" href="https://fonts.googleapis.com"/>
+			<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+			<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+			<link rel="stylesheet" href={ view.Asset("styles.css") }/>
+			<script src={ view.Asset("index.js") }></script>
+			<!-- Alpine Plugins -->
+			<script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/focus@3.x.x/dist/cdn.min.js"></script>
+			<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+			<!-- HTMX -->
+			<script src="https://unpkg.com/htmx.org@1.9.9" defer></script>
+			<script src="https://unpkg.com/htmx.org@1.9.9/dist/ext/ws.js" defer></script>
+		</head>
+		<body x-data="{theme: 'light'}" :class="theme" class="bg-background text-foreground font-sans antialiased pt-16 sm:pt-28">
+			@components.Navigation(user, cfg, categories, cartCount, nil)
+			{ children... }
+			@components.Footer(ctx, user, cfg)
+			if user.Role != "admin" {
+				@components.ChatButton(ctx, user, cfg)
+			}
+		</body>
+	</html>
+}
+
+templ Hero() {
+	<!-- Hero Section -->
+	<section class="relative overflow-hidden bg-cream-100">
+		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
+			<div class="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+				<div class="max-w-xl">
+					<p class="text-sage-600 font-medium tracking-wide uppercase text-sm mb-4">New Collection 2026</p>
+					<h1 class="font-serif text-4xl sm:text-5xl lg:text-6xl font-semibold text-sage-900 leading-tight mb-6 text-balance">
+						Nature meets exquisite design
+					</h1>
+					<p class="text-sage-700 text-lg leading-relaxed mb-8">
+						Transform your living space with our curated collection of premium indoor plants. Each plant is hand-selected for its beauty, vitality, and air-purifying qualities.
+					</p>
+					<div class="flex flex-wrap gap-4">
+						<a href="#" class="inline-flex items-center justify-center px-8 py-3 bg-sage-700 text-cream-50 font-medium rounded-sm hover:bg-sage-800 transition-colors">
+							Shop Collection
+						</a>
+						<a href="#" class="inline-flex items-center justify-center px-8 py-3 border border-sage-300 text-sage-800 font-medium rounded-sm hover:bg-sage-50 transition-colors">
+							Learn More
+						</a>
+					</div>
+				</div>
+				<div class="relative">
+					<div class="aspect-[4/5] rounded-sm overflow-hidden bg-sage-100">
+						<img src={ imagePlaceholder } alt="Beautiful Monstera plant in terracotta pot" class="w-full h-full object-cover"/>
+					</div>
+					<div class="absolute -bottom-6 -left-6 bg-cream-50 p-4 rounded-sm shadow-lg hidden lg:block">
+						<p class="text-sm text-sage-600 mb-1">Starting from</p>
+						<p class="font-serif text-2xl text-sage-900">$29</p>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+}
+
+templ Categories(count int) {
+	<!-- Categories Section -->
+	<section class="py-16 lg:py-24">
+		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+			<div class="text-center mb-12">
+				<h2 class="font-serif text-3xl lg:text-4xl font-semibold text-sage-900 mb-4">Shop by Category</h2>
+				<p class="text-sage-600 max-w-2xl mx-auto">Find the perfect plant for every corner of your home</p>
+			</div>
+			<div class="grid md:grid-cols-3 gap-6">
+				<!-- Category 1 -->
+				for i := 0; i < count; i++ {
+					<a href="#" class="group relative aspect-[3/4] rounded-sm overflow-hidden">
+						<img src={ imagePlaceholder } alt="Indoor Plants" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"/>
+						<div class="absolute inset-0 bg-gradient-to-t from-sage-900/70 to-transparent"></div>
+						<div class="absolute bottom-0 left-0 p-6">
+							<h3 class="font-serif text-2xl text-cream-50 mb-1">Category { " " + string(rune('1'+i)) }</h3>
+							<p class="text-cream-200 text-sm">Products</p>
+						</div>
+					</a>
+				}
+			</div>
+		</div>
+	</section>
+}
+
+templ Testimonial() {
+	<!-- Testimonial -->
+	<section class="bg-sage-700 py-16 lg:py-20">
+		<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+			<svg class="w-10 h-10 text-sage-400 mx-auto mb-6" fill="currentColor" viewBox="0 0 24 24">
+				<path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/>
+			</svg>
+			<blockquote class="font-serif text-2xl lg:text-3xl text-cream-50 leading-relaxed mb-6 text-balance">
+				"Botanica has completely transformed how we think about bringing nature indoors. Their plants are exceptional quality."
+			</blockquote>
+			<cite class="text-sage-300 not-italic">- Architectural Digest</cite>
+		</div>
+	</section>
+}
+
+templ BestSellers(count int) {
+	<!-- Best Sellers -->
+	<section class="py-16 lg:py-24">
+		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+			<div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-12">
+				<div>
+					<h2 class="font-serif text-3xl lg:text-4xl font-semibold text-sage-900 mb-2">Best Sellers</h2>
+					<p class="text-sage-600">Our most loved plants this season</p>
+				</div>
+				<a href="#" class="text-sage-700 hover:text-sage-900 font-medium inline-flex items-center gap-2 group">
+					View All
+					<svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+					</svg>
+				</a>
+			</div>
+			<div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+				<!-- Product 1 -->
+				for i := 0; i < count; i++ {
+					<article class="product-card group">
+						<div class="relative aspect-[3/4] rounded-sm overflow-hidden bg-cream-100 mb-4">
+							<img src={ imagePlaceholder } alt="Fiddle Leaf Fig" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"/>
+							<span class="absolute top-3 left-3 bg-terracotta-500 text-cream-50 text-xs font-medium px-2 py-1 rounded-sm">Popular</span>
+							<button class="add-to-cart absolute bottom-4 left-4 right-4 bg-sage-800 text-cream-50 py-3 font-medium rounded-sm hover:bg-sage-900 transition-colors">
+								Add to Cart
+							</button>
+						</div>
+						<h3 class="font-medium text-sage-900 mb-1">Best Seller Product</h3>
+						<p class="text-sage-600">$89.00</p>
+					</article>
+				}
+			</div>
+		</div>
+	</section>
+}
+
+
+templ NewArrivals(count int) {
+	<!-- New Arrivals -->
+	<section class="py-16 lg:py-24">
+		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+			<div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-12">
+				<div>
+					<h2 class="font-serif text-3xl lg:text-4xl font-semibold text-sage-900 mb-2">New Arrivals</h2>
+					<p class="text-sage-600">Fresh additions to our collection</p>
+				</div>
+				<a href="#" class="text-sage-700 hover:text-sage-900 font-medium inline-flex items-center gap-2 group">
+					View All
+					<svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+					</svg>
+				</a>
+			</div>
+			<div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+				<!-- Product 5 -->
+				for i := 0; i < count; i++ {
+					<article class="product-card group">
+						<div class="relative aspect-[3/4] rounded-sm overflow-hidden bg-cream-100 mb-4">
+							<img src={ imagePlaceholder } alt="Peace Lily" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"/>
+							<span class="absolute top-3 left-3 bg-sage-900 text-cream-50 text-xs font-medium px-2 py-1 rounded-sm">New</span>
+							<button class="add-to-cart absolute bottom-4 left-4 right-4 bg-sage-800 text-cream-50 py-3 font-medium rounded-sm hover:bg-sage-900 transition-colors">
+								Add to Cart
+							</button>
+						</div>
+						<h3 class="font-medium text-sage-900 mb-1">Favorite Plant</h3>
+						<p class="text-sage-600">$55.00</p>
+					</article>
+				}
+			</div>
+		</div>
+	</section>
+}
+
+templ Features() {
+	<!-- Features -->
+	<section class="bg-cream-100 py-16 lg:py-20">
+		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+			<div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
+				<div class="text-center">
+					<div class="w-12 h-12 bg-sage-100 rounded-full flex items-center justify-center mx-auto mb-4">
+						<svg class="w-6 h-6 text-sage-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>
+						</svg>
+					</div>
+					<h3 class="font-medium text-sage-900 mb-2">Free Shipping</h3>
+					<p class="text-sage-600 text-sm">On orders over $75</p>
+				</div>
+				<div class="text-center">
+					<div class="w-12 h-12 bg-sage-100 rounded-full flex items-center justify-center mx-auto mb-4">
+						<svg class="w-6 h-6 text-sage-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+						</svg>
+					</div>
+					<h3 class="font-medium text-sage-900 mb-2">Plant Guarantee</h3>
+					<p class="text-sage-600 text-sm">30-day health promise</p>
+				</div>
+				<div class="text-center">
+					<div class="w-12 h-12 bg-sage-100 rounded-full flex items-center justify-center mx-auto mb-4">
+						<svg class="w-6 h-6 text-sage-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+						</svg>
+					</div>
+					<h3 class="font-medium text-sage-900 mb-2">Expert Support</h3>
+					<p class="text-sage-600 text-sm">Plant care advice</p>
+				</div>
+				<div class="text-center">
+					<div class="w-12 h-12 bg-sage-100 rounded-full flex items-center justify-center mx-auto mb-4">
+						<svg class="w-6 h-6 text-sage-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+						</svg>
+					</div>
+					<h3 class="font-medium text-sage-900 mb-2">Sustainable</h3>
+					<p class="text-sage-600 text-sm">Eco-friendly packaging</p>
+				</div>
+			</div>
+		</div>
+	</section>
+}
+
+type ComponentsProps struct {
+	ShowViewAll bool
+}

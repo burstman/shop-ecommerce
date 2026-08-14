@@ -1,0 +1,246 @@
+package components
+
+import (
+	"fmt"
+	"shopTemplate/app/config"
+	"shopTemplate/app/models"
+	"shopTemplate/app/services"
+	"strings"
+)
+
+templ Navigation(user models.AuthUser, cfg *config.Config, categories []models.Category, cartCount int, attrs templ.Attributes) {
+	<nav 
+		id="main-navigation" 
+		{ attrs... } 
+		class="backdrop-blur-md border-b border-gray-200 fixed top-0 w-full z-50 transition-all duration-300" 
+		style={ fmt.Sprintf("background-color: color-mix(in srgb, %s %d%%, transparent);", cfg.Theme.HeaderBgColor, cfg.Theme.HeaderBgOpacity) }
+		x-data="{ mobileMenuOpen: false }"
+	>
+		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+			<div class="flex justify-between h-16 items-center">
+				<a href="/" class="flex items-center gap-3">
+					if cfg.Site.Logo != "" {
+						<img src={ cfg.Site.Logo } alt={ cfg.Site.Name + " Logo" } class="h-10 md:h-14 w-auto object-contain transition-all"/>
+					}
+					<span class="text-xl md:text-2xl font-bold text-gray-900 transition-all">{ cfg.Site.Name }</span>
+				</a>
+
+				<div class="flex items-center gap-4">
+					<!-- Language Switcher Dropdown -->
+					<div class="relative" x-data="{ open: false }">
+						<button @click="open = !open" class="flex items-center gap-1 text-xs font-medium text-gray-500 hover:text-primary transition-colors focus:outline-none">
+							<span>{ strings.ToUpper(fmt.Sprint(ctx.Value("lang"))) }</span>
+							<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+							</svg>
+						</button>
+						<div 
+							x-show="open" 
+							@click.away="open = false"
+							x-transition
+							class="absolute right-0 mt-2 w-24 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 z-50"
+							x-cloak
+						>
+							<a href="/set-lang/en" class={ "block px-4 py-2 text-xs hover:bg-gray-100", templ.KV("text-primary font-bold", ctx.Value("lang") == "en" || ctx.Value("lang") == nil) }>English</a>
+							<a href="/set-lang/fr" class={ "block px-4 py-2 text-xs hover:bg-gray-100", templ.KV("text-primary font-bold", ctx.Value("lang") == "fr") }>Français</a>
+							<a href="/set-lang/ar" class={ "block px-4 py-2 text-xs hover:bg-gray-100", templ.KV("text-primary font-bold", ctx.Value("lang") == "ar") }>العربية</a>
+						</div>
+					</div>
+					<div id="cart-icon-container" class="ml-4 flow-root lg:ml-6">
+						@CartIcon(cartCount, nil)
+					</div>
+					
+					<div class="relative ml-4 hidden sm:block" x-data="{ open: false }" @click.away="open = false">
+						<button @click="open = !open" class="p-2 text-muted-foreground hover:text-primary transition-colors focus:outline-none cursor-pointer" title="Account">
+							<svg class={ "w-6 h-6", templ.KV("text-primary", user.LoggedIn) } fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+							</svg>
+						</button>
+						<div 
+							x-show="open" 
+							x-transition:enter="transition ease-out duration-100" 
+							x-transition:enter-start="transform opacity-0 scale-95" 
+							x-transition:enter-end="transform opacity-100 scale-100" 
+							x-transition:leave="transition ease-in duration-75" 
+							x-transition:leave-start="transform opacity-100 scale-100" 
+							x-transition:leave-end="transform opacity-0 scale-95" 
+							class="absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 z-50"
+							x-cloak
+						>
+							if user.LoggedIn {
+								<div class="px-4 py-2 text-xs text-gray-500 border-b border-gray-100 mb-1 truncate">{ services.GetI18n().T(ctx, "welcome") }, { user.Email }</div>
+								if user.Role == "admin" {
+									<a href="/configuration" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">{ services.GetI18n().T(ctx, "admin_panel") }</a>
+									<a href="/admin/chats" class="flex justify-between items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+										<span>{ services.GetI18n().T(ctx, "live_chat") }</span>
+										@ChatNotificationDot(cfg, false, "", 0, templ.Attributes{"id": "admin-topnav-chat-dot"})
+									</a>
+									<a href="/admin/users" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">{ services.GetI18n().T(ctx, "users_list") }</a>
+								}
+								<a href="/profile" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">{ services.GetI18n().T(ctx, "profile") }</a>
+								<button hx-delete="/logout" hx-target="body" class="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">{ services.GetI18n().T(ctx, "logout") }</button>
+							} else {
+								<a href="/login" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">{ services.GetI18n().T(ctx, "login") }</a>
+								<a href="/signup" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">{ services.GetI18n().T(ctx, "signup") }</a>
+							}
+						</div>
+					</div>
+
+					<div class="-mr-2 flex items-center sm:hidden ml-4">
+						<button @click="mobileMenuOpen = !mobileMenuOpen" type="button" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary" aria-controls="mobile-menu" aria-expanded="false">
+							<span class="sr-only">Open main menu</span>
+							<svg class="h-6 w-6" :class="{ 'hidden': mobileMenuOpen, 'block': !mobileMenuOpen }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+							</svg>
+							<svg class="h-6 w-6" :class="{ 'block': mobileMenuOpen, 'hidden': !mobileMenuOpen }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+							</svg>
+						</button>
+					</div>
+				</div>
+			</div>
+			<div class="hidden sm:block border-t border-gray-200">
+				<div class="flex justify-center h-12">
+					<div class="flex space-x-8 h-full">
+						for _, item := range cfg.StorefrontSidebar {
+							<a href={ templ.SafeURL(item.Link) } class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium h-full">
+								{ item.Title }
+							</a>
+						}
+						for _, category := range categories {
+							if category.Slug != nil && *category.Slug == "home" {
+								<a href="/" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium h-full">{ services.GetI18n().T(ctx, "home") }</a>
+							} else {
+								@NavigationMenuItem(category, true)
+							}
+						}
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="sm:hidden" id="mobile-menu" x-show="mobileMenuOpen" x-transition>
+			<div class="pt-2 pb-3 space-y-1">
+				if user.LoggedIn {
+					<div class="px-3 py-2 text-base font-medium text-gray-500">{ services.GetI18n().T(ctx, "welcome") }, { user.Email }</div>
+					if user.Role == "admin" {
+						<a href="/configuration" class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">{ services.GetI18n().T(ctx, "admin_panel") }</a>
+						<a href="/admin/chats" class="flex justify-between items-center px-3 py-2 text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">
+							<span>{ services.GetI18n().T(ctx, "live_chat") }</span>
+							@ChatNotificationDot(cfg, false, "", 0, templ.Attributes{"id": "admin-topnav-chat-dot"})
+						</a>
+						<a href="/admin/users" class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">{ services.GetI18n().T(ctx, "users_list") }</a>
+					}
+					<a href="/profile" class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">{ services.GetI18n().T(ctx, "profile") }</a>
+					<button hx-delete="/logout" hx-target="body" class="block w-full text-left px-3 py-2 text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">{ services.GetI18n().T(ctx, "logout") }</button>
+				} else {
+					<a href="/login" class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">{ services.GetI18n().T(ctx, "login") }</a>
+					<a href="/auth/google" class="flex items-center gap-2 px-3 py-2 text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">
+						<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-5 h-5" />
+						{ services.GetI18n().T(ctx, "login_google") }
+					</a>
+					<a href="/auth/facebook" class="flex items-center gap-2 px-3 py-2 text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">
+						<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/facebook.svg" class="w-5 h-5" />
+						{ services.GetI18n().T(ctx, "login_facebook") }
+					</a>
+					<a href="/signup" class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">{ services.GetI18n().T(ctx, "signup") }</a>
+				}
+				for _, item := range cfg.StorefrontSidebar {
+					<a href={ templ.SafeURL(item.Link) } class="border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700 block pl-3 pr-4 py-2 border-l-4 text-base font-medium">
+						{ item.Title }
+					</a>
+				}
+				for _, category := range categories {
+					if category.Slug != nil && *category.Slug == "home" {
+						<a href="/" class="border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700 block pl-3 pr-4 py-2 border-l-4 text-base font-medium">{ services.GetI18n().T(ctx, "home") }</a>
+					} else {
+						@MobileNavigationMenuItem(category, 0)
+					}
+				}
+			</div>
+		</div>
+	</nav>
+}
+
+// NavigationMenuItem is a recursive component to render a category and its sub-categories (Desktop).
+templ NavigationMenuItem(category models.Category, isTopLevel bool) {
+	if len(category.SubCategories) > 0 {
+		<div class="relative" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
+			<a href={ templ.SafeURL(fmt.Sprintf("/categories/%d", category.ID)) } class={ "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium h-full", templ.KV("flex items-center", isTopLevel) }>
+				<span>{ category.Name }</span>
+				<svg class="ml-1 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+					if isTopLevel {
+						<path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+					} else {
+						<path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+					}
+				</svg>
+			</a>
+
+			<div
+				x-show="open"
+				x-transition
+				class="absolute z-10 mt-1 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none p-2 space-y-1"
+				if isTopLevel {
+					style="min-width: 200px;"
+				} else {
+					style="min-width: 200px; left: 100%; top: -8px;"
+				}
+			>
+				for _, sub := range category.SubCategories {
+					@NavigationMenuItem(sub, false)
+				}
+			</div>
+		</div>
+	} else {
+		if isTopLevel {
+			<a href={ templ.SafeURL(fmt.Sprintf("/categories/%d", category.ID)) } class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium h-full">{ category.Name }</a>
+		} else {
+			<a href={ templ.SafeURL(fmt.Sprintf("/categories/%d", category.ID)) } class="block w-full text-left px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900">{ category.Name }</a>
+		}
+	}
+}
+
+// MobileNavigationMenuItem is a recursive component to render a category and its sub-categories (Mobile).
+templ MobileNavigationMenuItem(category models.Category, level int) {
+	<div x-data="{ open: false }">
+		if len(category.SubCategories) > 0 {
+			<div class="flex items-center justify-between pr-4">
+				<a href={ templ.SafeURL(fmt.Sprintf("/categories/%d", category.ID)) } 
+				   class={ "border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700 block py-2 border-l-4 text-base font-medium flex-grow", getMobilePaddingClass(level) }>
+					{ category.Name }
+				</a>
+				<button @click="open = !open" type="button" class="p-2 text-gray-400 hover:text-gray-500 focus:outline-none">
+					<svg x-show="!open" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+					</svg>
+					<svg x-show="open" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/>
+					</svg>
+				</button>
+			</div>
+			<div x-show="open" x-transition class="w-full">
+				for _, sub := range category.SubCategories {
+					@MobileNavigationMenuItem(sub, level + 1)
+				}
+			</div>
+		} else {
+			<a href={ templ.SafeURL(fmt.Sprintf("/categories/%d", category.ID)) } 
+			   class={ "border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700 block py-2 border-l-4 text-base font-medium", getMobilePaddingClass(level) }>
+				{ category.Name }
+			</a>
+		}
+	</div>
+}
+
+func getMobilePaddingClass(level int) string {
+	switch level {
+	case 0:
+		return "pl-3"
+	case 1:
+		return "pl-6"
+	case 2:
+		return "pl-9"
+	default:
+		return "pl-12"
+	}
+}

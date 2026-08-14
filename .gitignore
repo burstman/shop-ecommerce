@@ -1,0 +1,24 @@
+bin
+node_modules
+tmp
+app_db
+
+# Ignore uploaded images
+public/images/site/
+public/images/carousel/
+public/images/sections/
+public/images/products/
+
+# ignore compiled binaries
+reset-password
+seed
+cmd/reset-password/reset-password
+
+# Ignore common image extensions
+*.[jJ][pP][gG]
+*.[jJ][pP][eE][gG]
+*.[pP][nN][gG]
+*.[gG][iI][fF]
+*.[sS][vV][gG]
+*.[iI][cC][oO]
+*.[wW][eE][bB][pP]

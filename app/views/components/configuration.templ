@@ -1,0 +1,31 @@
+package components
+
+
+
+templ Configuration (settings map[string]string) {
+	<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+		<div class="flex flex-col md:flex-row justify-between items-end mb-10 gap-4">
+			<div>
+			</div>
+		</div>
+		<div class="bg-background border rounded-md p-8">
+			<form action="/configuration" method="POST" class="max-w-xl flex flex-col gap-6">
+				
+				<div class="flex flex-col gap-2">
+					<label for="site_name" class="font-medium">Site Name</label>
+					<input type="text" name="site_name" id="site_name" value={ settings["site_name"] } class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"/>
+					<p class="text-xs text-muted-foreground">The name displayed in the browser tab and header.</p>
+				</div>
+
+				<div class="flex flex-col gap-2">
+					<label for="support_email" class="font-medium">Support Email</label>
+					<input type="email" name="support_email" id="support_email" value={ settings["support_email"] } class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"/>
+				</div>
+
+				<div class="pt-4">
+					<button type="submit" class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">Save Changes</button>
+				</div>
+			</form>
+		</div>
+	</div>
+}

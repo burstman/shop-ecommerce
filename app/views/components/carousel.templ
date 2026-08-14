@@ -1,0 +1,64 @@
+package components
+
+import "strconv"
+import "fmt"
+
+type CarouselItem struct {
+	Image       string
+	Title       string
+	Description string
+	ButtonText  string
+	ButtonLink  string
+	ProductID   *uint 
+}	
+
+templ Carousel(items []CarouselItem) {
+	if len(items) > 0 {
+		<div class="relative group" x-data="{ activeSlide: 0, interval: null }" x-init="interval = setInterval(() => { activeSlide = activeSlide === $data.slideCount - 1 ? 0 : activeSlide + 1 }, 5000)" x-effect="$data.slideCount = $el.querySelectorAll('.carousel-slide').length">
+			<div class="relative h-[600px] overflow-hidden">
+				for i, item := range items {
+					<div 
+						class="carousel-slide absolute inset-0 transition-opacity" 
+						x-show={ fmt.Sprintf("activeSlide === %d", i) }
+						x-transition:enter="transition-opacity duration-1000 ease-in-out"
+						x-transition:enter-start="opacity-0"
+						x-transition:enter-end="opacity-100"
+						x-transition:leave="transition-opacity duration-1000 ease-in-out"
+						x-transition:leave-start="opacity-100"
+						x-transition:leave-end="opacity-0"
+						if i != 0 {
+							style="display: none;"
+						}
+					>
+						<img src={ item.Image } alt={ item.Title } class="w-full h-full object-cover"/>
+						<div class="absolute inset-0 bg-black/40 flex items-center justify-center">
+							<div class="text-center text-white px-4 max-w-4xl">
+								<h1 class="text-4xl md:text-6xl font-bold mb-4">{ item.Title }</h1>
+								<p class="text-xl md:text-2xl mb-6">{ item.Description }</p>
+								<div class="flex justify-center gap-4">
+									if item.ButtonText != "" {
+										<a href={ templ.SafeURL(item.ButtonLink) } class="inline-block bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-3 px-8 rounded-full transition duration-300">
+										{ item.ButtonText }
+									</a>
+								}
+							</div>
+						</div>
+					</div>
+					</div>
+				}
+			</div>
+			
+			if len(items) > 1 {
+				<div class="absolute bottom-8 left-0 right-0 flex justify-center space-x-2 z-10">
+					for i := range items {
+						<button 
+							@click={ "activeSlide = " + strconv.Itoa(i) + "; clearInterval(interval); interval = setInterval(() => { activeSlide = activeSlide === $data.slideCount - 1 ? 0 : activeSlide + 1 }, 5000)" } 
+							class="w-3 h-3 rounded-full transition-colors duration-300 bg-white"
+							x-bind:class={ "{ 'bg-opacity-100': activeSlide === " + strconv.Itoa(i) + ", 'bg-opacity-50': activeSlide !== " + strconv.Itoa(i) + " }" }
+						></button>
+					}
+				</div>
+			}
+		</div>
+	}
+}

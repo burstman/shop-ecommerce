@@ -1,0 +1,17 @@
+package auth
+
+import (
+	"shopTemplate/app/views/layouts"
+	"shopTemplate/app/models"
+	"shopTemplate/app/config"
+	"shopTemplate/app/services"
+)
+
+templ EmailVerificationError(errorMessage string) {
+	@layouts.BaseLayout(models.AuthUser{},config.FromContext(ctx),nil,0) {
+		<div class="h-screen flex flex-col justify-center items-center gap-4">
+			<div class="text-xl">{ errorMessage }</div>
+			<a href="/" class="underline text-sm">{ services.GetI18n().T(ctx, "back_to_home") }</a>
+		</div>
+	}
+}

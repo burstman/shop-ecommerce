@@ -1,0 +1,14 @@
+package components
+
+templ ChatBanNotice() {
+	<div class="p-4 text-red-800 bg-red-50 text-center text-sm font-medium border-t">
+		Vous avez été banni de la discussion.
+	</div>
+}
+
+templ ChatBanOOB() {
+	<div id="chat-messages" hx-swap-oob="afterbegin">
+		<div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 font-medium text-center">Vous avez été banni de la discussion.</div>
+	</div>
+	<div id="chat-input-form" hx-swap-oob="innerHTML" class="text-center py-4 text-gray-500 italic text-sm border-t">Cette discussion est restreinte.</div>
+}

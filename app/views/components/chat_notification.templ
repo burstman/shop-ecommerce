@@ -1,0 +1,79 @@
+package components
+
+import "fmt"
+import "shopTemplate/app/config"
+
+templ ChatNotificationDot(cfg *config.Config, show bool, content string, sessionID uint, attrs templ.Attributes) {
+	<div 
+		id="sidebar-chat-dot" 
+		class="inline-flex items-center justify-center" 
+		{ attrs... }
+		hx-get="/admin/chats"
+		hx-select="#sidebar-chat-dot"
+		hx-swap="outerHTML"
+		x-bind:hx-trigger="$store.chat.wsError ? 'every 5s' : 'intersect once, every 15s'"
+	>
+		if show {
+			<span class="relative flex h-2 w-2">
+				<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+				<span class="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+			</span>
+
+			<!-- Popup Notification -->
+			if cfg.Chat.EnablePopup {
+			<div
+				x-data="{ visible: true }"
+				x-init={ fmt.Sprintf("setTimeout(() => visible = false, %d)", cfg.Chat.PopupTimeout * 1000) }
+				x-show="visible"
+				x-transition:enter="transform ease-out duration-300 transition"
+				x-transition:enter-start="translate-y-2 opacity-0 sm:translate-y-0 sm:translate-x-2"
+				x-transition:enter-end="translate-y-0 opacity-100 sm:translate-x-0"
+				x-transition:leave="transition ease-in duration-100"
+				x-transition:leave-start="opacity-100"
+				x-transition:leave-end="opacity-0"
+				class="fixed bottom-4 right-4 z-[60] w-full max-w-sm bg-white rounded-lg shadow-2xl border border-gray-200 pointer-events-auto overflow-hidden"
+			>
+				<div class="p-4">
+					<div class="flex items-start">
+						<div class="flex-shrink-0">
+							<div class="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600">
+								<svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
+							</div>
+						</div>
+						<div class="ml-3 w-0 flex-1 pt-0.5">
+							<p class="text-sm font-bold text-gray-900">Nouveau message client</p>
+							<p class="mt-1 text-sm text-gray-500 line-clamp-2">{ content }</p>
+							<div class="mt-3 flex space-x-7">
+								<a href="/admin/chats" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">Voir la discussion</a>
+								<button @click="visible = false" class="text-sm font-medium text-gray-700 hover:text-gray-500">Fermer</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			}
+
+			<script>
+				(function() {
+					// 1. Native Desktop Notification
+					if (window.Notification && Notification.permission === "granted") {
+						new Notification("Nouveau message client");
+					} else if (window.Notification && Notification.permission !== "denied") {
+						Notification.requestPermission();
+					}
+					
+					// 2. Audio Ping
+					const audio = document.getElementById('chat-ping-sound');
+					if (audio) {
+						audio.currentTime = 0; // Reset to start
+						audio.play().catch(err => {
+							console.warn('Chat Sound: Playback blocked by browser policy. Click anywhere on the page (like a menu item) to enable audio alerts.');
+						});
+					} else {
+						console.error('Chat Sound: Audio element #chat-ping-sound (ping.wav) not found in DOM.');
+					}
+				})();
+			</script>
+		}
+	</div>
+}

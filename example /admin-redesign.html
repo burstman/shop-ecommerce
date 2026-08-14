@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Best Shops — Admin Redesign</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lucide-static@latest/font/lucide.css">
+<style>
+  :root {
+    --radius: 0.625rem;
+    --background: #f7f7f9;
+    --foreground: #1c1d2b;
+    --card: #ffffff;
+    --muted: #f1f2f5;
+    --muted-foreground: #6b7280;
+    --border: #e5e7eb;
+    --accent: #eef0ff;
+    --accent-foreground: #4338ca;
+    --primary: #5b5fef;
+    --primary-foreground: #ffffff;
+    --success: #16a34a;
+    --success-bg: #dcfce7;
+    --warning: #f59e0b;
+    --destructive: #dc2626;
+
+    --sidebar: #1f2238;
+    --sidebar-foreground: #e8eaf3;
+    --sidebar-hover: #2a2e4a;
+    --sidebar-active: #5b5fef;
+    --sidebar-muted: #8b8fa8;
+    --sidebar-border: #2d3150;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; border-color: var(--border); }
+  html, body { height: 100%; }
+  body {
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: var(--background);
+    color: var(--foreground);
+    font-size: 14px;
+    -webkit-font-smoothing: antialiased;
+  }
+  button { font: inherit; cursor: pointer; background: none; border: none; color: inherit; }
+  input, select { font: inherit; color: inherit; }
+  a { color: inherit; text-decoration: none; }
+  ul { list-style: none; }
+  .i { font-family: 'lucide'; font-style: normal; font-size: 16px; line-height: 1; }
+
+  .app { display: flex; min-height: 100vh; width: 100%; }
+
+  /* Sidebar */
+  .sidebar {
+    width: 260px; flex-shrink: 0;
+    background: var(--sidebar); color: var(--sidebar-foreground);
+    display: flex; flex-direction: column;
+    border-right: 1px solid var(--sidebar-border);
+  }
+  .sidebar-head { padding: 16px; border-bottom: 1px solid var(--sidebar-border); }
+  .brand { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .brand-logo {
+    width: 32px; height: 32px; border-radius: 8px;
+    background: var(--sidebar-active);
+    display: grid; place-items: center; font-weight: 700; font-size: 12px;
+  }
+  .brand-title { font-size: 14px; font-weight: 600; }
+  .brand-sub { font-size: 11px; color: var(--sidebar-muted); }
+  .search { position: relative; }
+  .search .i { position: absolute; left: 8px; top: 50%; transform: translateY(-50%); font-size: 14px; color: var(--sidebar-muted); }
+  .search input {
+    width: 100%; padding: 7px 8px 7px 28px; border-radius: 6px;
+    background: var(--sidebar-hover); border: none; color: inherit;
+    outline: none; font-size: 12px;
+  }
+  .search input::placeholder { color: var(--sidebar-muted); }
+  .search input:focus { box-shadow: 0 0 0 1px var(--sidebar-active); }
+
+  .back-btn {
+    margin: 12px 12px 0; display: flex; align-items: center; gap: 8px;
+    padding: 6px 8px; border-radius: 6px; font-size: 12px;
+    color: var(--sidebar-muted); transition: .15s;
+  }
+  .back-btn:hover { color: var(--sidebar-foreground); background: var(--sidebar-hover); }
+
+  .nav { flex: 1; overflow-y: auto; padding: 12px; }
+  .nav-group { margin-bottom: 16px; }
+  .nav-group-label {
+    padding: 0 8px; margin-bottom: 4px;
+    font-size: 10px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: .08em;
+    color: var(--sidebar-muted);
+  }
+  .nav-item {
+    width: 100%; display: flex; align-items: center; gap: 10px;
+    padding: 7px 8px; border-radius: 6px; font-size: 13px;
+    color: rgba(232,234,243,0.9); text-align: left; transition: .15s;
+    margin-bottom: 2px;
+  }
+  .nav-item:hover { background: var(--sidebar-hover); }
+  .nav-item.active { background: var(--sidebar-active); color: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.2); }
+  .nav-item .i { font-size: 16px; flex-shrink: 0; }
+  .nav-item span { flex: 1; }
+  .badge-sm {
+    font-size: 10px; padding: 2px 7px; border-radius: 999px; font-weight: 500;
+    background: var(--sidebar-hover); color: var(--sidebar-muted);
+  }
+  .nav-item.active .badge-sm { background: rgba(255,255,255,.2); color: #fff; }
+
+  /* Main */
+  .main { flex: 1; display: flex; flex-direction: column; min-width: 0; position: relative; }
+  .header {
+    height: 56px; border-bottom: 1px solid var(--border);
+    background: var(--card); display: flex; align-items: center;
+    padding: 0 24px; gap: 16px;
+  }
+  .breadcrumbs { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+  .breadcrumbs .muted { color: var(--muted-foreground); }
+  .breadcrumbs .i { font-size: 12px; color: var(--muted-foreground); }
+  .header-actions { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+  .device-toggle {
+    display: flex; align-items: center; border: 1px solid var(--border);
+    background: var(--background); border-radius: 6px; padding: 2px;
+  }
+  .device-toggle button {
+    height: 28px; padding: 0 8px; border-radius: 4px;
+    display: grid; place-items: center; color: var(--muted-foreground);
+  }
+  .device-toggle button.active { background: var(--accent); color: var(--accent-foreground); }
+  .btn {
+    height: 32px; padding: 0 12px; border-radius: 6px;
+    border: 1px solid var(--border); background: var(--card);
+    font-size: 13px; display: inline-flex; align-items: center; gap: 6px;
+    transition: .15s;
+  }
+  .btn:hover { background: var(--accent); }
+  .btn-primary { background: var(--primary); color: var(--primary-foreground); border-color: var(--primary); }
+  .btn-primary:hover { opacity: .9; background: var(--primary); }
+  .btn-success { background: var(--success); color: #fff; border-color: var(--success); }
+  .btn-success:hover { opacity: .9; background: var(--success); }
+
+  /* Body split */
+  .body { flex: 1; display: flex; min-height: 0; }
+  .content { flex: 1; overflow-y: auto; padding: 24px 24px 112px; }
+  .content-inner { max-width: 760px; margin: 0 auto; }
+  .page-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; }
+  .page-head h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.01em; }
+  .page-head p { font-size: 13px; color: var(--muted-foreground); margin-top: 4px; }
+
+  /* Section cards */
+  .sections { display: flex; flex-direction: column; gap: 12px; }
+  .section-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+    overflow: hidden; transition: box-shadow .15s;
+    box-shadow: 0 1px 2px rgba(0,0,0,.03);
+  }
+  .section-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,.06); }
+  .section-head {
+    width: 100%; display: flex; align-items: center; gap: 12px;
+    padding: 12px; text-align: left;
+  }
+  .grip { color: var(--muted-foreground); cursor: grab; }
+  .chevron { color: var(--muted-foreground); transition: transform .2s; }
+  .section-card.closed .chevron { transform: rotate(-90deg); }
+  .section-card.closed .section-body { display: none; }
+  .section-title { flex: 1; min-width: 0; }
+  .section-title .name { font-weight: 500; font-size: 13px; display: flex; align-items: center; gap: 8px; }
+  .dirty-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--warning); }
+  .section-title .type { font-size: 11px; color: var(--muted-foreground); margin-top: 2px; }
+  .status {
+    font-size: 10px; padding: 2px 8px; border-radius: 999px; font-weight: 500;
+  }
+  .status.on { background: var(--success-bg); color: var(--success); }
+  .status.off { background: var(--muted); color: var(--muted-foreground); }
+  .icon-btn {
+    width: 28px; height: 28px; border-radius: 4px; display: grid; place-items: center;
+    color: var(--muted-foreground); transition: .15s;
+  }
+  .icon-btn:hover { background: var(--accent); color: var(--accent-foreground); }
+  .icon-btn.danger:hover { background: rgba(220,38,38,.1); color: var(--destructive); }
+
+  .section-body { border-top: 1px solid var(--border); background: rgba(241,242,245,.4); padding: 16px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .field-label { font-size: 12px; font-weight: 500; color: var(--muted-foreground); margin-bottom: 6px; display: block; }
+  .input, .select {
+    width: 100%; height: 36px; padding: 0 8px; border-radius: 6px;
+    border: 1px solid var(--border); background: var(--card);
+    font-size: 13px; outline: none;
+  }
+  .input:focus, .select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(91,95,239,.15); }
+  .color-input {
+    display: flex; align-items: center; gap: 8px;
+    height: 36px; padding: 0 8px; border-radius: 6px;
+    border: 1px solid var(--border); background: var(--card);
+  }
+  .swatch { width: 20px; height: 20px; border-radius: 4px; border: 1px solid var(--border); }
+  .color-input input {
+    flex: 1; border: none; outline: none; background: transparent;
+    font-size: 13px; font-family: ui-monospace, monospace;
+  }
+  .color-input .i { font-size: 14px; color: var(--success); }
+
+  .add-section {
+    width: 100%; padding: 24px; border-radius: 8px;
+    border: 2px dashed var(--border); color: var(--muted-foreground);
+    font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: .15s; background: transparent;
+  }
+  .add-section:hover { border-color: var(--primary); color: var(--primary); background: rgba(91,95,239,.04); }
+
+  /* Preview pane */
+  .preview-pane {
+    width: 320px; border-left: 1px solid var(--border);
+    background: rgba(241,242,245,.4); display: flex; flex-direction: column;
+  }
+  .preview-head {
+    padding: 12px 16px; border-bottom: 1px solid var(--border); background: var(--card);
+    font-size: 12px; font-weight: 500; color: var(--muted-foreground);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .preview-body { flex: 1; padding: 16px; overflow-y: auto; }
+  .preview-frame {
+    background: #fff; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,.08);
+    overflow: hidden; margin: 0 auto; transition: max-width .3s;
+    max-width: 100%;
+  }
+  .preview-frame.mobile { max-width: 200px; }
+  .pf-header { height: 40px; background: #bfe6c8; display: flex; align-items: center; padding: 0 8px; gap: 6px; }
+  .pf-logo { width: 20px; height: 20px; border-radius: 4px; background: rgba(255,255,255,.7); }
+  .pf-bar { width: 50px; height: 8px; background: rgba(0,0,0,.4); border-radius: 2px; }
+  .pf-body { padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+  .pf-hero { height: 64px; border-radius: 4px; background: linear-gradient(135deg, #d1fae5, #a7f3d0); }
+  .pf-title { height: 12px; width: 66%; background: #0d8a6e; border-radius: 2px; }
+  .pf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .pf-card { aspect-ratio: 1; border-radius: 4px; background: #f5f5f4; }
+  .preview-caption { font-size: 11px; color: var(--muted-foreground); text-align: center; margin-top: 12px; }
+
+  @media (max-width: 1200px) { .preview-pane { display: none; } }
+
+  /* Sticky save bar */
+  .save-bar {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    border-top: 1px solid var(--border);
+    background: rgba(255,255,255,.95); backdrop-filter: blur(8px);
+    padding: 12px 24px; display: flex; align-items: center; gap: 12px;
+    box-shadow: 0 -4px 16px rgba(0,0,0,.06);
+    animation: slideUp .25s ease;
+  }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  .pulse-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--warning); animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .4; } }
+  .save-bar .msg { font-size: 13px; }
+  .save-bar .msg strong { font-weight: 500; }
+  .save-bar .msg .muted { color: var(--muted-foreground); }
+  .save-bar .actions { margin-left: auto; display: flex; gap: 8px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-head">
+      <div class="brand">
+        <div class="brand-logo">BS</div>
+        <div style="flex:1; min-width:0;">
+          <div class="brand-title">Best Shops</div>
+          <div class="brand-sub">Admin Panel</div>
+        </div>
+      </div>
+      <div class="search">
+        <i class="i">&#xea64;</i>
+        <input placeholder="Search…" />
+      </div>
+    </div>
+
+    <button class="back-btn"><i class="i">&#xea5c;</i> Back to store</button>
+
+    <nav class="nav">
+      <div class="nav-group">
+        <div class="nav-group-label">Storefront</div>
+        <button class="nav-item"><i class="i">&#xea88;</i><span>Hero Section</span></button>
+        <button class="nav-item active"><i class="i">&#xea6b;</i><span>Homepage Sections</span><span class="badge-sm">2</span></button>
+        <button class="nav-item"><i class="i">&#xea7f;</i><span>Theme</span></button>
+        <button class="nav-item"><i class="i">&#xea34;</i><span>Notifications</span></button>
+      </div>
+      <div class="nav-group">
+        <div class="nav-group-label">Catalog</div>
+        <button class="nav-item"><i class="i">&#xeab1;</i><span>Categories</span></button>
+        <button class="nav-item"><i class="i">&#xea51;</i><span>Products</span></button>
+      </div>
+      <div class="nav-group">
+        <div class="nav-group-label">Operations</div>
+        <button class="nav-item"><i class="i">&#xea68;</i><span>Orders</span><span class="badge-sm">12</span></button>
+        <button class="nav-item"><i class="i">&#xea3c;</i><span>Payment Methods</span></button>
+      </div>
+      <div class="nav-group">
+        <div class="nav-group-label">Engagement</div>
+        <button class="nav-item"><i class="i">&#xea84;</i><span>Facebook Pixel</span></button>
+        <button class="nav-item"><i class="i">&#xea2f;</i><span>Chat Settings</span></button>
+        <button class="nav-item"><i class="i">&#xea75;</i><span>Social Links</span></button>
+      </div>
+      <div class="nav-group">
+        <div class="nav-group-label">Settings</div>
+        <button class="nav-item"><i class="i">&#xea71;</i><span>Site Settings</span></button>
+      </div>
+    </nav>
+  </aside>
+
+  <!-- Main -->
+  <div class="main">
+    <header class="header">
+      <div class="breadcrumbs">
+        <span class="muted">Storefront</span>
+        <i class="i">&#xea61;</i>
+        <span style="font-weight:500;">Homepage Sections</span>
+      </div>
+      <div class="header-actions">
+        <div class="device-toggle" id="device">
+          <button data-device="desktop" class="active"><i class="i">&#xea49;</i></button>
+          <button data-device="mobile"><i class="i">&#xea4a;</i></button>
+        </div>
+        <button class="btn"><i class="i">&#xea3f;</i> Live Preview</button>
+      </div>
+    </header>
+
+    <div class="body">
+      <div class="content">
+        <div class="content-inner">
+          <div class="page-head">
+            <div>
+              <h1>Homepage Sections</h1>
+              <p>Drag to reorder. Click a section to edit.</p>
+            </div>
+            <button class="btn btn-primary"><i class="i">&#xea4d;</i> Add section</button>
+          </div>
+
+          <div class="sections" id="sections">
+            <!-- Card 1 -->
+            <div class="section-card closed">
+              <button class="section-head" onclick="this.parentElement.classList.toggle('closed')">
+                <i class="i grip">&#xea3e;</i>
+                <i class="i chevron">&#xea5d;</i>
+                <div class="section-title">
+                  <div class="name">Branding Rectangle (Navigation)</div>
+                  <div class="type">Navigation</div>
+                </div>
+                <span class="status on">Enabled</span>
+                <div onclick="event.stopPropagation()" style="display:flex; gap:2px; margin-left:4px;">
+                  <button class="icon-btn"><i class="i">&#xea36;</i></button>
+                  <button class="icon-btn danger"><i class="i">&#xea81;</i></button>
+                </div>
+              </button>
+            </div>
+
+            <!-- Card 2 (open) -->
+            <div class="section-card">
+              <button class="section-head" onclick="this.parentElement.classList.toggle('closed')">
+                <i class="i grip">&#xea3e;</i>
+                <i class="i chevron">&#xea5d;</i>
+                <div class="section-title">
+                  <div class="name">Featured Collection <span class="dirty-dot" title="Unsaved changes"></span></div>
+                  <div class="type">Products Section</div>
+                </div>
+                <span class="status on">Enabled</span>
+                <div onclick="event.stopPropagation()" style="display:flex; gap:2px; margin-left:4px;">
+                  <button class="icon-btn"><i class="i">&#xea36;</i></button>
+                  <button class="icon-btn danger"><i class="i">&#xea81;</i></button>
+                </div>
+              </button>
+              <div class="section-body">
+                <div class="grid-2">
+                  <div>
+                    <label class="field-label">Type</label>
+                    <select class="select">
+                      <option>Products Section</option>
+                      <option>Banner</option>
+                      <option>Testimonials</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="field-label">Section Title</label>
+                    <input class="input" value="Featured Collection" />
+                  </div>
+                  <div>
+                    <label class="field-label">Title Background</label>
+                    <div class="color-input">
+                      <div class="swatch" style="background:#0d8a6e"></div>
+                      <input value="#0d8a6e" />
+                      <i class="i">&#xea5f;</i>
+                    </div>
+                  </div>
+                  <div>
+                    <label class="field-label">Title Text</label>
+                    <div class="color-input">
+                      <div class="swatch" style="background:#ffffff"></div>
+                      <input value="#ffffff" />
+                      <i class="i">&#xea5f;</i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 3 -->
+            <div class="section-card closed">
+              <button class="section-head" onclick="this.parentElement.classList.toggle('closed')">
+                <i class="i grip">&#xea3e;</i>
+                <i class="i chevron">&#xea5d;</i>
+                <div class="section-title">
+                  <div class="name">Hero Banner</div>
+                  <div class="type">Banner</div>
+                </div>
+                <span class="status on">Enabled</span>
+                <div onclick="event.stopPropagation()" style="display:flex; gap:2px; margin-left:4px;">
+                  <button class="icon-btn"><i class="i">&#xea36;</i></button>
+                  <button class="icon-btn danger"><i class="i">&#xea81;</i></button>
+                </div>
+              </button>
+            </div>
+
+            <!-- Card 4 -->
+            <div class="section-card closed">
+              <button class="section-head" onclick="this.parentElement.classList.toggle('closed')">
+                <i class="i grip">&#xea3e;</i>
+                <i class="i chevron">&#xea5d;</i>
+                <div class="section-title">
+                  <div class="name">Customer Testimonials <span class="dirty-dot"></span></div>
+                  <div class="type">Testimonials</div>
+                </div>
+                <span class="status off">Disabled</span>
+                <div onclick="event.stopPropagation()" style="display:flex; gap:2px; margin-left:4px;">
+                  <button class="icon-btn"><i class="i">&#xea36;</i></button>
+                  <button class="icon-btn danger"><i class="i">&#xea81;</i></button>
+                </div>
+              </button>
+            </div>
+
+            <button class="add-section"><i class="i">&#xea4d;</i> Add new section</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Preview pane -->
+      <aside class="preview-pane">
+        <div class="preview-head"><i class="i">&#xea3f;</i> Storefront preview</div>
+        <div class="preview-body">
+          <div class="preview-frame" id="previewFrame">
+            <div class="pf-header">
+              <div class="pf-logo"></div>
+              <div class="pf-bar"></div>
+            </div>
+            <div class="pf-body">
+              <div class="pf-hero"></div>
+              <div class="pf-title"></div>
+              <div class="pf-grid">
+                <div class="pf-card"></div><div class="pf-card"></div>
+                <div class="pf-card"></div><div class="pf-card"></div>
+              </div>
+            </div>
+          </div>
+          <p class="preview-caption">Updates as you edit</p>
+        </div>
+      </aside>
+    </div>
+
+    <!-- Sticky save bar -->
+    <div class="save-bar">
+      <div class="pulse-dot"></div>
+      <div class="msg"><strong>2 unsaved changes</strong> <span class="muted">· ⌘S to save</span></div>
+      <div class="actions">
+        <button class="btn"><i class="i">&#xea87;</i> Discard</button>
+        <button class="btn btn-success"><i class="i">&#xea69;</i> Save changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Sidebar active
+  document.querySelectorAll('.nav-item').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('.nav-item').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+  }));
+  // Device toggle
+  document.querySelectorAll('#device button').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('#device button').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    document.getElementById('previewFrame').classList.toggle('mobile', b.dataset.device === 'mobile');
+  }));
+  // Color swatches live
+  document.querySelectorAll('.color-input').forEach(ci => {
+    const sw = ci.querySelector('.swatch'), inp = ci.querySelector('input');
+    inp.addEventListener('input', () => sw.style.background = inp.value);
+  });
+</script>
+</body>
+</html>

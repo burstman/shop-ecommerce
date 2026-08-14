@@ -1,0 +1,55 @@
+package legal
+
+import (
+	"shopTemplate/app/views/layouts"
+	"shopTemplate/app/models"
+	"shopTemplate/app/config"
+)
+
+templ PrivacyPolicy(user models.AuthUser, categories []models.Category, cartCount int) {
+	@layouts.BaseLayout(user, config.FromContext(ctx), categories, cartCount) {
+		<div class="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+			<h1 class="text-3xl font-extrabold text-gray-900 mb-8">Privacy Policy</h1>
+			<div class="prose prose-indigo max-w-none text-gray-600 space-y-6">
+				<p>Your privacy is important to us. It is our policy to respect your privacy regarding any information we may collect from you across our website, <a href="/">ShopTemplate</a>, and other sites we own and operate.</p>
+				
+				<h2 class="text-xl font-bold text-gray-900 mt-6">1. Information we collect</h2>
+				<p>We only ask for personal information when we truly need it to provide a service to you. We collect it by fair and lawful means, with your knowledge and consent. We also let you know why we’re collecting it and how it will be used.</p>
+				
+				<h2 class="text-xl font-bold text-gray-900 mt-6">2. Use of Information</h2>
+				<p>We use the information we collect in various ways, including to:</p>
+				<ul class="list-disc pl-6">
+					<li>Provide, operate, and maintain our website</li>
+					<li>Improve, personalize, and expand our website</li>
+					<li>Understand and analyze how you use our website</li>
+					<li>Process your transactions and manage your orders</li>
+					<li>Communicate with you for customer service and support</li>
+				</ul>
+
+				<h2 class="text-xl font-bold text-gray-900 mt-6">3. Facebook Data</h2>
+				<p>If you choose to log in using Facebook, we collect your name and email address to create and manage your account. You can request the deletion of this data at any time by visiting our <a href="/data-deletion">Data Deletion</a> page.</p>
+			</div>
+		</div>
+	}
+}
+
+templ DataDeletion(user models.AuthUser, categories []models.Category, cartCount int) {
+	@layouts.BaseLayout(user, config.FromContext(ctx), categories, cartCount) {
+		<div class="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+			<h1 class="text-3xl font-extrabold text-gray-900 mb-8">User Data Deletion Instructions</h1>
+			<div class="prose prose-indigo max-w-none text-gray-600 space-y-6">
+				<p>At ShopTemplate, we respect your right to privacy and control over your data. If you have used Facebook to log in to our application and wish to delete your data, please follow these steps:</p>
+				
+				<ol class="list-decimal pl-6 space-y-2">
+					<li>Go to your Facebook Account's "Settings & Privacy" menu. Click "Settings".</li>
+					<li>Look for "Apps and Websites" and you will see all of the apps and websites you linked with your Facebook.</li>
+					<li>Search and click "ShopTemplate" in the search bar.</li>
+					<li>Scroll and click "Remove".</li>
+					<li>Congratulations, you have successfully removed your app activities.</li>
+				</ol>
+				
+				<p class="mt-8">Alternatively, you can contact us at <strong>support@topdeals2025.space</strong> to request that we delete all data associated with your account from our database.</p>
+			</div>
+		</div>
+	}
+}

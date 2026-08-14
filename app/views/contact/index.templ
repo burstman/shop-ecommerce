@@ -1,0 +1,10 @@
+package contact
+
+import (
+	"context"
+	"shopTemplate/app/views/components"
+)
+
+templ Index(ctx context.Context) {
+	@components.ContactForm(ctx)
+}

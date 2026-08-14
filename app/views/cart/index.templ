@@ -1,0 +1,68 @@
+package cart
+
+import (
+	"fmt"
+	"shopTemplate/app/config"
+	"shopTemplate/app/helpers"
+	"shopTemplate/app/models"
+	"shopTemplate/app/services"
+)
+
+templ Index(cart *models.Cart) {
+	<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+		<h1 class="text-3xl font-bold mb-8">{ services.GetI18n().T(ctx, "shopping_cart") }</h1>
+		if len(cart.Items) == 0 {
+			<div class="text-center py-16">
+				<svg class="mx-auto h-24 w-24 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"/>
+				</svg>
+				<h3 class="mt-6 text-xl font-semibold text-gray-900">{ services.GetI18n().T(ctx, "cart_empty") }</h3>
+				<a href="/" class="mt-6 inline-flex items-center px-6 py-3 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors">{ services.GetI18n().T(ctx, "continue_shopping") }</a>
+			</div>
+		} else {
+			<div class="bg-white shadow overflow-hidden sm:rounded-lg">
+				<ul role="list" class="divide-y divide-gray-200">
+					for _, item := range cart.Items {
+						<li class="px-4 py-6 sm:px-6 flex items-center">
+							<div class="flex-shrink-0 h-20 w-20 rounded-md overflow-hidden bg-gray-100">
+								if item.Product.Image != "" {
+									<img class="h-full w-full object-cover" src={ item.Product.Image } alt={ item.Product.Name }/>
+								} else {
+									<div class="h-full w-full flex items-center justify-center text-gray-400 text-xs">{ services.GetI18n().T(ctx, "no_image") }</div>
+								}
+							</div>
+							<div class="ml-6 flex-1 flex flex-col">
+								<div class="flex justify-between text-base font-medium text-gray-900">
+									<h3><a href={ templ.SafeURL(fmt.Sprintf("/products/%d", item.Product.ID)) }>{ item.Product.Name }</a></h3>
+									<p class="ml-4">{ helpers.CalculateItemPrice(item, config.FromContext(ctx).Site.Bundles).String() }</p>
+								</div>
+								<div class="flex flex-1 items-end justify-between text-sm">
+									<p class="text-gray-500">{ services.GetI18n().T(ctx, "qty") } { fmt.Sprint(item.Quantity) } x { item.Product.Price.String() }</p>
+								</div>
+							</div>
+						</li>
+					}
+				</ul>
+				<div class="border-t border-gray-200 px-4 py-6 sm:px-6 bg-gray-50">
+					<div class="flex justify-between text-base font-medium text-gray-900">
+						<p>{ services.GetI18n().T(ctx, "subtotal") }</p>
+						<p>{ calculateTotal(cart, config.FromContext(ctx).Site.Bundles).String() }</p>
+					</div>
+					<p class="mt-0.5 text-sm text-gray-500">{ services.GetI18n().T(ctx, "shipping_taxes_calc") }</p>
+					<div class="mt-6">
+						<a href="/checkout" class="flex items-center justify-center rounded-md border border-transparent bg-primary px-6 py-3 text-base font-medium text-primary-foreground shadow-sm hover:bg-primary/90">{ services.GetI18n().T(ctx, "checkout") }</a>
+					</div>
+					<div class="mt-6 flex justify-center text-center text-sm text-gray-500">
+						<p>
+							<a href="/" class="font-medium text-primary hover:text-primary/90">{ services.GetI18n().T(ctx, "continue_shopping") } <span aria-hidden="true"> &rarr;</span></a>
+						</p>
+					</div>
+				</div>
+			</div>
+		}
+	</div>
+}
+
+func calculateTotal(cart *models.Cart, bundles []models.Bundle) models.Currency {
+	return helpers.CalculateCartTotal(cart, bundles)
+}

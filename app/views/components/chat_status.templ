@@ -1,0 +1,25 @@
+package components
+
+import "fmt"
+
+templ ChatStatusDot(online bool, sessionID uint) {
+	<div id={ fmt.Sprintf("client-dot-%d", sessionID) } class="flex-shrink-0">
+		if online {
+			<span class="h-2 w-2 rounded-full bg-green-500 block shadow-[0_0_8px_rgba(34,197,94,0.6)]" title="Online"></span>
+		} else {
+			<span class="h-2 w-2 rounded-full bg-gray-300 block" title="Offline"></span>
+		}
+	</div>
+}
+
+templ ChatStatusIndicator(online bool, sessionID uint) {
+	<div id={ fmt.Sprintf("client-status-%d", sessionID) } class="flex items-center gap-2">
+		if online {
+			<div class="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]"></div>
+			<p class="text-xs text-green-600 font-medium uppercase tracking-wider">En ligne</p>
+		} else {
+			<div class="w-2.5 h-2.5 rounded-full bg-gray-300"></div>
+			<p class="text-xs text-gray-500 font-medium uppercase tracking-wider">Hors ligne</p>
+		}
+	</div>
+}

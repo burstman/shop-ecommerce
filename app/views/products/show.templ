@@ -1,0 +1,160 @@
+package products
+
+import (
+	"fmt"
+	"shopTemplate/app/config"
+	"shopTemplate/app/helpers"
+	"shopTemplate/app/models"
+	"shopTemplate/app/services"
+	"shopTemplate/app/views/layouts"
+	"sort"
+)
+
+templ Show(product models.Product, cfg *config.Config) {
+	<div class="py-12 bg-background">
+		<div 
+			class="w-full px-4 sm:px-6 lg:px-8"
+			style={ layouts.GetContentStyle(cfg) }
+		>
+			<div class="lg:grid lg:grid-cols-2 lg:gap-x-12 lg:items-start">
+				<!-- Product Image Gallery -->
+				<div class="flex flex-col gap-4" x-data={ fmt.Sprintf("{ activeImage: '%s' }", product.Image) }>
+					<div class="w-full aspect-[4/5] overflow-hidden rounded-xl bg-muted shadow-lg border border-border">
+						if product.Image != "" {
+							<img :src="activeImage" alt={ product.Name } class="w-full h-full object-center object-cover transition-all duration-300 transform hover:scale-105"/>
+						} else {
+							<div class="flex items-center justify-center h-full text-muted-foreground bg-muted">
+								<svg class="w-20 h-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+								</svg>
+							</div>
+						}
+					</div>
+					
+					if len(product.Images) > 1 {
+						<div class="grid grid-cols-5 gap-3">
+							for _, img := range product.Images {
+								<button 
+									@click={ fmt.Sprintf("activeImage = '%s'", img) }
+									:class={ fmt.Sprintf("activeImage === '%s' ? 'ring-2 ring-primary' : 'opacity-70 hover:opacity-100'", img) }
+									class="aspect-square rounded-lg overflow-hidden border border-border bg-muted transition-all"
+								>
+									<img src={ img } alt={ product.Name } class="w-full h-full object-center object-cover"/>
+								</button>
+							}
+						</div>
+					}
+				</div>
+
+				<!-- Product Details -->
+				<div class="mt-10 px-4 sm:px-0 sm:mt-16 lg:mt-0 space-y-8">
+					<div>
+						<h1 class="text-4xl font-extrabold tracking-tight text-foreground">{ product.Name }</h1>
+						<div class="mt-4 flex items-center justify-between">
+							<p class="text-3xl font-bold text-foreground">{ fmt.Sprintf("%.3f %s", product.Price.ToFloat(), cfg.Site.Currency) }</p>
+							<div class="flex items-center space-x-2">
+								if product.Stock > 0 {
+									<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+										{ fmt.Sprintf(services.GetI18n().T(ctx, "in_stock"), fmt.Sprint(product.Stock)) }
+									</span>
+								} else {
+									<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+										{ services.GetI18n().T(ctx, "out_of_stock") }
+									</span>
+								}
+							</div>
+						</div>
+					</div>
+
+					<div class="prose prose-sm text-muted-foreground border-t border-b border-border py-8">
+						<h3 class="text-foreground font-semibold text-lg mb-4">{ services.GetI18n().T(ctx, "description") }</h3>
+						<p class="leading-relaxed whitespace-pre-line">{ product.Description }</p>
+					</div>
+
+					<div class="flex flex-col gap-4" x-data="{ added: false, quantity: 1 }">
+						<input type="hidden" name="quantity" :value="quantity" id="product-show-quantity"/>
+						if product.BundlesEnabled {
+							{{
+								bundles := cfg.Site.Bundles
+								if len(product.Bundles) > 0 {
+									bundles = product.Bundles
+								}
+								// Sort bundles by quantity
+								sort.Slice(bundles, func(i, j int) bool {
+									return bundles[i].Quantity < bundles[j].Quantity
+								})
+							}}
+							if len(bundles) > 0 {
+							<div class="mb-6">
+								<h3 class="text-sm font-bold text-foreground uppercase tracking-tight mb-4">{ services.GetI18n().T(ctx, "choose_bundle") }</h3>
+								<div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+									<button
+										type="button"
+										@click="quantity = 1"
+										:class="quantity === 1 ? 'ring-2 ring-primary border-primary bg-primary/5' : 'border-border bg-background'"
+										class="flex flex-col items-center justify-center rounded-xl border p-4 text-center transition-all hover:border-primary/50"
+									>
+										<span class="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{ fmt.Sprintf("1 %s", services.GetI18n().T(ctx, "pack")) }</span>
+										<span class="mt-1 text-base font-extrabold text-foreground">
+											if product.PromotionPrice > 0 {
+												{ product.PromotionPrice.String() }
+											} else {
+												{ product.Price.String() }
+											}
+											{ " " + cfg.Site.Currency }
+										</span>
+									</button>
+									for _, b := range bundles {
+										<button
+											type="button"
+											@click={ fmt.Sprintf("quantity = %d", b.Quantity) }
+											:class={ fmt.Sprintf("quantity === %d ? 'ring-2 ring-primary border-primary bg-primary/5' : 'border-border bg-background'", b.Quantity) }
+											class="flex flex-col items-center justify-center rounded-xl border p-4 text-center transition-all hover:border-primary/50"
+										>
+											<span class="text-[10px] font-bold text-primary uppercase tracking-widest">{ fmt.Sprintf("%s %s", fmt.Sprint(b.Quantity), services.GetI18n().T(ctx, "pack")) }</span>
+											<span class="mt-1 text-base font-extrabold text-foreground">{ helpers.CalculateBundlePrice(product, b).String() } { cfg.Site.Currency }</span>
+											<span class="mt-1 inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-bold text-green-700">{ fmt.Sprintf(services.GetI18n().T(ctx, "save_percent"), fmt.Sprint(b.DiscountPercentage)) }</span>
+										</button>
+									}
+								</div>
+							</div>
+						}
+					}
+
+						<button 
+							hx-post={ fmt.Sprintf("/cart/add/%d", product.ID) }
+							hx-include="#product-show-quantity"
+							@click="added = true; setTimeout(() => added = false, 2000)"
+							:class="added ? 'bg-green-600' : 'bg-primary hover:bg-primary/90'"
+							class="w-full flex items-center justify-center rounded-lg border border-transparent px-8 py-4 text-lg font-bold text-white shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+							disabled?={ product.Stock <= 0 }
+						>
+							<span x-show="!added">{ services.GetI18n().T(ctx, "add_to_cart") }</span>
+							<span x-show="added" x-cloak>{ services.GetI18n().T(ctx, "added_to_cart") }</span>
+						</button>
+						
+						<button 
+							hx-post={ fmt.Sprintf("/cart/add/%d?redirect=/checkout", product.ID) }
+							hx-include="#product-show-quantity"
+							class="w-full flex items-center justify-center rounded-lg bg-gray-900 text-white px-8 py-4 text-lg font-bold shadow-sm hover:bg-gray-800 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+							disabled?={ product.Stock <= 0 }
+						>
+							{ services.GetI18n().T(ctx, "order_now") }
+						</button>
+					</div>
+
+					<div class="pt-8">
+						<h3 class="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">{ services.GetI18n().T(ctx, "categories") }</h3>
+						<div class="flex flex-wrap gap-2">
+							for _, cat := range product.Categories {
+								<a href={ templ.URL(fmt.Sprintf("/categories/%d", cat.ID)) } class="inline-flex items-center rounded-full bg-secondary px-4 py-1.5 text-sm font-medium text-secondary-foreground hover:bg-secondary/80 transition-colors">
+									{ cat.Name }
+								</a>
+							}
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+}

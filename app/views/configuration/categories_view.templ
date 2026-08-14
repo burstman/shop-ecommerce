@@ -1,0 +1,107 @@
+package configuration
+
+import (
+	"fmt"
+	"shopTemplate/app/models"
+)
+
+
+
+templ CategoriesIndex(categories []models.Category, allCategories []models.Category) {
+	<script>
+		document.addEventListener('alpine:init', () => {
+			Alpine.data('sortableList', () => ({
+				init() {
+					new Sortable(this.$el, {
+						animation: 150,
+						handle: '.handle',
+						onEnd: (evt) => {
+							let ids = Array.from(evt.from.children).map(el => el.dataset.id);
+							htmx.ajax('POST', '/admin/categories/reorder', {
+								values: { 'category_ids': ids },
+								swap: 'none'
+							});
+						}
+					});
+				}
+			}))
+		})
+	</script>
+	<div class="admin-page-head">
+		<div>
+			<h1>Manage Categories</h1>
+			<p>Drag to reorder. Click to expand sub-categories.</p>
+		</div>
+	</div>
+	<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+		<div class="lg:col-span-2">
+			<h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Existing Categories</h2>
+			<div class="admin-sections" x-data="sortableList">
+				for _, category := range categories {
+					@CategoryItem(category)
+				}
+			</div>
+		</div>
+		<div>
+			<h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Add Top-Level Category</h2>
+			<div class="admin-section-card">
+				<div class="p-4">
+					<form hx-post="/admin/categories" hx-target="body" class="space-y-4">
+						<div>
+							<label for="name" class="field-label">Category Name</label>
+							<input type="text" name="name" id="name" class="input" required/>
+						</div>
+						<button type="submit" class="btn btn-primary w-full justify-center">Add Category</button>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+}
+
+
+templ CategoryItem(category models.Category) {
+	<div class="admin-section-card" data-id={ fmt.Sprint(category.ID) } x-data="{ open: true }">
+		<div class="admin-section-head cursor-default px-4 py-3">
+			<div class="flex items-center gap-2 flex-1 min-w-0">
+				<svg class="h-5 w-5 text-gray-400 cursor-grab handle flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+				if len(category.SubCategories) > 0 {
+					<button type="button" @click="open = !open" class="text-gray-400 hover:text-gray-600 flex-shrink-0">
+						<svg x-show="!open" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+						</svg>
+						<svg x-show="open" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/>
+						</svg>
+					</button>
+				}
+				<span class="font-medium text-sm">{ category.Name }</span>
+			</div>
+			<div class="flex items-center gap-2">
+				if !category.IsLocked {
+					<form hx-post="/admin/categories" hx-target="body" class="flex items-center gap-2">
+						<input type="hidden" name="parent_id" value={ fmt.Sprint(category.ID) }/>
+						<input type="text" name="name" placeholder="New sub-category..." required class="input h-8 text-xs w-36"/>
+						<button type="submit" class="btn btn-primary text-xs h-8 px-3">+</button>
+					</form>
+					<button
+						hx-delete={ fmt.Sprintf("/admin/categories/%d", category.ID) }
+						hx-confirm="Are you sure you want to delete this category and all its sub-categories?"
+						hx-target="body"
+						class="icon-btn danger flex-shrink-0"
+						title="Delete"
+					>
+						<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+					</button>
+				}
+			</div>
+		</div>
+		if len(category.SubCategories) > 0 {
+			<div class="ml-8 pb-3 space-y-2 border-l-2 border-gray-100 pl-4" x-data="sortableList" x-show="open" x-transition>
+				for _, sub := range category.SubCategories {
+					@CategoryItem(sub)
+				}
+			</div>
+		}
+	</div>
+}

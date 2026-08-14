@@ -1,0 +1,52 @@
+package components
+
+// Plant represents a plant item.
+type Plant struct {
+	ImageURL string
+	Name     string
+	Price    string
+}
+
+// PlantsProps defines properties for the Plants component.
+type PlantsProps struct {
+	ShowViewAll bool
+}
+
+templ Plants(props PlantsProps) {
+	{{
+		plants := []Plant{
+			{ImageURL: "https://via.placeholder.com/300x300.png?text=Plant+1", Name: "Monstera Deliciosa", Price: "$45"},
+			{ImageURL: "https://via.placeholder.com/300x300.png?text=Plant+2", Name: "Fiddle Leaf Fig", Price: "$60"},
+			{ImageURL: "https://via.placeholder.com/300x300.png?text=Plant+3", Name: "Snake Plant", Price: "$30"},
+			{ImageURL: "https://via.placeholder.com/300x300.png?text=Plant+4", Name: "Pothos", Price: "$25"},
+			{ImageURL: "https://via.placeholder.com/300x300.png?text=Plant+5", Name: "ZZ Plant", Price: "$35"},
+			{ImageURL: "https://via.placeholder.com/300x300.png?text=Plant+6", Name: "Bird of Paradise", Price: "$55"},
+		}
+	}}
+	<section class="bg-white py-12">
+		<div class="container mx-auto px-4">
+			<div class="flex justify-between items-center mb-8">
+				<h2 class="text-3xl font-bold">Our Favorite Plants</h2>
+				if props.ShowViewAll {
+					<a href="/plants" class="text-green-500 hover:text-green-600 font-semibold">View All &rarr;</a>
+				}
+			</div>
+			<div class="flex overflow-x-auto space-x-8 pb-4 -mx-4 px-4">
+				for _, plant := range plants {
+					<div class="flex-shrink-0 w-64">
+						<div class="bg-gray-100 rounded-lg shadow-md">
+							<img src={ plant.ImageURL } alt={ plant.Name } class="w-full h-64 object-cover rounded-t-lg"/>
+							<div class="p-4">
+								<h3 class="font-semibold text-lg">{ plant.Name }</h3>
+								<p class="text-gray-600">{ plant.Price }</p>
+								<button class="mt-4 w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded">
+									Add to Cart
+								</button>
+							</div>
+						</div>
+					</div>
+				}
+			</div>
+		</div>
+	</section>
+}

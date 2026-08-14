@@ -1,0 +1,56 @@
+package products
+
+import (
+	"fmt"
+	"shopTemplate/app/models"
+	"shopTemplate/app/config"
+)
+
+templ EditModal(product models.Product, allCategories []models.Category, cfg *config.Config) {
+	<div id="modal" class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50" hx-target="this">
+		<div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-lg" role="dialog" aria-modal="true">
+			<div class="flex justify-between items-center mb-4 border-b border-gray-100 pb-4">
+				<h2 class="text-xl font-bold">Edit Product</h2>
+				<a href="/admin/products" class="text-gray-400 hover:text-gray-600">&times;</a>
+			</div>
+			<form
+				hx-put={ fmt.Sprintf("/products/%d", product.ID) }
+				hx-encoding="multipart/form-data"
+				hx-target="body"
+			>
+				<div class="max-h-[70vh] overflow-y-auto pr-2 custom-scrollbar">
+					@ProductFormFields(FormParams{
+						Product: product,
+						AllCategories: allCategories,
+						Values: map[string]string{
+							"name":        product.Name,
+							"description": product.Description,
+							"price":       fmt.Sprintf("%.3f", product.Price.ToFloat()),
+							"promotion_price": func() string {
+								if product.PromotionPrice > 0 {
+									return fmt.Sprintf("%.3f", product.PromotionPrice.ToFloat())
+								}
+								return ""
+							}(),
+							"stock":       fmt.Sprint(product.Stock),
+						},
+						SelectedCatIDs: getSelectedCategoryIDs(product.Categories),
+						IsEdit:         true,
+					}, cfg)
+				</div>
+				<div class="mt-6 flex justify-end gap-3 pt-4 border-t border-gray-100">
+					<a href="/admin/products" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">Cancel</a>
+					<button type="submit" class="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 shadow-sm">Save Changes</button>
+				</div>
+			</form>
+		</div>
+	</div>
+}
+
+func getSelectedCategoryIDs(cats []models.Category) map[uint]bool {
+	ids := make(map[uint]bool)
+	for _, cat := range cats {
+		ids[cat.ID] = true
+	}
+	return ids
+}

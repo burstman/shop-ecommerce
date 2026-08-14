@@ -1,0 +1,215 @@
+{
+  "site": {
+    "name": "Best shops",
+    "support_email": "",
+    "name_bg_color": "",
+    "name_text_color": "",
+    "logo": "https://res.cloudinary.com/dwk5kwthe/image/upload/v1777599513/shopTemplate/site/logo_site_1777599513479467502.jpg",
+    "currency": "",
+    "show_quick_view": true,
+    "show_order_now": true,
+    "show_add_to_cart": true,
+    "bundles": [
+      {
+        "quantity": 2,
+        "discount_percentage": 10
+      }
+    ]
+  },
+  "notification": {
+    "admin_email_recipient": "topdeals.est.2025@gmail.com",
+    "telegram_bot_token": "8531699497:AAED_3RDEXxs4hUP0OM204-EAPCe_gBkyRM",
+    "telegram_chat_id": "6143267777"
+  },
+  "facebook_pixel": {
+    "pixel_id": "",
+    "track_purchase_value": true,
+    "access_token": "",
+    "domain_verification": "",
+    "test_event_code": ""
+  },
+  "hero": {
+    "enabled": true,
+    "title": "Nature's Masterpiece",
+    "subtitle": "Discover our indoor plants",
+    "button_text": "Shop Now",
+    "button_link": "/shop",
+    "slides": [
+      {
+        "image": "https://res.cloudinary.com/dwk5kwthe/image/upload/v1777601398/shopTemplate/carousel/slide_0_carousel_1777601397911787021.jpg",
+        "title": "New season arrival ",
+        "subtitle": "Discover our curated collection of premium products",
+        "button_text": "Shop Now",
+        "button_link": "#"
+      },
+      {
+        "image": "https://res.cloudinary.com/dwk5kwthe/image/upload/v1777601414/shopTemplate/carousel/slide_1_carousel_1777601414784845916.jpg",
+        "title": "New Slide Title parfum ",
+        "subtitle": "New Slide Subtitle parfum",
+        "button_text": "Shop Now",
+        "button_link": "#"
+      },
+      {
+        "image": "https://res.cloudinary.com/dwk5kwthe/image/upload/v1777601432/shopTemplate/carousel/slide_2_carousel_1777601432368306456.jpg",
+        "title": "Elegance Redefined",
+        "subtitle": "Fresh selections handpicked just for you",
+        "button_text": "Shop Now",
+        "button_link": "#"
+      }
+    ]
+  },
+  "sections": [
+    {
+      "type": "featured_products",
+      "title": "Featured Collection",
+      "limit": 4,
+      "enabled": true,
+      "product_ids": [
+        "1"
+      ],
+      "title_bg_color": "#0d7d66",
+      "title_text_color": "#ffffff"
+    },
+    {
+      "type": "featured_products",
+      "title": "Best Sellerssss",
+      "limit": 4,
+      "enabled": true,
+      "product_ids": [
+        "1"
+      ],
+      "title_bg_color": "#16da19",
+      "title_text_color": "#000000"
+    },
+    {
+      "type": "featured_products",
+      "title": "New Arrivals",
+      "limit": 4,
+      "enabled": true,
+      "title_bg_color": "#000000",
+      "title_text_color": "#000000"
+    },
+    {
+      "type": "category_banner",
+      "title": "New test section (Copy)",
+      "limit": 5,
+      "enabled": true,
+      "image": "/public/images/sections/section_4_1774661486812526123.jpg",
+      "category_items": [
+        {
+          "title": "Fragrances",
+          "category_id": "9",
+          "image": "/public/images/sections/section_4_item_0_1776215680826979715.jpg"
+        },
+        {
+          "title": "Home Decor",
+          "category_id": "8",
+          "image": "/public/images/sections/section_3_item_1_1776215789688239868.jpg"
+        }
+      ],
+      "title_bg_color": "#332bab",
+      "title_text_color": "#f7f7f7"
+    }
+  ],
+  "theme": {
+    "primary_color": "#2e7d32",
+    "secondary_color": "#18318c",
+    "header_bg_color": "#85dbaf",
+    "header_bg_opacity": 62,
+    "page_bg_color": "#ffffff",
+    "footer_bg_color": "#0f575c",
+    "content_bg_gradient_enabled": false,
+    "content_bg_gradient_start": "#cbf0e9",
+    "content_bg_gradient_end": "#3a57e9",
+    "content_bg_gradient_angle": 10,
+    "content_bg_color_enabled": false,
+    "content_bg_color": "#ade3f0"
+  },
+  "storefront_sidebar": [],
+  "footer": {
+    "copyright": "© 2026 Best shops. All rights reserved.",
+    "social_links": [
+      {
+        "platform": "Facebook",
+        "url": "https://facebook.com",
+        "icon": "facebook"
+      },
+      {
+        "platform": "Instagram",
+        "url": "https://instagram.com",
+        "icon": "instagram"
+      },
+      {
+        "platform": "TikTok",
+        "url": "https://tiktok.com",
+        "icon": "tiktok"
+      },
+      {
+        "platform": "WhatsApp",
+        "url": "https://wa.me/21600000000",
+        "icon": "whatsapp"
+      }
+    ],
+    "link_columns": [
+      {
+        "title": "Shop",
+        "links": [
+          {
+            "title": "Products",
+            "link": "/products"
+          },
+          {
+            "title": "Best Sellers",
+            "link": "/best-sellers"
+          },
+          {
+            "title": "New Arrivals",
+            "link": "/new-arrivals"
+          }
+        ]
+      },
+      {
+        "title": "About",
+        "links": [
+          {
+            "title": "Our Story",
+            "link": "/about"
+          },
+          {
+            "title": "FAQs",
+            "link": "/faq"
+          }
+        ]
+      },
+      {
+        "title": "Legal",
+        "links": [
+          {
+            "title": "Privacy Policy",
+            "link": "/privacy"
+          },
+          {
+            "title": "Terms of Service",
+            "link": "/terms"
+          }
+        ]
+      }
+    ]
+  },
+  "payment": {
+    "enable_cod": true,
+    "enable_flouci": false,
+    "flouci_public_key": "",
+    "flouci_app_token": ""
+  },
+  "chat": {
+    "primary_color": "#4a32a9",
+    "header_text_color": "#f0eff5",
+    "client_bubble_color": "#0f0174",
+    "client_text_color": "#bfbfc0",
+    "admin_bubble_color": "#066774",
+    "admin_text_color": "#fdf7f7",
+    "enable_popup": true,
+    "popup_timeout": 3
+  }
+}

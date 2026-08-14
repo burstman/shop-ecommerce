@@ -1,0 +1,131 @@
+package auth
+
+import (
+	v "github.com/anthdm/superkit/validate"
+
+	"shopTemplate/app/views/layouts"
+	"shopTemplate/app/models"
+
+	"fmt"
+	"shopTemplate/app/config"
+)
+
+type SignupIndexPageData struct {
+	FormValues SignupFormValues
+	FormErrors v.Errors
+}
+
+type SignupFormValues struct {
+	Email           string `form:"email"`
+	FirstName       string `form:"firstName"`
+	LastName        string `form:"lastName"`
+	Password        string `form:"password"`
+	PasswordConfirm string `form:"passwordConfirm"`
+}
+
+templ SignupIndex(user models.AuthUser, data SignupIndexPageData, categories []models.Category, cartCount int) {
+	@layouts.BaseLayout(user, config.FromContext(ctx), categories, cartCount) {
+		<div class="w-full justify-center">
+			<div class="mt-10 lg:mt-20">
+				<div class="max-w-md mx-auto border rounded-md shadow-sm py-12 px-6 flex flex-col gap-8">
+					<h2 class="text-center text-2xl font-medium">Signup</h2>
+					@SignupForm(data.FormValues, data.FormErrors)
+					@SocialAuthButtons(config.FromContext(ctx))
+				</div>
+			</div>
+		</div>
+	}
+}
+
+templ SignupForm(values SignupFormValues, errors v.Errors) {
+	<form hx-post="/signup" class="flex flex-col gap-4">
+		<div class="flex flex-col gap-1">
+			<label for="email">Email *</label>
+			<input { inputAttrs(errors.Has("email"))... } name="email" id="email" value={ values.Email }/>
+			if errors.Has("email") {
+				<div class="text-red-500 text-xs">{ errors.Get("email")[0] }</div>
+			}
+		</div>
+		<div class="flex flex-col gap-1">
+			<label for="firstName">First Name *</label>
+			<input { inputAttrs(errors.Has("firstName"))... } name="firstName" id="firstName" value={ values.FirstName }/>
+			if errors.Has("firstName") {
+				<ul>
+					for _, err := range errors.Get("firstName") {
+						<li class="text-red-500 text-xs">{ err }</li>
+					}
+				</ul>
+			}
+		</div>
+		<div class="flex flex-col gap-1">
+			<label for="lastName">Last Name *</label>
+			<input { inputAttrs(errors.Has("lastName"))... } name="lastName" id="lastName" value={ values.LastName }/>
+			if errors.Has("lastName") {
+				<ul>
+					for _, err := range errors.Get("lastName") {
+						<li class="text-red-500 text-xs">{ err }</li>
+					}
+				</ul>
+			}
+		</div>
+		<div class="flex flex-col gap-1" x-data="{ show: false }">
+			<label for="password">Password *</label>
+			<div class="flex gap-2">
+				<input
+					{ inputAttrs(errors.Has("password"))... }
+					:type="show ? 'text' : 'password'"
+					name="password"
+					id="password"
+				/>
+				<button
+					type="button"
+					@click="show = !show"
+					:class="show ? 'bg-black text-white hover:bg-gray-800' : 'bg-white text-black hover:bg-gray-50'"
+					class="px-3 rounded-md border border-gray-300 text-xs font-semibold transition-colors whitespace-nowrap"
+				>Show/Hide</button>
+			</div>
+			if errors.Has("password") {
+				<ul>
+					for _, err := range errors.Get("password") {
+						<li class="text-red-500 text-xs">{ err }</li>
+					}
+				</ul>
+			}
+		</div>
+		<div class="flex flex-col gap-1" x-data="{ show: false }">
+			<label for="passwordConfirm">Confirm Password *</label>
+			<div class="flex gap-2">
+				<input
+					{ inputAttrs(errors.Has("passwordConfirm"))... }
+					:type="show ? 'text' : 'password'"
+					name="passwordConfirm"
+					id="passwordConfirm"
+				/>
+				<button
+					type="button"
+					@click="show = !show"
+					:class="show ? 'bg-black text-white hover:bg-gray-800' : 'bg-white text-black hover:bg-gray-50'"
+					class="px-3 rounded-md border border-gray-300 text-xs font-semibold transition-colors whitespace-nowrap"
+				>Show/Hide</button>
+			</div>
+			if errors.Has("passwordConfirm") {
+				<div class="text-red-500 text-xs">{ errors.Get("passwordConfirm")[0] }</div>
+			}
+		</div>
+		<button { buttonAttrs()... }>
+			<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+			</svg>
+			Signup
+		</button>
+		<a class="text-sm underline" href="/login">Already have an account? Login here.</a>
+	</form>
+}
+
+templ ConfirmEmail(user User) {
+	<form hx-post="/resend-email-verification" class="flex flex-col gap-4 text-sm">
+		<input type="hidden" name="userID" value={ fmt.Sprint(user.ID) }/>
+		<div>An email confirmation link has been sent to: <span class="underline font-medium">{ user.Email }</span></div>
+		<div>Trouble receiving the verification code? <button class="underline font-medium cursor-pointer">Resend verification code</button></div>
+	</form>
+}

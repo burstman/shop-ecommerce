@@ -1,0 +1,436 @@
+package layouts
+
+import (
+	"context"
+	"fmt"
+	"math"
+	"strconv"
+	"strings"
+	"time"
+	"shopTemplate/app/config"
+	"shopTemplate/app/models"
+	"shopTemplate/app/views/components"
+	"shopTemplate/app/services"
+)
+
+script initFacebookPixel(id string) {
+    console.log('FB Pixel: Initializing with ID', id);
+    fbq('init', id);
+    fbq('track', 'PageView');
+}
+
+templ App(user models.AuthUser, cfg *config.Config, categories []models.Category, cartCount int, content templ.Component, csrfToken string) {
+	<!DOCTYPE html>
+	<html lang={ fmt.Sprint(ctx.Value("lang")) } class="h-full" dir={ getDir(ctx) } style={ templ.KV("--primary", hslStr(cfg.Theme.PrimaryColor)) }>
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<meta name="csrf-token" content={ csrfToken } />
+			<title>{ cfg.Site.Name }</title>
+			if cfg.FacebookPixel.DomainVerification != "" {
+				<meta name="facebook-domain-verification" content={ cfg.FacebookPixel.DomainVerification } />
+			}
+			if cfg.FacebookPixel.PixelID != "" {
+				<!-- Facebook Pixel Code -->
+				<script>
+					!function(f,b,e,v,n,t,s)
+					{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+					n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+					if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+					n.queue=[];t=b.createElement(e);t.async=!0;
+					t.src=v;s=b.getElementsByTagName(e)[0];
+					s.parentNode.insertBefore(t,s)}(window, document,'script',
+					'https://connect.facebook.net/en_US/fbevents.js');
+				</script>
+				@initFacebookPixel(cfg.FacebookPixel.PixelID)
+				<noscript><img height="1" width="1" style="display:none"
+				src={ fmt.Sprintf("https://www.facebook.com/tr?id=%s&ev=PageView&noscript=1", cfg.FacebookPixel.PixelID) }/></noscript>
+				<!-- End Facebook Pixel Code -->
+			}
+			<link rel="stylesheet" href="/public/assets/styles.css"/>
+			<script src="https://unpkg.com/htmx.org@1.9.10"></script>
+			<script src="https://unpkg.com/htmx.org@1.9.10/dist/ext/ws.js"></script>
+			<script src="/public/assets/index.js"></script>
+			<style>
+				[x-cloak] {
+					display: none !important;
+				}
+			</style>
+			<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
+			<script>
+				document.addEventListener('alpine:init', () => {
+					Alpine.store('chat', {
+						wsError: false,
+						socket: null
+					})
+				})
+				document.addEventListener('htmx:oobBeforeSwap', (evt) => {
+					const oob = evt.detail.elt.getAttribute('hx-swap-oob');
+					if (oob && (oob === 'delete' || oob.startsWith('delete:'))) {
+						const selector = oob.includes(':') ? oob.split(':')[1] : null;
+						const target = selector ? document.querySelector(selector) : (evt.detail.target || document.getElementById(evt.detail.elt.id));
+						if (target) target.remove();
+						evt.preventDefault();
+					}
+				});
+				document.addEventListener('htmx:configRequest', (evt) => {
+					const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+					if (csrfToken) {
+						evt.detail.headers['X-CSRF-Token'] = csrfToken;
+					}
+				});
+			</script>
+		</head>
+		<body 
+			class="h-full flex flex-col font-sans antialiased text-gray-900 pt-16 sm:pt-28" 
+			style={ getPageStyle(cfg) }
+			hx-ext="ws" 
+			ws-connect="/api/chat/ws"
+			x-data="{}"
+			@htmx:ws-error="$store.chat.wsError = true"
+			@htmx:ws-close="$store.chat.wsError = true"
+			@htmx:ws-open="$store.chat.wsError = false; $store.chat.socket = $event.detail.socket"
+		>
+			@components.Navigation(user, cfg, categories, cartCount, nil)
+			<main class="flex-grow">
+				@content
+			</main>
+			@components.Footer(ctx, user, cfg)
+			if user.Role != "admin" {
+				@components.ChatButton(ctx, user, cfg)
+			}
+			<audio id="chat-ping-sound" src="/public/assets/ping.wav" preload="auto" class="hidden"></audio>
+		</body>
+	</html>
+}
+
+func hslStr(hex string) string {
+	h, s, l := hexToHSL(hex)
+	return fmt.Sprintf("%.0f %.0f%% %.0f%%", h, s, l)
+}
+
+func getPageStyle(cfg *config.Config) string {
+	return fmt.Sprintf("background-color: %s;", cfg.Theme.PageBgColor)
+}
+
+func hexToHSL(hex string) (float64, float64, float64) {
+	hex = strings.TrimPrefix(hex, "#")
+	if len(hex) < 6 {
+		return 0, 0, 0
+	}
+	r, _ := strconv.ParseInt(hex[0:2], 16, 64)
+	g, _ := strconv.ParseInt(hex[2:4], 16, 64)
+	b, _ := strconv.ParseInt(hex[4:6], 16, 64)
+	rf := float64(r) / 255.0
+	gf := float64(g) / 255.0
+	bf := float64(b) / 255.0
+	max := math.Max(rf, math.Max(gf, bf))
+	min := math.Min(rf, math.Min(gf, bf))
+	l := (max + min) / 2.0
+	if max == min {
+		return 0, 0, math.Round(l * 100)
+	}
+	d := max - min
+	var s float64
+	if l > 0.5 {
+		s = d / (2.0 - max - min)
+	} else {
+		s = d / (max + min)
+	}
+	var h float64
+	switch max {
+	case rf:
+		h = (gf - bf) / d
+		if gf < bf {
+			h += 6
+		}
+	case gf:
+		h = (bf - rf)/d + 2
+	case bf:
+		h = (rf - gf)/d + 4
+	}
+	h = h * 60
+	return math.Round(h), math.Round(s * 100), math.Round(l * 100)
+}
+
+func getDir(ctx context.Context) string {
+	if lang, ok := ctx.Value("lang").(string); ok && lang == "ar" {
+		return "rtl"
+	}
+	return "ltr"
+}
+
+func GetContentStyle(cfg *config.Config) string {
+	if !cfg.Theme.ContentBgColorEnabled {
+		return ""
+	}
+	if cfg.Theme.ContentBgGradientEnabled {
+		return fmt.Sprintf("background: linear-gradient(%ddeg, %s, %s);", 
+			cfg.Theme.ContentBgGradientAngle, cfg.Theme.ContentBgGradientStart, cfg.Theme.ContentBgGradientEnd)
+	}
+	return fmt.Sprintf("background-color: %s;", cfg.Theme.ContentBgColor)
+}
+
+func pageTitleFromPath(path string) string {
+	switch {
+	case path == "/admin/dashboard" || path == "/":
+		return "Dashboard"
+	case path == "/admin/site":
+		return "Site Settings"
+	case path == "/admin/hero":
+		return "Hero Section"
+	case path == "/admin/sections":
+		return "Homepage Sections"
+	case path == "/admin/theme":
+		return "Theme"
+	case path == "/admin/notifications":
+		return "Notifications"
+	case path == "/admin/facebook_pixel":
+		return "Facebook Pixel"
+	case path == "/admin/categories":
+		return "Categories"
+	case path == "/admin/products":
+		return "Products"
+	case path == "/admin/orders":
+		return "Orders"
+	case path == "/admin/payment":
+		return "Payment Methods"
+	case path == "/admin/chat_settings":
+		return "Chat Settings"
+	case path == "/admin/social_links":
+		return "Social Links"
+	case path == "/products/new":
+		return "New Product"
+	default:
+		return "Admin"
+	}
+}
+
+func isItemActive(item config.MenuItem, activePath string) bool {
+	return item.Link == activePath
+}
+
+templ iconFor(name string) {
+	if code, ok := map[string]string{
+		"search":          "&#xea64;",
+		"arrow-left":      "&#xea5c;",
+		"image":           "&#xea88;",
+		"layout-grid":     "&#xea6b;",
+		"palette":         "&#xea7f;",
+		"bell":            "&#xea34;",
+		"folder-tree":     "&#xeab1;",
+		"shopping-bag":    "&#xea51;",
+		"clipboard-list":  "&#xea68;",
+		"credit-card":     "&#xea3c;",
+		"facebook":        "&#xea84;",
+		"message-square":  "&#xea2f;",
+		"share-2":         "&#xea75;",
+		"settings":        "&#xea71;",
+	}[name]; ok {
+		@templ.Raw(fmt.Sprintf(`<i class="i">%s</i>`, code))
+	}
+}
+
+templ AdminPage(user models.AuthUser, cfg *config.Config, categories []models.Category, cartCount int, expiresAt *time.Time, sidebar []config.SidebarGroup, activePath string, content templ.Component, csrfToken string) {
+	<!DOCTYPE html>
+	<html lang={ fmt.Sprint(ctx.Value("lang")) } class="h-full" dir={ getDir(ctx) } style={ templ.KV("--primary", hslStr(cfg.Theme.PrimaryColor)) }>
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<meta name="csrf-token" content={ csrfToken } />
+			<title>{ pageTitleFromPath(activePath) } — { cfg.Site.Name }</title>
+			<link rel="stylesheet" href="/public/assets/styles.css"/>
+			<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lucide-static@latest/font/lucide.css">
+			<script src="https://unpkg.com/htmx.org@1.9.10"></script>
+			<script src="https://unpkg.com/htmx.org@1.9.10/dist/ext/ws.js"></script>
+			<script src="/public/assets/index.js"></script>
+			<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+			<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
+			<style>
+				[x-cloak] { display: none !important; }
+			</style>
+			<script>
+				document.addEventListener('alpine:init', () => {
+					Alpine.store('chat', {
+						wsError: false,
+						socket: null
+					})
+				})
+				document.addEventListener('htmx:oobBeforeSwap', (evt) => {
+					const oob = evt.detail.elt.getAttribute('hx-swap-oob');
+					if (oob && (oob === 'delete' || oob.startsWith('delete:'))) {
+						const selector = oob.includes(':') ? oob.split(':')[1] : null;
+						const target = selector ? document.querySelector(selector) : (evt.detail.target || document.getElementById(evt.detail.elt.id));
+						if (target) target.remove();
+						evt.preventDefault();
+					}
+				});
+				document.addEventListener('htmx:configRequest', (evt) => {
+					const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+					if (csrfToken) {
+						evt.detail.headers['X-CSRF-Token'] = csrfToken;
+					}
+				});
+			</script>
+		</head>
+		<body 
+			class="font-sans antialiased"
+			style="background: var(--admin-bg); color: var(--foreground);"
+			hx-ext="ws" 
+			ws-connect="/api/chat/ws"
+			x-data="{ mobileMenuOpen: false }"
+			@htmx:ws-error="$store.chat.wsError = true"
+			@htmx:ws-close="$store.chat.wsError = true"
+			@htmx:ws-open="$store.chat.wsError = false; $store.chat.socket = $event.detail.socket"
+		>
+			<div class="admin-layout">
+				<!-- Sidebar -->
+				<aside class="admin-sidebar">
+					<div class="admin-sidebar-head">
+						<div class="admin-brand">
+							<div class="admin-brand-logo">BS</div>
+							<div style="flex:1; min-width:0;">
+								<div class="admin-brand-title">{ cfg.Site.Name }</div>
+								<div class="admin-brand-sub">Admin Panel</div>
+							</div>
+						</div>
+					</div>
+
+						<a href="/" class="admin-back-btn">@iconFor("arrow-left") Back to store</a>
+
+					<nav class="admin-nav">
+						for _, group := range sidebar {
+							<div class="admin-nav-group">
+								<div class="admin-nav-group-label">{ services.GetI18n().T(ctx, group.Label) }</div>
+								for _, item := range group.Items {
+									<a 
+										href={ templ.SafeURL(item.Link) } 
+										class={ "admin-nav-item", templ.KV("active", isItemActive(item, activePath)) }
+									>
+										@iconFor(item.Icon)
+										<span>{ services.GetI18n().T(ctx, item.Title) }</span>
+										if item.Badge != "" {
+											<span class="admin-badge-sm">{ item.Badge }</span>
+										}
+									</a>
+								}
+							</div>
+						}
+					</nav>
+				</aside>
+
+				<!-- Main -->
+				<div class="main" style="flex:1; display:flex; flex-direction:column; min-width:0;">
+
+					<!-- Mobile header -->
+					<div class="lg:hidden flex items-center justify-between" style="background:var(--admin-sidebar); padding:12px 16px; color:#fff;">
+						<span class="font-bold text-lg">{ cfg.Site.Name }</span>
+						<button @click="mobileMenuOpen = true" class="p-2 rounded-md hover:opacity-80 focus:outline-none">
+							<svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+							</svg>
+						</button>
+					</div>
+
+					<!-- Mobile sidebar overlay -->
+					<div x-show="mobileMenuOpen" x-cloak class="fixed inset-0 z-40 lg:hidden" @click="mobileMenuOpen = false">
+						<div class="absolute inset-0 bg-gray-600 opacity-75"></div>
+					</div>
+
+					<!-- Mobile sidebar drawer -->
+					<div 
+						:class="mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'"
+						class="fixed inset-y-0 left-0 z-50 flex w-64 flex-col transition-transform duration-300 ease-in-out lg:hidden"
+						style="background:var(--admin-sidebar); color:var(--admin-sidebar-fg);"
+					>
+						<div class="flex items-center justify-between px-4 py-4 border-b" style="border-color:var(--admin-sidebar-border);">
+							<span class="font-bold">{ cfg.Site.Name }</span>
+							<button @click="mobileMenuOpen = false" class="p-1 rounded hover:opacity-80">
+								<svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+								</svg>
+							</button>
+						</div>
+					<a href="/" class="admin-back-btn">@iconFor("arrow-left") Back to store</a>
+						<nav class="admin-nav">
+							for _, group := range sidebar {
+								<div class="admin-nav-group">
+									<div class="admin-nav-group-label">{ services.GetI18n().T(ctx, group.Label) }</div>
+									for _, item := range group.Items {
+										<a 
+											href={ templ.SafeURL(item.Link) } 
+											class={ "admin-nav-item", templ.KV("active", isItemActive(item, activePath)) }
+											@click="mobileMenuOpen = false"
+										>
+										@iconFor(item.Icon)
+											<span>{ services.GetI18n().T(ctx, item.Title) }</span>
+											if item.Badge != "" {
+												<span class="admin-badge-sm">{ item.Badge }</span>
+											}
+										</a>
+									}
+								</div>
+							}
+						</nav>
+					</div>
+
+					<!-- Global Polling for Admin Chat (if WebSocket fails) -->
+					<div 
+						id="admin-global-poller"
+						x-data={ `{ 
+							activeChatId: null,
+							updateActiveId() {
+								const match = window.location.pathname.match(/\/admin\/chat\/(\d+)/);
+								this.activeChatId = match ? match[1] : null;
+							}
+						}` }
+						x-init={ `
+							updateActiveId();
+							htmx.on('htmx:afterSwap', (evt) => {
+								updateActiveId();
+							});
+							window.addEventListener('popstate', () => updateActiveId());
+						` }
+					>
+						<div hx-get="/admin/chats/sidebar" hx-target="#sidebar-session-list" hx-swap="innerHTML" x-bind:hx-trigger="$store.chat.wsError ? 'every 2s' : 'every 30s'"></div>
+						<template x-if="activeChatId">
+							<div :hx-get="'/admin/chat/' + activeChatId + '/messages'" :hx-target="'#chat-messages-' + activeChatId" hx-swap="innerHTML" x-bind:hx-trigger="$store.chat.wsError ? 'every 1s' : 'every 10s'"></div>
+						</template>
+					</div>
+
+					<!-- Header bar -->
+					<header class="admin-header">
+						<div class="admin-breadcrumbs">
+							<span class="muted">Admin</span>
+							<i class="i">&#xea61;</i>
+							<span style="font-weight:500;">{ services.GetI18n().T(ctx, pageTitleFromPath(activePath)) }</span>
+						</div>
+						<div class="admin-header-actions">
+							if expiresAt != nil && time.Until(*expiresAt).Hours() / 24 > 0 {
+								<span style="font-size:11px;padding:2px 8px;border-radius:4px;background:#dbeafe;color:#1e40af;font-weight:600;white-space:nowrap">{ int(time.Until(*expiresAt).Hours() / 24) } days left</span>
+							} else if expiresAt != nil {
+								<span style="font-size:11px;padding:2px 8px;border-radius:4px;background:#fee2e2;color:#991b1b;font-weight:600;white-space:nowrap">Expired</span>
+							} else {
+								<span class="subscription-badge" style="font-size:11px;padding:2px 8px;border-radius:4px;background:#f3f4f6;color:#6b7280;font-weight:600;white-space:nowrap">No subscription</span>
+							}
+							if user.ID != 0 {
+								<span class="text-sm text-gray-500">{ user.Email }</span>
+							}
+							<a href="/logout" class="btn" style="height:32px; padding:0 12px; border-radius:6px; border:1px solid var(--border); background:var(--admin-card); font-size:13px; display:inline-flex; align-items:center; gap:6px; text-decoration:none; color:inherit;">Logout</a>
+						</div>
+					</header>
+
+					<div class="admin-body">
+						<div class="admin-content">
+							<div class="admin-content-inner">
+								@content
+							</div>
+						</div>
+					</div>
+
+					<audio id="chat-ping-sound" src="/public/assets/ping.wav" preload="auto" class="hidden"></audio>
+				</div>
+			</div>
+		</body>
+	</html>
+}
