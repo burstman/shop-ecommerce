@@ -1,11 +1,11 @@
 -- +goose Up
 -- +goose StatementBegin
-ALTER TABLE affiliates ADD COLUMN api_token VARCHAR(64) UNIQUE;
-CREATE INDEX idx_affiliates_api_token ON affiliates(api_token);
+ALTER TABLE affiliates ADD COLUMN IF NOT EXISTS api_key VARCHAR(128) UNIQUE;
+CREATE INDEX IF NOT EXISTS idx_affiliates_api_key ON affiliates(api_key);
 -- +goose StatementEnd
 
 -- +goose Down
 -- +goose StatementBegin
-DROP INDEX IF EXISTS idx_affiliates_api_token;
-ALTER TABLE affiliates DROP COLUMN IF EXISTS api_token;
+DROP INDEX IF EXISTS idx_affiliates_api_key;
+ALTER TABLE affiliates DROP COLUMN IF EXISTS api_key;
 -- +goose StatementEnd
