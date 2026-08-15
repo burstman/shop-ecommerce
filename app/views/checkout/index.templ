@@ -20,18 +20,18 @@ templ Index(cart *models.Cart, values map[string]string, errors validate.Errors,
 		<div class="max-w-2xl mx-auto mb-12">
 			<div class="flex items-center justify-center">
 				<div class="flex items-center">
-					<div class="flex items-center justify-center w-10 h-10 rounded-full bg-primary text-primary-foreground text-sm font-bold">1</div>
-					<span class="ml-2 text-sm font-medium text-gray-900">{ services.GetI18n().T(ctx, "shopping_cart") }</span>
+					<div class="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary text-primary-foreground text-sm font-bold">1</div>
+					<span class="ml-1 sm:ml-2 text-xs sm:text-sm font-medium text-gray-900 hidden sm:inline">{ services.GetI18n().T(ctx, "shopping_cart") }</span>
 				</div>
-				<div class="w-16 h-0.5 mx-3 bg-primary"></div>
+				<div class="w-6 sm:w-16 h-0.5 mx-2 sm:mx-3 bg-primary"></div>
 				<div class="flex items-center">
-					<div class="flex items-center justify-center w-10 h-10 rounded-full bg-primary text-primary-foreground text-sm font-bold">2</div>
-					<span class="ml-2 text-sm font-medium text-primary">{ services.GetI18n().T(ctx, "checkout") }</span>
+					<div class="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary text-primary-foreground text-sm font-bold">2</div>
+					<span class="ml-1 sm:ml-2 text-xs sm:text-sm font-medium text-primary hidden sm:inline">{ services.GetI18n().T(ctx, "checkout") }</span>
 				</div>
-				<div class="w-16 h-0.5 mx-3 bg-gray-200"></div>
+				<div class="w-6 sm:w-16 h-0.5 mx-2 sm:mx-3 bg-gray-200"></div>
 				<div class="flex items-center">
-					<div class="flex items-center justify-center w-10 h-10 rounded-full bg-gray-200 text-gray-400 text-sm font-bold">3</div>
-					<span class="ml-2 text-sm text-gray-400">{ services.GetI18n().T(ctx, "confirmation") }</span>
+					<div class="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gray-200 text-gray-400 text-sm font-bold">3</div>
+					<span class="ml-1 sm:ml-2 text-xs sm:text-sm text-gray-400 hidden sm:inline">{ services.GetI18n().T(ctx, "confirmation") }</span>
 				</div>
 			</div>
 		</div>
