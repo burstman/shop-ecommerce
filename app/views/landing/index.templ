@@ -63,7 +63,15 @@ templ Index(cfg *config.Config, sectionProducts map[int][]models.Product, carous
 							</button>
 							<div x-ref="container" @scroll.debounce.50ms="update()" class="flex overflow-x-auto gap-6 pb-4 snap-x snap-mandatory scrollbar-hide">
 								for _, product := range sectionProducts[i] {
-									<div class="flex-none w-64 sm:w-72 snap-start">
+									{{
+										cardWidth := "w-64 sm:w-72"
+										if section.ImageSize == "small" {
+											cardWidth = "w-44 sm:w-52"
+										} else if section.ImageSize == "large" {
+											cardWidth = "w-80 sm:w-96"
+										}
+									}}
+									<div class={ fmt.Sprintf("flex-none %s snap-start", cardWidth) }>
 										@components.ProductCard(product, cfg)
 									</div>
 								}

@@ -121,6 +121,7 @@ type SectionConfig struct {
 	Title          string                `json:"title"`
 	Limit          int                   `json:"limit"`
 	Enabled        bool                  `json:"enabled"`
+	ImageSize      string                `json:"image_size,omitempty"` // small, medium, large - controls product image size
 	ProductIDs     []string              `json:"product_ids,omitempty"`
 	CategoryID     string                `json:"category_id,omitempty"`
 	Image          string                `json:"image,omitempty"`

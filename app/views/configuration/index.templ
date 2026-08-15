@@ -518,6 +518,14 @@ templ sectionsSettingsForm(cfg *config.Config, products []models.Product, catego
 					<label for={ fmt.Sprintf("section_%d_limit", i) } class="block text-sm font-medium text-gray-700">Limit</label>
 					<input type="number" name={ fmt.Sprintf("section_%d_limit", i) } id={ fmt.Sprintf("section_%d_limit", i) } value={ strconv.Itoa(section.Limit) } class="mt-1 block w-full border-gray-300 rounded-md shadow-sm sm:text-sm"/>
 				</div>
+				<div class="sm:col-span-2" x-show="sectionType !== 'category_banner'" x-cloak>
+					<label for={ fmt.Sprintf("section_%d_image_size", i) } class="block text-sm font-medium text-gray-700">Image Size</label>
+					<select name={ fmt.Sprintf("section_%d_image_size", i) } id={ fmt.Sprintf("section_%d_image_size", i) } class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm">
+						<option value="small" selected?={ section.ImageSize == "small" }>Small</option>
+						<option value="medium" selected?={ section.ImageSize == "" || section.ImageSize == "medium" }>Medium</option>
+						<option value="large" selected?={ section.ImageSize == "large" }>Large</option>
+					</select>
+				</div>
 				<div class="sm:col-span-6" x-show="sectionType !== 'category_banner'" x-cloak>
 					<label for={ fmt.Sprintf("section_%d_product_ids", i) } class="block text-sm font-medium text-gray-700">Select Products</label>
 					<div class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm h-64 overflow-y-auto p-4 space-y-2 bg-white">

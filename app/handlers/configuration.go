@@ -283,6 +283,7 @@ func HandleAdminSettingsUpdate(kit *kit.Kit) error {
 			s.TitleTextColor = kit.Request.FormValue(prefix + "title_text_color")
 			s.CategoryID = kit.Request.FormValue(prefix + "category_id")
 			s.Type = kit.Request.FormValue(prefix + "type")
+			s.ImageSize = kit.Request.FormValue(prefix + "image_size")
 
 			// Handle multiple Category Items for "category_banner" type
 			if s.Type == "category_banner" {
