@@ -16,26 +16,6 @@ templ Index(cart *models.Cart, values map[string]string, errors validate.Errors,
 		class="w-full px-4 sm:px-6 lg:px-8 py-12"
 		style={ layouts.GetContentStyle(cfg) }
 	>
-		<!-- Progress Stepper -->
-		<div class="max-w-2xl mx-auto mb-12">
-			<div class="flex items-center justify-center">
-				<div class="flex items-center">
-					<div class="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary text-primary-foreground text-sm font-bold">1</div>
-					<span class="ml-1 sm:ml-2 text-xs sm:text-sm font-medium text-gray-900 hidden sm:inline">{ services.GetI18n().T(ctx, "shopping_cart") }</span>
-				</div>
-				<div class="w-6 sm:w-16 h-0.5 mx-2 sm:mx-3 bg-primary"></div>
-				<div class="flex items-center">
-					<div class="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary text-primary-foreground text-sm font-bold">2</div>
-					<span class="ml-1 sm:ml-2 text-xs sm:text-sm font-medium text-primary hidden sm:inline">{ services.GetI18n().T(ctx, "checkout") }</span>
-				</div>
-				<div class="w-6 sm:w-16 h-0.5 mx-2 sm:mx-3 bg-gray-200"></div>
-				<div class="flex items-center">
-					<div class="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gray-200 text-gray-400 text-sm font-bold">3</div>
-					<span class="ml-1 sm:ml-2 text-xs sm:text-sm text-gray-400 hidden sm:inline">{ services.GetI18n().T(ctx, "confirmation") }</span>
-				</div>
-			</div>
-		</div>
-
 		<div class="grid grid-cols-1 lg:grid-cols-5 gap-8 max-w-6xl mx-auto">
 			<div class="lg:col-span-3">
 				@CheckoutForm(values, errors)
