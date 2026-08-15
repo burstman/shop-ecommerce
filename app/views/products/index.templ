@@ -31,7 +31,7 @@ templ Index(products []models.Product, page int, totalPages int, cfg *config.Con
 		} else {
 			<div class="grid grid-cols-1 gap-y-10 gap-x-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
 				for _, product := range products {
-					@components.ProductCard(product,cfg)
+					@components.ProductCard(product, cfg, "")
 				}
 			</div>
 

@@ -52,7 +52,7 @@ func Section(cfg *config.Config, title string, products []models.Product) templ.
 			return templ_7745c5c3_Err
 		}
 		for _, product := range products {
-			templ_7745c5c3_Err = ProductCard(product, cfg).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = ProductCard(product, cfg, "").Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

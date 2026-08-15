@@ -92,7 +92,7 @@ func Index(products []models.Product, page int, totalPages int, cfg *config.Conf
 				return templ_7745c5c3_Err
 			}
 			for _, product := range products {
-				templ_7745c5c3_Err = components.ProductCard(product, cfg).Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = components.ProductCard(product, cfg, "").Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

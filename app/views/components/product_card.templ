@@ -14,15 +14,29 @@ func getTrackingPrice(p models.Product) float64 {
 	return p.Price.ToFloat()
 }
 
+func cardSizeClasses(size string) (width string, imageHeight string) {
+	switch size {
+	case "small":
+		return "w-44 sm:w-52", "lg:h-56"
+	case "large":
+		return "w-80 sm:w-96", "lg:h-96"
+	default:
+		return "w-64 sm:w-72", "lg:h-80"
+	}
+}
 
-templ ProductCard(product models.Product, cfg *config.Config) {
+
+templ ProductCard(product models.Product, cfg *config.Config, size string) {
+	{{
+		cardWidth, imageHeight := cardSizeClasses(size)
+	}}
 	<div
 		hx-post={ fmt.Sprintf("/cart/add/%d?redirect=/checkout", product.ID) }
 		hx-swap="none"
 		onclick={ templ.JSFuncCall("trackInitiateCheckout", product.ID, product.Name, getTrackingPrice(product), cfg.Site.Currency) }
-		class="group/card relative cursor-pointer"
+		class={ fmt.Sprintf("group/card relative cursor-pointer %s", cardWidth) }
 	>
-		<div class="aspect-[3/4] w-full overflow-hidden rounded-md bg-muted lg:aspect-none lg:h-80 relative transition-opacity duration-300 hover:opacity-90">
+		<div class={ fmt.Sprintf("aspect-[3/4] w-full overflow-hidden rounded-md bg-muted lg:aspect-none %s relative transition-opacity duration-300 hover:opacity-90", imageHeight) }>
 			if product.Image != "" {
 				<img src={ product.Image } alt={ product.Name } class="h-full w-full object-cover object-center lg:h-full lg:w-full"/>
 			} else {
