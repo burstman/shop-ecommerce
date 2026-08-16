@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"regexp"
 	"shopTemplate/app/config"
 	"shopTemplate/app/db"
 	"shopTemplate/app/helpers"
@@ -12,7 +13,6 @@ import (
 	"shopTemplate/app/services"
 	"strconv"
 	"strings"
-	"regexp"
 
 	"shopTemplate/app/views/configuration"
 
@@ -46,7 +46,7 @@ func HandleAdminSettings(kit *kit.Kit) error {
 		content = configuration.Notifications(cfg)
 	case "facebook_pixel":
 		content = configuration.FacebookPixel(cfg)
-	case "site", "hero", "sections", "theme", "payment", "storefront-sidebar", "social_links", "chat_settings":
+	case "site", "hero", "sections", "theme", "payment", "storefront-sidebar", "social_links", "chat_settings", "mescolis":
 		csrfToken := csrf.Token(kit.Request)
 		content = configuration.Index(cfg, products, categories, section, csrfToken)
 	default:
@@ -177,6 +177,14 @@ func HandleAdminSettingsUpdate(kit *kit.Kit) error {
 		cfg.Payment.EnableCOD = kit.Request.FormValue("enable_cod") == "on"
 		cfg.Payment.EnableFlouci = kit.Request.FormValue("enable_flouci") == "on"
 		cfg.Payment.FlouciAppToken = kit.Request.FormValue("flouci_app_token")
+
+	case "mescolis":
+		cfg.Mescolis.Enabled = kit.Request.FormValue("mescolis_enabled") == "on"
+		if token := kit.Request.FormValue("mescolis_api_key"); token != "" {
+			cfg.Mescolis.APIKey = token
+		}
+		cfg.Mescolis.AllowSubAccount = kit.Request.FormValue("mescolis_allow_sub_account") == "on"
+		cfg.Mescolis.AccountCode = kit.Request.FormValue("mescolis_account_code")
 
 	case "social_links":
 		for i := range cfg.Footer.SocialLinks {
@@ -365,7 +373,7 @@ func HandleAdminSettingsUpdate(kit *kit.Kit) error {
 		if section == "facebook_pixel" {
 			return kit.Render(configuration.FacebookPixel(cfg))
 		}
-		if section == "payment" || section == "social_links" || section == "chat_settings" {
+		if section == "payment" || section == "social_links" || section == "chat_settings" || section == "mescolis" {
 			_, products, categories, err := getAdminConfigData(kit.Request, section)
 			if err != nil {
 				return err

@@ -1,0 +1,11 @@
+-- +goose Up
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS governorate TEXT;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS location TEXT;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS mescolis_barcode VARCHAR(32);
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS mescolis_status VARCHAR(64);
+
+-- +goose Down
+ALTER TABLE orders DROP COLUMN IF EXISTS mescolis_status;
+ALTER TABLE orders DROP COLUMN IF EXISTS mescolis_barcode;
+ALTER TABLE orders DROP COLUMN IF EXISTS location;
+ALTER TABLE orders DROP COLUMN IF EXISTS governorate;

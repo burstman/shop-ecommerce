@@ -10,6 +10,7 @@ import (
 	"shopTemplate/app/db"
 	"shopTemplate/app/helpers"
 	"shopTemplate/app/models"
+	"shopTemplate/app/services"
 	"shopTemplate/app/views/checkout"
 	"strconv"
 	"time"
@@ -54,15 +55,22 @@ func HandleCheckoutCreate(kit *kit.Kit) error {
 		errors.Add("phone", "Phone number must be exactly 8 digits")
 	}
 
+	governorate := kit.Request.FormValue("governorate")
+	if governorate == "" {
+		errors.Add("governorate", "Please select a governorate")
+	}
+
 	if len(errors) > 0 {
 		cart := helpers.GetCart(kit)
 		values := map[string]string{
-			"firstName": kit.Request.FormValue("firstName"),
-			"lastName":  kit.Request.FormValue("lastName"),
-			"email":     kit.Request.FormValue("email"),
-			"address":   kit.Request.FormValue("address"),
-			"city":      kit.Request.FormValue("city"),
-			"phone":     phone,
+			"firstName":   kit.Request.FormValue("firstName"),
+			"lastName":    kit.Request.FormValue("lastName"),
+			"email":       kit.Request.FormValue("email"),
+			"address":     kit.Request.FormValue("address"),
+			"city":        kit.Request.FormValue("city"),
+			"governorate": governorate,
+			"location":    kit.Request.FormValue("location"),
+			"phone":       phone,
 		}
 		return RenderWithLayout(kit, checkout.Index(cart, values, errors, cfg))
 	}
@@ -92,6 +100,8 @@ func HandleCheckoutCreate(kit *kit.Kit) error {
 		Email:              kit.Request.FormValue("email"),
 		Address:            kit.Request.FormValue("address"),
 		City:               kit.Request.FormValue("city"),
+		Governorate:        kit.Request.FormValue("governorate"),
+		Location:           kit.Request.FormValue("location"),
 		Phone:              phone,
 		Total:              total,
 		PlatformCommission: commission,
@@ -158,6 +168,11 @@ func HandleCheckoutCreate(kit *kit.Kit) error {
 	sess.Values["cart"] = &models.Cart{Items: make(map[uint]*models.CartItem)}
 	sess.Save(kit.Request, kit.Response)
 
+	// 4. Create the Mes Colis Express parcel
+	if !isTest {
+		syncMescolisParcel(order, cfg)
+	}
+
 	// Emit events.
 	if isTest {
 		lastTest, _ := sess.Values["last_test_notified_at"].(int64)
@@ -176,6 +191,57 @@ func HandleCheckoutCreate(kit *kit.Kit) error {
 	// Redirect to the success page with total for tracking
 	kit.Response.Header().Set("HX-Redirect", fmt.Sprintf("/checkout/success?total=%.2f", order.Total.ToFloat()))
 	return nil
+}
+
+func syncMescolisParcel(order models.Order, cfg *config.Config) {
+	if order.IsTest || !cfg.Mescolis.Enabled || cfg.Mescolis.APIKey == "" {
+		return
+	}
+
+	var items []models.OrderItem
+	if err := db.Get().Where("order_id = ?", order.ID).Find(&items).Error; err != nil {
+		slog.Error("failed to load order items for mescolis", "err", err, "orderID", order.ID)
+		return
+	}
+
+	productName := ""
+	for i, item := range items {
+		if i > 0 {
+			productName += ", "
+		}
+		productName += fmt.Sprintf("%s x%d", item.ProductName, item.Quantity)
+	}
+	if productName == "" {
+		productName = fmt.Sprintf("Order #%d", order.ID)
+	}
+
+	client := services.NewMescolisClient(cfg.Mescolis.APIKey, cfg.Mescolis.AllowSubAccount, cfg.Mescolis.AccountCode)
+	resp, err := client.CreateParcel(services.CreateParcelRequest{
+		ProductName:  productName,
+		ClientName:   fmt.Sprintf("%s %s", order.FirstName, order.LastName),
+		Address:      order.Address,
+		Gouvernerate: order.Governorate,
+		City:         order.City,
+		Location:     order.Location,
+		Tel1:         order.Phone,
+		Price:        order.Total.ToFloat(),
+		Note:         fmt.Sprintf("Order #%d", order.ID),
+	})
+	if err != nil {
+		slog.Error("failed to create mescolis parcel", "err", err, "orderID", order.ID)
+		return
+	}
+	if resp != nil && resp.Barcode != "" {
+		order.MescolisBarcode = resp.Barcode
+		order.MescolisStatus = "pending"
+		if err := db.Get().Model(&order).Updates(map[string]any{
+			"mescolis_barcode": resp.Barcode,
+			"mescolis_status":  "pending",
+		}).Error; err != nil {
+			slog.Error("failed to save mescolis barcode", "err", err, "orderID", order.ID)
+		}
+		slog.Info("mescolis parcel created", "orderID", order.ID, "barcode", resp.Barcode)
+	}
 }
 
 func HandleCheckoutAbandoned(kit *kit.Kit) error {
@@ -214,6 +280,8 @@ func HandleCheckoutAbandoned(kit *kit.Kit) error {
 		Email:              kit.Request.FormValue("email"),
 		Address:            kit.Request.FormValue("address"),
 		City:               kit.Request.FormValue("city"),
+		Governorate:        kit.Request.FormValue("governorate"),
+		Location:           kit.Request.FormValue("location"),
 		Phone:              phone,
 		Total:              total,
 		PlatformCommission: commission,

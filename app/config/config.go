@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
-	"sync"
 	"strings"
+	"sync"
 	"time"
 
 	"shopTemplate/app/db"
@@ -19,7 +19,7 @@ const configFilePath = "app/config/config.json"
 type contextKey string
 
 const (
-	affiliateKey  contextKey = "affiliate"
+	affiliateKey   contextKey = "affiliate"
 	affiliateIDKey contextKey = "affiliate_id"
 )
 
@@ -40,12 +40,12 @@ func AffiliateIDFromContext(ctx context.Context) string {
 }
 
 var (
-	cfg     *Config
-	once    sync.Once
-	mu      sync.Mutex
-	affMu   sync.RWMutex
-	affMap  = map[string]uint{}   // shop_url -> affiliate ID
-	cfgMu   sync.RWMutex
+	cfg      *Config
+	once     sync.Once
+	mu       sync.Mutex
+	affMu    sync.RWMutex
+	affMap   = map[string]uint{} // shop_url -> affiliate ID
+	cfgMu    sync.RWMutex
 	cfgCache = map[string]*Config{} // affiliate_id -> config
 )
 
@@ -60,6 +60,7 @@ type Config struct {
 	Footer            FooterConfig        `json:"footer"`
 	Payment           PaymentConfig       `json:"payment"`
 	Chat              ChatConfig          `json:"chat"`
+	Mescolis          MescolisConfig      `json:"mescolis"`
 }
 
 type NotificationConfig struct {
@@ -75,8 +76,6 @@ type FacebookPixelConfig struct {
 	DomainVerification string `json:"domain_verification"`
 	TestEventCode      string `json:"test_event_code"`
 }
-
-
 
 type SiteConfig struct {
 	Name          string          `json:"name"`
@@ -181,6 +180,13 @@ type PaymentConfig struct {
 	FlouciAppToken  string `json:"flouci_app_token"`
 }
 
+type MescolisConfig struct {
+	Enabled         bool   `json:"enabled"`
+	APIKey          string `json:"api_key"`
+	AllowSubAccount bool   `json:"allow_sub_account"`
+	AccountCode     string `json:"account_code"`
+}
+
 type SocialLink struct {
 	Platform string `json:"platform"`
 	URL      string `json:"url"`
@@ -227,6 +233,7 @@ func GetAdminSidebarGroups() []SidebarGroup {
 			Items: []MenuItem{
 				{Title: "Orders", Link: "/admin/orders", Icon: "clipboard-list"},
 				{Title: "Payment Methods", Link: "/admin/payment", Icon: "credit-card"},
+				{Title: "Mes Colis Express", Link: "/admin/mescolis", Icon: "truck"},
 			},
 		},
 		{
@@ -383,6 +390,12 @@ func defaultConfig() *Config {
 			EnableFlouci:    false,
 			FlouciPublicKey: "",
 			FlouciAppToken:  "",
+		},
+		Mescolis: MescolisConfig{
+			Enabled:         false,
+			APIKey:          "",
+			AllowSubAccount: false,
+			AccountCode:     "",
 		},
 	}
 }

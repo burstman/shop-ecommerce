@@ -39,6 +39,8 @@ templ Index(cfg *config.Config, products []models.Product, categories []models.C
 					@socialLinksSettingsForm(cfg)
 				case "chat_settings":
 					@chatSettingsForm(cfg)
+				case "mescolis":
+					@mescolisSettingsForm(cfg)
 			}
 		</div>
 		<div class="sticky bottom-0 z-40 flex justify-end">
@@ -265,6 +267,50 @@ templ paymentSettingsForm(cfg *config.Config) {
 						<label class="block text-sm font-medium text-gray-700">Flouci App Token</label>
 						<input type="text" name="flouci_app_token" value={ cfg.Payment.FlouciAppToken } class="mt-1 block w-full border-gray-300 rounded-md shadow-sm sm:text-sm"/>
 					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+}
+
+templ mescolisSettingsForm(cfg *config.Config) {
+	<div class="p-6 bg-white rounded-lg shadow space-y-8">
+		<div>
+			<h3 class="text-lg font-medium leading-6 text-gray-900">Mes Colis Express</h3>
+			<p class="mt-1 text-sm text-gray-500">Shipping integration for Tunisia. A parcel is created automatically when a customer places an order.</p>
+		</div>
+
+		<div class="space-y-6">
+			<div class="flex items-start">
+				<div class="flex items-center h-5">
+					<input id="mescolis_enabled" name="mescolis_enabled" type="checkbox" checked?={ cfg.Mescolis.Enabled } class="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300 rounded"/>
+				</div>
+				<div class="ml-3 text-sm">
+					<label for="mescolis_enabled" class="font-medium text-gray-700">Enable Mes Colis Express</label>
+					<p class="text-gray-500">Create a parcel on the Mes Colis platform for every new order.</p>
+				</div>
+			</div>
+
+			<div class="pt-6 border-t border-gray-200 grid grid-cols-1 gap-y-4 sm:grid-cols-2 sm:gap-x-4">
+				<div class="sm:col-span-2">
+					<label class="block text-sm font-medium text-gray-700">API Token (x-access-token)</label>
+					<input type="text" name="mescolis_api_key" value={ cfg.Mescolis.APIKey } placeholder="Paste your Mes Colis API token" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm sm:text-sm"/>
+					<p class="mt-1 text-sm text-gray-500">Leave blank to keep the current token.</p>
+				</div>
+
+				<div class="flex items-start sm:col-span-2">
+					<div class="flex items-center h-5">
+						<input id="mescolis_allow_sub_account" name="mescolis_allow_sub_account" type="checkbox" checked?={ cfg.Mescolis.AllowSubAccount } class="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300 rounded"/>
+					</div>
+					<div class="ml-3 text-sm">
+						<label for="mescolis_allow_sub_account" class="font-medium text-gray-700">Use Sub Account</label>
+						<p class="text-gray-500">Create parcels under a Mes Colis sub-account instead of the main account.</p>
+					</div>
+				</div>
+
+				<div class="sm:col-span-2">
+					<label class="block text-sm font-medium text-gray-700">Sub Account Code</label>
+					<input type="text" name="mescolis_account_code" value={ cfg.Mescolis.AccountCode } class="mt-1 block w-full border-gray-300 rounded-md shadow-sm sm:text-sm"/>
 				</div>
 			</div>
 		</div>
