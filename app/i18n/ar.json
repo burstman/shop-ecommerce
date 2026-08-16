@@ -101,6 +101,8 @@
   "close": "إغلاق",
   "commission": "العمولة",
   "completed": "مكتمل",
+  "confirmed": "مؤكد",
+  "confirm_order": "تأكيد الطلب",
   "confirm_cancellation": "تأكيد إلغاء الطلب",
   "confirm_deletion": "تأكيد حذف الطلب",
   "confirm_order_pending": "تأكيد الطلب (نقل إلى قيد الانتظار)",

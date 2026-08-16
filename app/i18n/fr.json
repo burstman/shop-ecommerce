@@ -102,6 +102,8 @@
   "close": "Fermer",
   "commission": "Commission",
   "completed": "Terminée",
+  "confirmed": "Confirmée",
+  "confirm_order": "Confirmer la commande",
   "confirm_cancellation": "Confirmer l'annulation",
   "confirm_deletion": "Confirmer la suppression",
   "confirm_order_pending": "Confirmer la commande (Mettre en attente)",

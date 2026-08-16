@@ -656,7 +656,7 @@ func mescolisSettingsForm(cfg *config.Config) templ.Component {
 			templ_7745c5c3_Var34 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 53, "<div class=\"p-6 bg-white rounded-lg shadow space-y-8\"><div><h3 class=\"text-lg font-medium leading-6 text-gray-900\">Mes Colis Express</h3><p class=\"mt-1 text-sm text-gray-500\">Shipping integration for Tunisia. A parcel is created automatically when a customer places an order.</p></div><div class=\"space-y-6\"><div class=\"flex items-start\"><div class=\"flex items-center h-5\"><input id=\"mescolis_enabled\" name=\"mescolis_enabled\" type=\"checkbox\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 53, "<div class=\"p-6 bg-white rounded-lg shadow space-y-8\"><div><h3 class=\"text-lg font-medium leading-6 text-gray-900\">Mes Colis Express</h3><p class=\"mt-1 text-sm text-gray-500\">Shipping integration for Tunisia. A parcel is created when an order is confirmed by the admin (pending → confirmed).</p></div><div class=\"space-y-6\"><div class=\"flex items-start\"><div class=\"flex items-center h-5\"><input id=\"mescolis_enabled\" name=\"mescolis_enabled\" type=\"checkbox\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

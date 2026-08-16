@@ -102,6 +102,8 @@
   "close": "Close",
   "commission": "Commission",
   "completed": "Completed",
+  "confirmed": "Confirmed",
+  "confirm_order": "Confirm Order",
   "confirm_cancellation": "Confirm Order Cancellation",
   "confirm_deletion": "Confirm Order Deletion",
   "confirm_order_pending": "Confirm Order (Move to Pending)",
