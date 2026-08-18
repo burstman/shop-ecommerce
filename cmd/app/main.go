@@ -6,7 +6,9 @@ import (
 	"net/http"
 	"os"
 	"shopTemplate/app"
+	"shopTemplate/app/config"
 	"shopTemplate/app/db"
+	"shopTemplate/app/services"
 	"shopTemplate/public"
 
 	"github.com/anthdm/superkit/kit"
@@ -20,6 +22,16 @@ func main() {
 	if err := db.Connect(); err != nil {
 		log.Fatalf("CRITICAL: Failed to connect to database: %v", err)
 	}
+
+	// Start the Mes Colis Express socket listener if enabled.
+	go func() {
+		cfg := config.Get()
+		if cfg.Mescolis.Enabled && cfg.Mescolis.APIKey != "" {
+			log.Println("starting Mes Colis Express socket listener...")
+			socket := services.NewMescolisSocket(cfg.Mescolis.APIKey, services.HandleMescolisEvent)
+			socket.Start()
+		}
+	}()
 
 	router := chi.NewMux()
 
