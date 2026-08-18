@@ -27,9 +27,18 @@ import (
 var dbInstance *gorm.DB
 
 // GetConfig returns a config value by key from the shared config table.
+// Uses the raw *sql.DB connection to avoid GORM/lib/pq prepared statement
+// caching issues (pq: bind message supplies N parameters).
 func GetConfig(key string) (string, error) {
+	sqlDB, err := dbInstance.DB()
+	if err != nil {
+		return "", fmt.Errorf("failed to get underlying sql.DB: %w", err)
+	}
 	var value string
-	err := dbInstance.Raw("SELECT COALESCE(value, '') FROM config WHERE key = ?", key).Scan(&value).Error
+	err = sqlDB.QueryRow("SELECT COALESCE(value, '') FROM config WHERE key = $1", key).Scan(&value)
+	if err == sql.ErrNoRows {
+		return "", nil
+	}
 	if err != nil {
 		return "", fmt.Errorf("failed to get config %q: %w", key, err)
 	}
