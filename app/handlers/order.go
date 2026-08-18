@@ -130,6 +130,12 @@ func HandleAdminOrderUpdateStatus(kit *kit.Kit) error {
 		syncMescolisParcel(order, cfg)
 	}
 
+	// Delete the Mes Colis parcel when the order is cancelled.
+	if newStatus == "cancelled" && order.MescolisBarcode != "" {
+		cfg := config.FromContext(kit.Request.Context())
+		deleteMescolisParcel(order, cfg)
+	}
+
 	return kit.Redirect(http.StatusSeeOther, fmt.Sprintf("/admin/orders/%d", id))
 }
 
@@ -230,6 +236,18 @@ func syncMescolisParcel(order models.Order, cfg *config.Config) {
 	}
 }
 
+func deleteMescolisParcel(order models.Order, cfg *config.Config) {
+	if order.MescolisBarcode == "" || !cfg.Mescolis.Enabled || cfg.Mescolis.APIKey == "" {
+		return
+	}
+	client := services.NewMescolisClient(cfg.Mescolis.APIKey, cfg.Mescolis.AllowSubAccount, cfg.Mescolis.AccountCode)
+	if err := client.DeleteParcel(order.MescolisBarcode); err != nil {
+		slog.Error("failed to delete mescolis parcel", "err", err, "orderID", order.ID, "barcode", order.MescolisBarcode)
+		return
+	}
+	slog.Info("mescolis parcel deleted", "orderID", order.ID, "barcode", order.MescolisBarcode)
+}
+
 func HandleAdminOrderDelete(kit *kit.Kit) error {
 	user, ok := kit.Auth().(models.AuthUser)
 	if !ok || user.Role != "admin" {
@@ -242,6 +260,14 @@ func HandleAdminOrderDelete(kit *kit.Kit) error {
 	if err != nil {
 		return kit.Render(viewerrors.Error500())
 	}
+
+	// Delete the Mes Colis parcel before removing the order.
+	var order models.Order
+	if err := db.Get().First(&order, id).Error; err == nil && order.MescolisBarcode != "" {
+		cfg := config.FromContext(kit.Request.Context())
+		deleteMescolisParcel(order, cfg)
+	}
+
 	if err := db.Get().Delete(&models.Order{}, id).Error; err != nil {
 		return err
 	}

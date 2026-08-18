@@ -138,6 +138,24 @@ func (c *MescolisClient) GetOrderStatus(barcode string) (*GetOrderResponse, erro
 	return &out, nil
 }
 
+// DeleteParcel deletes a parcel by barcode from the Mes Colis platform.
+func (c *MescolisClient) DeleteParcel(barcode string) error {
+	if c.APIKey == "" {
+		return errors.New("mescolis api key is not configured")
+	}
+
+	resp, err := c.do("DELETE", "/orders/DeleteOrder", map[string]string{"barcode": barcode})
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return decodeAPIError(resp)
+	}
+	return nil
+}
+
 func (c *MescolisClient) do(method, path string, payload any) (*http.Response, error) {
 	data, err := json.Marshal(payload)
 	if err != nil {
