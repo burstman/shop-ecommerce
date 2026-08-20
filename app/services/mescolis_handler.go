@@ -1,7 +1,9 @@
 package services
 
 import (
+	"fmt"
 	"log/slog"
+	"shopTemplate/app/config"
 	"shopTemplate/app/db"
 	"shopTemplate/app/models"
 )
@@ -39,5 +41,52 @@ func HandleMescolisEvent(evt MescolisEvent) {
 		"barcode", evt.Barcode,
 		"mescolis_status", evt.Status,
 		"order_status", updates["status"],
+	)
+
+	// Send WhatsApp notification to the customer.
+	sendWhatsAppStatusUpdate(order, evt.Status)
+}
+
+// sendWhatsAppStatusUpdate sends a WhatsApp template message with the parcel status.
+func sendWhatsAppStatusUpdate(order models.Order, mescolisStatus string) {
+	cfg := config.Get()
+	if !cfg.WhatsApp.Enabled || cfg.WhatsApp.APIKey == "" || cfg.WhatsApp.TemplateName == "" {
+		return
+	}
+	if order.Phone == "" {
+		return
+	}
+
+	// Format phone: 8-digit local → "216XXXXXXXX" (Tunisia country code, no +)
+	phone := order.Phone
+	if len(phone) == 8 {
+		phone = "216" + phone
+	}
+
+	lang := cfg.WhatsApp.TemplateLang
+	if lang == "" {
+		lang = "fr"
+	}
+
+	trackingURL := fmt.Sprintf("https://mescolis.tn/suivi/%s", order.MescolisBarcode)
+
+	client := NewD360Client(cfg.WhatsApp.APIKey)
+	err := client.SendTemplate(phone, cfg.WhatsApp.TemplateName, lang, []string{
+		fmt.Sprintf("%d", order.ID),
+		mescolisStatus,
+		trackingURL,
+	})
+	if err != nil {
+		slog.Error("whatsapp: failed to send status update",
+			"orderID", order.ID,
+			"phone", phone,
+			"err", err,
+		)
+		return
+	}
+	slog.Info("whatsapp: status update sent",
+		"orderID", order.ID,
+		"phone", phone,
+		"status", mescolisStatus,
 	)
 }

@@ -61,6 +61,7 @@ type Config struct {
 	Payment           PaymentConfig       `json:"payment"`
 	Chat              ChatConfig          `json:"chat"`
 	Mescolis          MescolisConfig      `json:"mescolis"`
+	WhatsApp          WhatsAppConfig      `json:"whatsapp"`
 }
 
 type NotificationConfig struct {
@@ -187,6 +188,13 @@ type MescolisConfig struct {
 	AccountCode     string `json:"account_code"`
 }
 
+type WhatsAppConfig struct {
+	Enabled        bool   `json:"enabled"`
+	APIKey         string `json:"api_key"`
+	TemplateName   string `json:"template_name"`
+	TemplateLang   string `json:"template_lang"`
+}
+
 type SocialLink struct {
 	Platform string `json:"platform"`
 	URL      string `json:"url"`
@@ -234,6 +242,7 @@ func GetAdminSidebarGroups() []SidebarGroup {
 				{Title: "Orders", Link: "/admin/orders", Icon: "clipboard-list"},
 				{Title: "Payment Methods", Link: "/admin/payment", Icon: "credit-card"},
 				{Title: "Mes Colis Express", Link: "/admin/mescolis", Icon: "truck"},
+				{Title: "WhatsApp", Link: "/admin/whatsapp", Icon: "chat-bubble-left-right"},
 			},
 		},
 		{
@@ -396,6 +405,12 @@ func defaultConfig() *Config {
 			APIKey:          "",
 			AllowSubAccount: false,
 			AccountCode:     "",
+		},
+		WhatsApp: WhatsAppConfig{
+			Enabled:      false,
+			APIKey:       "",
+			TemplateName: "",
+			TemplateLang: "fr",
 		},
 	}
 }

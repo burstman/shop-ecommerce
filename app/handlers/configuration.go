@@ -46,7 +46,7 @@ func HandleAdminSettings(kit *kit.Kit) error {
 		content = configuration.Notifications(cfg)
 	case "facebook_pixel":
 		content = configuration.FacebookPixel(cfg)
-	case "site", "hero", "sections", "theme", "payment", "storefront-sidebar", "social_links", "chat_settings", "mescolis":
+	case "site", "hero", "sections", "theme", "payment", "storefront-sidebar", "social_links", "chat_settings", "mescolis", "whatsapp":
 		csrfToken := csrf.Token(kit.Request)
 		content = configuration.Index(cfg, products, categories, section, csrfToken)
 	default:
@@ -185,6 +185,14 @@ func HandleAdminSettingsUpdate(kit *kit.Kit) error {
 		}
 		cfg.Mescolis.AllowSubAccount = kit.Request.FormValue("mescolis_allow_sub_account") == "on"
 		cfg.Mescolis.AccountCode = kit.Request.FormValue("mescolis_account_code")
+
+	case "whatsapp":
+		cfg.WhatsApp.Enabled = kit.Request.FormValue("whatsapp_enabled") == "on"
+		if key := kit.Request.FormValue("whatsapp_api_key"); key != "" {
+			cfg.WhatsApp.APIKey = key
+		}
+		cfg.WhatsApp.TemplateName = kit.Request.FormValue("whatsapp_template_name")
+		cfg.WhatsApp.TemplateLang = kit.Request.FormValue("whatsapp_template_lang")
 
 	case "social_links":
 		for i := range cfg.Footer.SocialLinks {
@@ -373,7 +381,7 @@ func HandleAdminSettingsUpdate(kit *kit.Kit) error {
 		if section == "facebook_pixel" {
 			return kit.Render(configuration.FacebookPixel(cfg))
 		}
-		if section == "payment" || section == "social_links" || section == "chat_settings" || section == "mescolis" {
+		if section == "payment" || section == "social_links" || section == "chat_settings" || section == "mescolis" || section == "whatsapp" {
 			_, products, categories, err := getAdminConfigData(kit.Request, section)
 			if err != nil {
 				return err
