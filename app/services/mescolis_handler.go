@@ -50,7 +50,7 @@ func HandleMescolisEvent(evt MescolisEvent) {
 // sendWhatsAppStatusUpdate sends a WhatsApp template message with the parcel status.
 func sendWhatsAppStatusUpdate(order models.Order, mescolisStatus string) {
 	cfg := config.Get()
-	if !cfg.WhatsApp.Enabled || cfg.WhatsApp.APIKey == "" || cfg.WhatsApp.TemplateName == "" {
+	if !cfg.WhatsApp.Enabled || cfg.WhatsApp.AccessToken == "" || cfg.WhatsApp.PhoneNumberID == "" || cfg.WhatsApp.TemplateName == "" {
 		return
 	}
 	if order.Phone == "" {
@@ -70,7 +70,7 @@ func sendWhatsAppStatusUpdate(order models.Order, mescolisStatus string) {
 
 	trackingURL := fmt.Sprintf("https://mescolis.tn/suivi/%s", order.MescolisBarcode)
 
-	client := NewD360Client(cfg.WhatsApp.APIKey)
+	client := NewWhatsAppCloudClient(cfg.WhatsApp.PhoneNumberID, cfg.WhatsApp.AccessToken)
 	err := client.SendTemplate(phone, cfg.WhatsApp.TemplateName, lang, []string{
 		fmt.Sprintf("%d", order.ID),
 		mescolisStatus,

@@ -322,8 +322,8 @@ templ mescolisSettingsForm(cfg *config.Config) {
 templ whatsappSettingsForm(cfg *config.Config) {
 	<div class="p-6 bg-white rounded-lg shadow space-y-8">
 		<div>
-			<h3 class="text-lg font-medium leading-6 text-gray-900">WhatsApp Notifications (360dialog)</h3>
-			<p class="mt-1 text-sm text-gray-500">Send parcel status updates to customers via WhatsApp. Requires a 360dialog account with an approved template.</p>
+			<h3 class="text-lg font-medium leading-6 text-gray-900">WhatsApp Notifications (Meta Cloud API)</h3>
+			<p class="mt-1 text-sm text-gray-500">Send parcel status updates to customers via WhatsApp. Uses the free Meta Cloud API — no monthly fee, only Meta per-message costs.</p>
 		</div>
 		<div class="space-y-6">
 			<div class="flex items-start">
@@ -337,9 +337,14 @@ templ whatsappSettingsForm(cfg *config.Config) {
 			</div>
 			<div class="pt-6 border-t border-gray-200 grid grid-cols-1 gap-y-4 sm:grid-cols-2 sm:gap-x-4">
 				<div class="sm:col-span-2">
-					<label class="block text-sm font-medium text-gray-700">360dialog API Key</label>
-					<input type="text" name="whatsapp_api_key" value={ cfg.WhatsApp.APIKey } placeholder="Paste your 360dialog API key" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm sm:text-sm"/>
-					<p class="mt-1 text-sm text-gray-500">Leave blank to keep the current key.</p>
+					<label class="block text-sm font-medium text-gray-700">Phone Number ID</label>
+					<input type="text" name="whatsapp_phone_number_id" value={ cfg.WhatsApp.PhoneNumberID } placeholder="e.g. 1234567890" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm sm:text-sm"/>
+					<p class="mt-1 text-sm text-gray-500">From Meta Developer Dashboard → WhatsApp → API Setup.</p>
+				</div>
+				<div class="sm:col-span-2">
+					<label class="block text-sm font-medium text-gray-700">Permanent Access Token</label>
+					<input type="password" name="whatsapp_access_token" value={ cfg.WhatsApp.AccessToken } placeholder="Paste your permanent access token" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm sm:text-sm"/>
+					<p class="mt-1 text-sm text-gray-500">Leave blank to keep the current token.</p>
 				</div>
 				<div class="sm:col-span-1">
 					<label class="block text-sm font-medium text-gray-700">Template Name</label>

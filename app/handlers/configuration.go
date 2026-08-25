@@ -188,8 +188,11 @@ func HandleAdminSettingsUpdate(kit *kit.Kit) error {
 
 	case "whatsapp":
 		cfg.WhatsApp.Enabled = kit.Request.FormValue("whatsapp_enabled") == "on"
-		if key := kit.Request.FormValue("whatsapp_api_key"); key != "" {
-			cfg.WhatsApp.APIKey = key
+		if v := kit.Request.FormValue("whatsapp_phone_number_id"); v != "" {
+			cfg.WhatsApp.PhoneNumberID = v
+		}
+		if v := kit.Request.FormValue("whatsapp_access_token"); v != "" {
+			cfg.WhatsApp.AccessToken = v
 		}
 		cfg.WhatsApp.TemplateName = kit.Request.FormValue("whatsapp_template_name")
 		cfg.WhatsApp.TemplateLang = kit.Request.FormValue("whatsapp_template_lang")

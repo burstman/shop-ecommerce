@@ -189,10 +189,11 @@ type MescolisConfig struct {
 }
 
 type WhatsAppConfig struct {
-	Enabled        bool   `json:"enabled"`
-	APIKey         string `json:"api_key"`
-	TemplateName   string `json:"template_name"`
-	TemplateLang   string `json:"template_lang"`
+	Enabled       bool   `json:"enabled"`
+	PhoneNumberID string `json:"phone_number_id"`
+	AccessToken   string `json:"access_token"`
+	TemplateName  string `json:"template_name"`
+	TemplateLang  string `json:"template_lang"`
 }
 
 type SocialLink struct {
@@ -407,10 +408,11 @@ func defaultConfig() *Config {
 			AccountCode:     "",
 		},
 		WhatsApp: WhatsAppConfig{
-			Enabled:      false,
-			APIKey:       "",
-			TemplateName: "",
-			TemplateLang: "fr",
+			Enabled:       false,
+			PhoneNumberID: "",
+			AccessToken:   "",
+			TemplateName:  "",
+			TemplateLang:  "fr",
 		},
 	}
 }
