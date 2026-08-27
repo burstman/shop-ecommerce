@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-const whatsappCloudAPIBase = "https://graph.facebook.com/v21.0"
+const whatsappCloudAPIBase = "https://graph.facebook.com/v25.0"
 
 type WhatsAppCloudClient struct {
 	PhoneNumberID string

@@ -194,6 +194,7 @@ type WhatsAppConfig struct {
 	AccessToken   string `json:"access_token"`
 	TemplateName  string `json:"template_name"`
 	TemplateLang  string `json:"template_lang"`
+	VerifyToken   string `json:"verify_token"`
 }
 
 type SocialLink struct {
@@ -413,6 +414,7 @@ func defaultConfig() *Config {
 			AccessToken:   "",
 			TemplateName:  "",
 			TemplateLang:  "fr",
+			VerifyToken:   "",
 		},
 	}
 }

@@ -67,6 +67,15 @@ func sendWhatsAppStatusUpdate(order models.Order, mescolisStatus string) {
 	if lang == "" {
 		lang = "fr"
 	}
+	// Map short codes to full Meta locale codes if needed
+	langMap := map[string]string{
+		"fr": "fr_FR",
+		"en": "en_US",
+		"ar": "ar",
+	}
+	if full, ok := langMap[lang]; ok {
+		lang = full
+	}
 
 	trackingURL := fmt.Sprintf("https://mescolis.tn/suivi/%s", order.MescolisBarcode)
 

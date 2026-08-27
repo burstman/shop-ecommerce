@@ -224,6 +224,10 @@ func InitializeRoutes(router *chi.Mux) {
 	// WebSocket route without the standard HTTP logger middleware to avoid duration noise
 	router.With(kit.WithAuthentication(authConfig, false)).Get("/api/chat/ws", kit.Handler(handlers.HandleChatWS))
 
+	// WhatsApp Cloud API webhook (called directly by Meta, no session/CSRF/auth)
+	router.Get("/webhooks/whatsapp", handlers.HandleWhatsAppWebhook)
+	router.Post("/webhooks/whatsapp", handlers.HandleWhatsAppWebhook)
+
 	// Routes that "might" have an authenticated user
 	router.Group(func(app chi.Router) {
 		app.Use(kit.WithAuthentication(authConfig, false)) // strict set to false

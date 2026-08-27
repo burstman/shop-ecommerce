@@ -359,6 +359,15 @@ templ whatsappSettingsForm(cfg *config.Config) {
 						<option value="ar" selected?={ cfg.WhatsApp.TemplateLang == "ar" }>العربية (ar)</option>
 					</select>
 				</div>
+				<div class="sm:col-span-2">
+					<label class="block text-sm font-medium text-gray-700">Webhook Verify Token</label>
+					<input type="text" name="whatsapp_verify_token" value={ cfg.WhatsApp.VerifyToken } placeholder="Any random string, e.g. mySecretVerifyToken123" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm sm:text-sm"/>
+					<p class="mt-1 text-sm text-gray-500">Must match the token you enter in Meta Developer Dashboard → WhatsApp → Configuration → Webhook.</p>
+				</div>
+				<div class="sm:col-span-2">
+					<p class="text-sm text-gray-500">Your webhook callback URL is:</p>
+					<code class="text-xs bg-gray-100 rounded px-2 py-1 mt-1 inline-block">https://your-domain.com/webhooks/whatsapp</code>
+				</div>
 				<div class="sm:col-span-2 bg-gray-50 p-4 rounded-md">
 					<p class="text-sm text-gray-700 font-medium">Template format</p>
 					<p class="text-sm text-gray-500 mt-1">Your template must have <strong>3 body parameters</strong>:</p>

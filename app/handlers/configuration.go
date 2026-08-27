@@ -196,6 +196,9 @@ func HandleAdminSettingsUpdate(kit *kit.Kit) error {
 		}
 		cfg.WhatsApp.TemplateName = kit.Request.FormValue("whatsapp_template_name")
 		cfg.WhatsApp.TemplateLang = kit.Request.FormValue("whatsapp_template_lang")
+		if v := kit.Request.FormValue("whatsapp_verify_token"); v != "" {
+			cfg.WhatsApp.VerifyToken = v
+		}
 
 	case "social_links":
 		for i := range cfg.Footer.SocialLinks {
