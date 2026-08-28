@@ -12,6 +12,7 @@ import (
 	"shopTemplate/app/config"
 	"shopTemplate/app/db"
 	"shopTemplate/app/models"
+	"shopTemplate/app/services"
 	"shopTemplate/app/views/admin"
 	"shopTemplate/app/views/components"
 	"strconv"
@@ -501,6 +502,7 @@ func HandleAdminChatSend(kit *kit.Kit) error {
 		return nil
 	}
 
+	// Save the admin reply to the DB
 	msg := models.ChatMessage{
 		ChatSessionID: uint(sessionID),
 		Sender:        "admin",
@@ -517,9 +519,26 @@ func HandleAdminChatSend(kit *kit.Kit) error {
 		return err
 	}
 
-	// Real-time push to participants
+	// Load the session to check channel
 	var session models.ChatSession
-	if err := db.Get().First(&session, sessionID).Error; err == nil {
+	if err := db.Get().First(&session, sessionID).Error; err != nil {
+		return kit.Render(components.ChatMessageBubble(config.FromContext(kit.Request.Context()), msg))
+	}
+
+	// If this is a WhatsApp session, send via WhatsApp Cloud API
+	if session.Channel == "whatsapp" && session.Phone != "" {
+		cfg := config.Get()
+		if cfg.WhatsApp.AccessToken != "" && cfg.WhatsApp.PhoneNumberID != "" {
+			client := services.NewWhatsAppCloudClient(cfg.WhatsApp.PhoneNumberID, cfg.WhatsApp.AccessToken)
+			if err := client.SendText(session.Phone, content); err != nil {
+				slog.Error("whatsapp: failed to send admin reply", "sessionID", sessionID, "phone", session.Phone, "err", err)
+				// Still return the bubble to the admin UI so they see the message was saved
+			} else {
+				slog.Info("whatsapp: admin reply sent", "sessionID", sessionID, "phone", session.Phone)
+			}
+		}
+	} else {
+		// Standard web chat — real-time push to the connected client via WebSocket
 		cfg := config.FromContext(kit.Request.Context())
 		bubbleHTML, err := componentToString(kit.Request.Context(), components.ChatMessageBubble(cfg, msg))
 		if err != nil {
@@ -543,7 +562,6 @@ func HandleAdminChatSend(kit *kit.Kit) error {
 
 		// Push to client
 		if isOnline {
-			// Wrap the message in the expected container for HTMX OOB swap on client side
 			payload := fmt.Sprintf("<div id=\"chat-messages\" hx-swap-oob=\"beforeend\">%s</div>", bubbleHTML)
 			if err := clientConn.WriteMessage(websocket.TextMessage, []byte(payload)); err != nil {
 				clientsMu.Lock()
@@ -553,29 +571,23 @@ func HandleAdminChatSend(kit *kit.Kit) error {
 		}
 
 		// Push to all admins to sync their views and sidebar
-		// Remove hx-swap-oob from the component itself
 		sessionItemHTML, err := componentToString(kit.Request.Context(), admin.ChatSessionItem(session, isOnline, nil))
 		if err != nil {
 			return err
 		}
-		// Generate HTML for the global notification dot in the admin sidebar
 		adminSidebarDotHTML, err := componentToString(kit.Request.Context(), components.ChatNotificationDot(cfg, false, "", 0, templ.Attributes{"hx-swap-oob": "outerHTML", "id": "admin-sidebar-chat-dot"}))
 		if err != nil {
 			return err
 		}
-		// Generate HTML for the global notification dot in the top navigation (if it exists)
 		adminTopnavDotHTML, err := componentToString(kit.Request.Context(), components.ChatNotificationDot(cfg, false, "", 0, templ.Attributes{"hx-swap-oob": "outerHTML", "id": "admin-topnav-chat-dot"}))
 		if err != nil {
 			return err
 		}
-		// This dotHTML is for the session-specific dot for the current session being responded to.
 		dotHTML, err := componentToString(kit.Request.Context(), components.ChatNotificationDot(cfg, false, "", uint(sessionID), templ.Attributes{"hx-swap-oob": "outerHTML", "id": fmt.Sprintf("chat-notification-dot-%d", sessionID)}))
 		if err != nil {
 			return err
 		}
 		for _, a := range admins {
-			// We exclude the sender to avoid duplicate messages if the admin's
-			// UI is already updating via standard hx-post response
 			if a.id == currentAdminID {
 				continue
 			}
@@ -583,10 +595,9 @@ func HandleAdminChatSend(kit *kit.Kit) error {
 			var payload strings.Builder
 			payload.WriteString(fmt.Sprintf("<div id=\"chat-messages-%d\" hx-swap-oob=\"beforeend\">%s</div>", session.ID, bubbleHTML))
 			payload.WriteString(fmt.Sprintf("<div id=\"delete-helper-%d\" hx-swap-oob=\"delete:#chat-session-item-%d\"></div>", session.ID, session.ID))
-			// Wrap the session item in a div for the afterbegin swap
-			payload.WriteString(fmt.Sprintf("<div hx-swap-oob=\"afterbegin:#sidebar-session-list\">%s</div>", sessionItemHTML)) // Update session list order
-			payload.WriteString(adminSidebarDotHTML)                                                                            // Update global sidebar dot
-			payload.WriteString(adminTopnavDotHTML)                                                                             // Update global topnav dot
+			payload.WriteString(fmt.Sprintf("<div hx-swap-oob=\"afterbegin:#sidebar-session-list\">%s</div>", sessionItemHTML))
+			payload.WriteString(adminSidebarDotHTML)
+			payload.WriteString(adminTopnavDotHTML)
 			payload.WriteString(dotHTML)
 
 			if err := a.conn.WriteMessage(websocket.TextMessage, []byte(payload.String())); err != nil {

@@ -67,6 +67,65 @@ type cloudResponse struct {
 	} `json:"error,omitempty"`
 }
 
+type cloudTextMessage struct {
+	MessagingProduct string `json:"messaging_product"`
+	To               string `json:"to"`
+	Type             string `json:"type"`
+	Text             struct {
+		PreviewURL bool   `json:"preview_url"`
+		Body       string `json:"body"`
+	} `json:"text"`
+}
+
+// SendText sends a free-form text message via Meta Cloud API.
+// Only works within 24 hours of the customer's last message.
+func (c *WhatsAppCloudClient) SendText(phone, text string) error {
+	if c.AccessToken == "" || c.PhoneNumberID == "" {
+		return fmt.Errorf("whatsapp cloud api credentials not configured")
+	}
+
+	msg := cloudTextMessage{
+		MessagingProduct: "whatsapp",
+		To:               phone,
+		Type:             "text",
+	}
+	msg.Text.Body = text
+
+	data, err := json.Marshal(msg)
+	if err != nil {
+		return err
+	}
+
+	url := fmt.Sprintf("%s/%s/messages", whatsappCloudAPIBase, c.PhoneNumberID)
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(data))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+c.AccessToken)
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("whatsapp cloud: request failed: %w", err)
+	}
+	defer resp.Body.Close()
+
+	body, _ := io.ReadAll(resp.Body)
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return fmt.Errorf("whatsapp cloud: http %d: %s", resp.StatusCode, string(body))
+	}
+
+	var apiResp cloudResponse
+	if err := json.Unmarshal(body, &apiResp); err != nil {
+		return fmt.Errorf("whatsapp cloud: failed to decode response: %w", err)
+	}
+	if apiResp.Error != nil {
+		return fmt.Errorf("whatsapp cloud: %s (code %d)", apiResp.Error.Message, apiResp.Error.Code)
+	}
+	return nil
+}
+
 // SendTemplate sends a WhatsApp template message via Meta Cloud API.
 // phone should be in international format without "+" (e.g. "21620123456").
 func (c *WhatsAppCloudClient) SendTemplate(phone, templateName, langCode string, params []string) error {

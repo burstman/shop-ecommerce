@@ -8,8 +8,10 @@ import (
 
 type ChatSession struct {
 	gorm.Model
-	Identifier   string `gorm:"uniqueIndex"` // A UUID stored in client's local storage/cookie
+	Identifier   string `gorm:"uniqueIndex"` // A UUID stored in client's local storage/cookie, or "whatsapp:216XXXXXXXX"
 	CustomerName string
+	Channel      string `gorm:"default:web"` // "web" or "whatsapp"
+	Phone        string `gorm:"size:20"`     // WhatsApp phone (only for whatsapp channel)
 	IsActive     bool          `gorm:"default:true"`
 	IsBanned     bool          `gorm:"default:false"`
 	Messages     []ChatMessage `gorm:"foreignKey:ChatSessionID"`
