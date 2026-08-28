@@ -11,12 +11,19 @@ import templruntime "github.com/a-h/templ/runtime"
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"shopTemplate/app/config"
 	"shopTemplate/app/models"
 	"shopTemplate/app/services"
+	"strings"
 )
 
-func ChatButton(ctx context.Context, user models.AuthUser, cfg *config.Config) templ.Component {
+// ChatWidget renders the customer support widget for non-admin visitors.
+// It switches based on cfg.Chat.Mode:
+//   - "standard": built-in in-app WebSocket chat
+//   - "whatsapp": floating WhatsApp button linking to wa.me
+//   - "disabled": nothing is rendered
+func ChatWidget(ctx context.Context, user models.AuthUser, cfg *config.Config) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -37,111 +44,203 @@ func ChatButton(ctx context.Context, user models.AuthUser, cfg *config.Config) t
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"fixed bottom-6 right-6 z-50\" x-data=\"{ open: false, wsError: false, wsConnected: false }\"><!-- Toggle Button --><button @click=\"open = !open; if(open) htmx.trigger('#chat-messages', 'refresh-chat')\" class=\"text-white p-4 rounded-full shadow-2xl hover:scale-110 transition-transform flex items-center justify-center\" style=\"")
+		if user.Role != "admin" {
+			switch cfg.Chat.Mode {
+			case "whatsapp":
+				templ_7745c5c3_Err = WhatsAppChatButton(cfg).Render(ctx, templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			case "disabled":
+			default:
+				templ_7745c5c3_Err = ChatButton(ctx, user, cfg).Render(ctx, templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+		}
+		return nil
+	})
+}
+
+func WhatsAppChatButton(cfg *config.Config) templ.Component {
+	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
+			return templ_7745c5c3_CtxErr
+		}
+		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+		if !templ_7745c5c3_IsBuffer {
+			defer func() {
+				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err == nil {
+					templ_7745c5c3_Err = templ_7745c5c3_BufErr
+				}
+			}()
+		}
+		ctx = templ.InitializeContext(ctx)
+		templ_7745c5c3_Var2 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var2 == nil {
+			templ_7745c5c3_Var2 = templ.NopComponent
+		}
+		ctx = templ.ClearChildren(ctx)
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"fixed bottom-6 right-6 z-50\"><a href=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var2 string
-		templ_7745c5c3_Var2, templ_7745c5c3_Err = templruntime.SanitizeStyleAttributeValues(fmt.Sprintf("background-color: %s;", cfg.Chat.PrimaryColor))
+		var templ_7745c5c3_Var3 templ.SafeURL
+		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(whatsAppChatURL(cfg)))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/components/chat_button.templ`, Line: 17, Col: 70}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\"><svg x-show=\"!open\" class=\"w-8 h-8\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z\"></path></svg> <svg x-show=\"open\" x-cloak class=\"w-8 h-8\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M6 18L18 6M6 6l12 12\"></path></svg></button><!-- Chat Window --><div x-show=\"open\" x-cloak x-transition class=\"absolute bottom-20 right-0 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden flex flex-col h-[500px]\"><!-- Header --><div class=\"p-4 flex justify-between items-center\" style=\"")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var3 string
-		templ_7745c5c3_Var3, templ_7745c5c3_Err = templruntime.SanitizeStyleAttributeValues(fmt.Sprintf("background-color: %s; color: %s;", cfg.Chat.PrimaryColor, cfg.Chat.HeaderTextColor))
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/components/chat_button.templ`, Line: 31, Col: 158}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/components/chat_button.templ`, Line: 34, Col: 45}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "\"><div class=\"flex flex-col\"><div class=\"flex items-center gap-2\"><div class=\"w-2.5 h-2.5 rounded-full border border-white/20\" :class=\"{\n\t\t\t\t\t\t\t\t'bg-green-400 shadow-[0_0_8px_rgba(74,222,128,0.6)] animate-pulse': wsConnected && !wsError,\n\t\t\t\t\t\t\t\t'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.6)]': wsError,\n\t\t\t\t\t\t\t\t'bg-red-500': !wsConnected && !wsError\n\t\t\t\t\t\t\t}\" :title=\"wsConnected ? (wsError ? 'Connexion dégradée (Polling)' : 'Connecté') : 'Déconnecté'\"></div><h3 class=\"font-bold\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"flex items-center gap-2 text-white px-5 py-4 rounded-full shadow-2xl hover:scale-110 transition-transform\" style=\"background-color: #25D366;\" aria-label=\"Chat on WhatsApp\"><svg class=\"w-7 h-7\" fill=\"currentColor\" viewBox=\"0 0 24 24\"><path d=\"M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.297-.497.1-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z\"></path></svg> <span class=\"hidden sm:inline text-sm font-medium\">Chat on WhatsApp</span></a></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var4 string
-		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(services.GetI18n().T(ctx, "chat_support"))
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/components/chat_button.templ`, Line: 43, Col: 71}
+		return nil
+	})
+}
+
+func whatsAppChatURL(cfg *config.Config) string {
+	phone := strings.ReplaceAll(cfg.Chat.WhatsAppPhone, " ", "")
+	phone = strings.TrimPrefix(phone, "+")
+	if phone == "" {
+		return "https://wa.me/"
+	}
+	msg := fmt.Sprintf("Hello %s, I have a question.", cfg.Site.Name)
+	return fmt.Sprintf("https://wa.me/%s?text=%s", phone, url.QueryEscape(msg))
+}
+
+func ChatButton(ctx context.Context, user models.AuthUser, cfg *config.Config) templ.Component {
+	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
+			return templ_7745c5c3_CtxErr
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
+		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+		if !templ_7745c5c3_IsBuffer {
+			defer func() {
+				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err == nil {
+					templ_7745c5c3_Err = templ_7745c5c3_BufErr
+				}
+			}()
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</h3></div><p class=\"text-xs opacity-80\" x-text=\"")
+		ctx = templ.InitializeContext(ctx)
+		templ_7745c5c3_Var4 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var4 == nil {
+			templ_7745c5c3_Var4 = templ.NopComponent
+		}
+		ctx = templ.ClearChildren(ctx)
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<div class=\"fixed bottom-6 right-6 z-50\" x-data=\"{ open: false, wsError: false, wsConnected: false }\"><!-- Toggle Button --><button @click=\"open = !open; if(open) htmx.trigger('#chat-messages', 'refresh-chat')\" class=\"text-white p-4 rounded-full shadow-2xl hover:scale-110 transition-transform flex items-center justify-center\" style=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var5 string
-		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.ResolveAttributeValue(fmt.Sprintf("wsError ? '%s' : '%s'", services.GetI18n().T(ctx, "chat_connection_degraded"), services.GetI18n().T(ctx, "chat_response_time")))
+		templ_7745c5c3_Var5, templ_7745c5c3_Err = templruntime.SanitizeStyleAttributeValues(fmt.Sprintf("background-color: %s;", cfg.Chat.PrimaryColor))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/components/chat_button.templ`, Line: 45, Col: 184}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/components/chat_button.templ`, Line: 63, Col: 70}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var5)
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\"></p></div><button @click=\"open = false\" class=\"hover:opacity-60 transition-opacity focus:outline-none\" title=\"Fermer le chat\"><svg class=\"w-6 h-6\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M6 18L18 6M6 6l12 12\"></path></svg></button></div><!-- Messages Area with WebSocket --><div class=\"flex-1 overflow-hidden flex flex-col\"><!-- WS Extension isolated to prevent crashing the whole component if blocked --><div hx-ext=\"ws\" ws-connect=\"/api/chat/ws\" class=\"hidden\" @htmx:ws-open=\"wsConnected = true; wsError = false; console.log('WebSocket connected')\" @htmx:ws-close=\"wsConnected = false; console.log('WebSocket disconnected')\" @htmx:ws-error=\"wsConnected = false; wsError = true; console.warn('WebSocket blocked by browser or ad-blocker')\"></div><div x-show=\"wsError\" x-cloak class=\"mx-4 mt-2 p-2 bg-amber-50 border border-amber-200 rounded-lg flex items-center gap-2\"><svg class=\"w-4 h-4 text-amber-600 flex-shrink-0\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z\"></path></svg><p class=\"text-[10px] text-amber-700 leading-tight\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\"><svg x-show=\"!open\" class=\"w-8 h-8\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z\"></path></svg> <svg x-show=\"open\" x-cloak class=\"w-8 h-8\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M6 18L18 6M6 6l12 12\"></path></svg></button><!-- Chat Window --><div x-show=\"open\" x-cloak x-transition class=\"absolute bottom-20 right-0 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden flex flex-col h-[500px]\"><!-- Header --><div class=\"p-4 flex justify-between items-center\" style=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var6 string
-		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(services.GetI18n().T(ctx, "chat_connection_desc"))
+		templ_7745c5c3_Var6, templ_7745c5c3_Err = templruntime.SanitizeStyleAttributeValues(fmt.Sprintf("background-color: %s; color: %s;", cfg.Chat.PrimaryColor, cfg.Chat.HeaderTextColor))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/components/chat_button.templ`, Line: 62, Col: 108}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/components/chat_button.templ`, Line: 77, Col: 158}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</p></div><div id=\"chat-messages\" class=\"flex-1 p-4 overflow-y-auto space-y-4 bg-gray-50 scroll-smooth\" style=\"overflow-anchor: none;\" hx-get=\"/api/chat/messages\" x-bind:hx-trigger=\"wsError ? 'every 5s, refresh-chat' : 'intersect once, refresh-chat'\"><div class=\"text-center text-xs text-gray-400\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\"><div class=\"flex flex-col\"><div class=\"flex items-center gap-2\"><div class=\"w-2.5 h-2.5 rounded-full border border-white/20\" :class=\"{\n\t\t\t\t\t\t\t\t'bg-green-400 shadow-[0_0_8px_rgba(74,222,128,0.6)] animate-pulse': wsConnected && !wsError,\n\t\t\t\t\t\t\t\t'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.6)]': wsError,\n\t\t\t\t\t\t\t\t'bg-red-500': !wsConnected && !wsError\n\t\t\t\t\t\t\t}\" :title=\"wsConnected ? (wsError ? 'Connexion dégradée (Polling)' : 'Connecté') : 'Déconnecté'\"></div><h3 class=\"font-bold\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var7 string
-		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(services.GetI18n().T(ctx, "chat_loading"))
+		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(services.GetI18n().T(ctx, "chat_support"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/components/chat_button.templ`, Line: 72, Col: 95}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/components/chat_button.templ`, Line: 89, Col: 71}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</div></div><!-- Input Area --><form hx-post=\"/api/chat/send\" method=\"POST\" hx-target=\"#chat-messages\" hx-swap=\"beforeend\" @htmx:after-request=\"$el.reset()\" class=\"p-4 border-t border-gray-100 flex gap-2 bg-white\"><input type=\"text\" name=\"message\" placeholder=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</h3></div><p class=\"text-xs opacity-80\" x-text=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var8 string
-		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.ResolveAttributeValue(services.GetI18n().T(ctx, "chat_input_placeholder"))
+		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.ResolveAttributeValue(fmt.Sprintf("wsError ? '%s' : '%s'", services.GetI18n().T(ctx, "chat_connection_degraded"), services.GetI18n().T(ctx, "chat_response_time")))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/components/chat_button.templ`, Line: 87, Col: 70}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/components/chat_button.templ`, Line: 91, Col: 184}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var8)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "\" required class=\"flex-1 border-gray-200 rounded-full px-4 py-2 text-sm focus:ring-primary focus:border-primary\"> <button type=\"submit\" class=\"text-white p-2 rounded-full hover:opacity-90 transition-opacity\" style=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\"></p></div><button @click=\"open = false\" class=\"hover:opacity-60 transition-opacity focus:outline-none\" title=\"Fermer le chat\"><svg class=\"w-6 h-6\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M6 18L18 6M6 6l12 12\"></path></svg></button></div><!-- Messages Area with WebSocket --><div class=\"flex-1 overflow-hidden flex flex-col\"><!-- WS Extension isolated to prevent crashing the whole component if blocked --><div hx-ext=\"ws\" ws-connect=\"/api/chat/ws\" class=\"hidden\" @htmx:ws-open=\"wsConnected = true; wsError = false; console.log('WebSocket connected')\" @htmx:ws-close=\"wsConnected = false; console.log('WebSocket disconnected')\" @htmx:ws-error=\"wsConnected = false; wsError = true; console.warn('WebSocket blocked by browser or ad-blocker')\"></div><div x-show=\"wsError\" x-cloak class=\"mx-4 mt-2 p-2 bg-amber-50 border border-amber-200 rounded-lg flex items-center gap-2\"><svg class=\"w-4 h-4 text-amber-600 flex-shrink-0\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z\"></path></svg><p class=\"text-[10px] text-amber-700 leading-tight\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var9 string
-		templ_7745c5c3_Var9, templ_7745c5c3_Err = templruntime.SanitizeStyleAttributeValues(fmt.Sprintf("background-color: %s;", cfg.Chat.PrimaryColor))
+		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(services.GetI18n().T(ctx, "chat_connection_desc"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/components/chat_button.templ`, Line: 94, Col: 72}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/components/chat_button.templ`, Line: 108, Col: 108}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "\"><svg class=\"w-5 h-5\" fill=\"currentColor\" viewBox=\"0 0 20 20\"><path d=\"M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z\"></path></svg></button></form></div></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</p></div><div id=\"chat-messages\" class=\"flex-1 p-4 overflow-y-auto space-y-4 bg-gray-50 scroll-smooth\" style=\"overflow-anchor: none;\" hx-get=\"/api/chat/messages\" x-bind:hx-trigger=\"wsError ? 'every 5s, refresh-chat' : 'intersect once, refresh-chat'\"><div class=\"text-center text-xs text-gray-400\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var10 string
+		templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(services.GetI18n().T(ctx, "chat_loading"))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/components/chat_button.templ`, Line: 118, Col: 95}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</div></div><!-- Input Area --><form hx-post=\"/api/chat/send\" method=\"POST\" hx-target=\"#chat-messages\" hx-swap=\"beforeend\" @htmx:after-request=\"$el.reset()\" class=\"p-4 border-t border-gray-100 flex gap-2 bg-white\"><input type=\"text\" name=\"message\" placeholder=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var11 string
+		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.ResolveAttributeValue(services.GetI18n().T(ctx, "chat_input_placeholder"))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/components/chat_button.templ`, Line: 133, Col: 70}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var11)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "\" required class=\"flex-1 border-gray-200 rounded-full px-4 py-2 text-sm focus:ring-primary focus:border-primary\"> <button type=\"submit\" class=\"text-white p-2 rounded-full hover:opacity-90 transition-opacity\" style=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var12 string
+		templ_7745c5c3_Var12, templ_7745c5c3_Err = templruntime.SanitizeStyleAttributeValues(fmt.Sprintf("background-color: %s;", cfg.Chat.PrimaryColor))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/components/chat_button.templ`, Line: 140, Col: 72}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "\"><svg class=\"w-5 h-5\" fill=\"currentColor\" viewBox=\"0 0 20 20\"><path d=\"M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z\"></path></svg></button></form></div></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

@@ -413,7 +413,40 @@ templ chatSettingsForm(cfg *config.Config) {
 	<div class="p-6 bg-white rounded-lg shadow space-y-8">
 		<div>
 			<h3 class="text-lg font-medium leading-6 text-gray-900">{ services.GetI18n().T(ctx, "chat_config") }</h3>
-			<p class="mt-1 text-sm text-gray-500">Customize the appearance and behavior of the customer live chat.</p>
+			<p class="mt-1 text-sm text-gray-500">Choose how customers contact you. Only one option can be active.</p>
+		</div>
+
+		<div class="border-b border-gray-100 pb-6">
+			<h4 class="text-sm font-medium text-gray-900 mb-3">Chat Mode</h4>
+			<div class="space-y-3">
+				<label class="flex items-start cursor-pointer">
+					<input type="radio" name="chat_mode" value="standard" checked={ cfg.Chat.Mode == "standard" } class="mt-0.5 focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300"/>
+					<span class="ml-3 text-sm">
+						<span class="font-medium text-gray-700">Standard Chat (in-app)</span>
+						<p class="text-gray-500">Built-in live chat with WebSocket. Customers chat directly on your website and you reply from <code>/admin/chats</code>.</p>
+					</span>
+				</label>
+				<label class="flex items-start cursor-pointer">
+					<input type="radio" name="chat_mode" value="whatsapp" checked={ cfg.Chat.Mode == "whatsapp" } class="mt-0.5 focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300"/>
+					<span class="ml-3 text-sm">
+						<span class="font-medium text-gray-700">WhatsApp Chat</span>
+						<p class="text-gray-500">A WhatsApp button is shown on the site. Customers message you on WhatsApp and you reply from the WhatsApp app. Requires the WhatsApp Cloud API settings below to be configured.</p>
+					</span>
+				</label>
+				<label class="flex items-start cursor-pointer">
+					<input type="radio" name="chat_mode" value="disabled" checked={ cfg.Chat.Mode == "disabled" } class="mt-0.5 focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300"/>
+					<span class="ml-3 text-sm">
+						<span class="font-medium text-gray-700">Disabled</span>
+						<p class="text-gray-500">No chat button is shown anywhere on the site.</p>
+					</span>
+				</label>
+			</div>
+
+			<div class="mt-4 sm:col-span-3 max-w-md">
+				<label for="chat_whatsapp_phone" class="block text-sm font-medium text-gray-700">WhatsApp Number (for the button)</label>
+				<input type="text" name="chat_whatsapp_phone" id="chat_whatsapp_phone" value={ cfg.Chat.WhatsAppPhone } placeholder="e.g. 21620123456" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm sm:text-sm"/>
+				<p class="mt-1 text-xs text-gray-400">International format without "+" or spaces. Used to build the wa.me link when WhatsApp Chat mode is selected.</p>
+			</div>
 		</div>
 
 		<div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">

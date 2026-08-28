@@ -81,25 +81,16 @@ templ App(user models.AuthUser, cfg *config.Config, categories []models.Category
 				});
 			</script>
 		</head>
-		<body 
-			class="h-full flex flex-col font-sans antialiased text-gray-900 pt-16 sm:pt-28" 
-			style={ getPageStyle(cfg) }
-			hx-ext="ws" 
-			ws-connect="/api/chat/ws"
-			x-data="{}"
-			@htmx:ws-error="$store.chat.wsError = true"
-			@htmx:ws-close="$store.chat.wsError = true"
-			@htmx:ws-open="$store.chat.wsError = false; $store.chat.socket = $event.detail.socket"
-		>
+		<body { chatBodyAttrs(cfg, user)... }>
 			@components.Navigation(user, cfg, categories, cartCount, nil)
 			<main class="flex-grow">
 				@content
 			</main>
 			@components.Footer(ctx, user, cfg)
-			if user.Role != "admin" {
-				@components.ChatButton(ctx, user, cfg)
+			@components.ChatWidget(ctx, user, cfg)
+			if cfg.Chat.Mode == "standard" {
+				<audio id="chat-ping-sound" src="/public/assets/ping.wav" preload="auto" class="hidden"></audio>
 			}
-			<audio id="chat-ping-sound" src="/public/assets/ping.wav" preload="auto" class="hidden"></audio>
 		</body>
 	</html>
 }
@@ -111,6 +102,25 @@ func hslStr(hex string) string {
 
 func getPageStyle(cfg *config.Config) string {
 	return fmt.Sprintf("background-color: %s;", cfg.Theme.PageBgColor)
+}
+
+// chatBodyAttrs returns the <body> attributes. The WS extension is only
+// activated when the storefront chat mode is "standard" and the visitor
+// is not an admin.
+func chatBodyAttrs(cfg *config.Config, user models.AuthUser) templ.Attributes {
+	attrs := templ.Attributes{
+		"class": "h-full flex flex-col font-sans antialiased text-gray-900 pt-16 sm:pt-28",
+		"style": getPageStyle(cfg),
+		"x-data": "{}",
+	}
+	if cfg.Chat.Mode == "standard" && user.Role != "admin" {
+		attrs["hx-ext"] = "ws"
+		attrs["ws-connect"] = "/api/chat/ws"
+		attrs["@htmx:ws-error"] = "$store.chat.wsError = true"
+		attrs["@htmx:ws-close"] = "$store.chat.wsError = true"
+		attrs["@htmx:ws-open"] = "$store.chat.wsError = false; $store.chat.socket = $event.detail.socket"
+	}
+	return attrs
 }
 
 func hexToHSL(hex string) (float64, float64, float64) {

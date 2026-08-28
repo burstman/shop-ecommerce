@@ -222,7 +222,7 @@ func InitializeRoutes(router *chi.Mux) {
 	}
 
 	// WebSocket route without the standard HTTP logger middleware to avoid duration noise
-	router.With(kit.WithAuthentication(authConfig, false)).Get("/api/chat/ws", kit.Handler(handlers.HandleChatWS))
+	router.With(kit.WithAuthentication(authConfig, false), ChatEnabledMiddleware).Get("/api/chat/ws", kit.Handler(handlers.HandleChatWS))
 
 	// WhatsApp Cloud API webhook (called directly by Meta, no session/CSRF/auth)
 	router.Get("/webhooks/whatsapp", handlers.HandleWhatsAppWebhook)
@@ -254,7 +254,7 @@ func InitializeRoutes(router *chi.Mux) {
 		app.Get("/checkout/success", kit.Handler(handlers.HandleCheckoutSuccess))
 		app.With(handlers.RateLimitCheckout.Middleware).Post("/checkout", kit.Handler(handlers.HandleCheckoutCreate))
 		app.Get("/api/chat/messages", kit.Handler(handlers.HandleChatFetchMessages))
-		app.With(handlers.RateLimitChat.Middleware).Post("/api/chat/send", kit.Handler(handlers.HandleChatSend))
+		app.With(handlers.RateLimitChat.Middleware, ChatEnabledMiddleware).Post("/api/chat/send", kit.Handler(handlers.HandleChatSend))
 	})
 
 	// Authenticated routes
@@ -283,12 +283,16 @@ func InitializeRoutes(router *chi.Mux) {
 		app.Get("/admin/users", kit.Handler(handlers.HandleAdminUsersIndex))
 		app.Get("/admin/users/{id}/edit", kit.Handler(handlers.HandleAdminUserEdit))
 		app.Put("/admin/users/{id}", kit.Handler(handlers.HandleAdminUserUpdate))
-		app.Get("/admin/chats", kit.Handler(handlers.HandleAdminChatIndex))
-		app.Get("/admin/chat/{id}", kit.Handler(handlers.HandleAdminChatShow))
-		app.Post("/admin/chat/{id}/send", kit.Handler(handlers.HandleAdminChatSend))
-		app.Post("/admin/chat/{id}/ban", kit.Handler(handlers.HandleAdminChatBan))
-		app.Get("/admin/chats/sidebar", kit.Handler(handlers.HandleAdminChatSidebar))       // New handler for sidebar polling
-		app.Get("/admin/chat/{id}/messages", kit.Handler(handlers.HandleAdminChatMessages)) // New handler for message polling
+		app.Group(func(app chi.Router) {
+			app.Use(ChatEnabledMiddleware)
+
+			app.Get("/admin/chats", kit.Handler(handlers.HandleAdminChatIndex))
+			app.Get("/admin/chat/{id}", kit.Handler(handlers.HandleAdminChatShow))
+			app.Post("/admin/chat/{id}/send", kit.Handler(handlers.HandleAdminChatSend))
+			app.Post("/admin/chat/{id}/ban", kit.Handler(handlers.HandleAdminChatBan))
+			app.Get("/admin/chats/sidebar", kit.Handler(handlers.HandleAdminChatSidebar))       // New handler for sidebar polling
+			app.Get("/admin/chat/{id}/messages", kit.Handler(handlers.HandleAdminChatMessages)) // New handler for message polling
+		})
 		app.Get("/configuration", kit.Handler(handlers.HandleConfigurationIndex))
 		app.Get("/admin/{section}", kit.Handler(handlers.HandleAdminSettings))
 		app.Post("/admin/{section}", kit.Handler(handlers.HandleAdminSettingsUpdate))
@@ -316,6 +320,25 @@ func adminSetupMiddleware(next http.Handler) http.Handler {
 		aff := config.AffiliateFromContext(r.Context())
 		if aff == nil || aff.PasswordHash == "" {
 			http.Redirect(w, r, "/setup", http.StatusSeeOther)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
+// ChatEnabledMiddleware blocks all chat endpoints (client WebSocket/API and
+// admin panels) when the storefront chat mode is not "standard" (i.e. when
+// WhatsApp Chat or Disabled is selected). Admin routes redirect to the
+// dashboard; other routes return 404.
+func ChatEnabledMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		cfg := config.FromContext(r.Context())
+		if cfg.Chat.Mode != "standard" {
+			if strings.HasPrefix(r.URL.Path, "/admin") {
+				http.Redirect(w, r, "/admin/dashboard", http.StatusSeeOther)
+				return
+			}
+			http.NotFound(w, r)
 			return
 		}
 		next.ServeHTTP(w, r)

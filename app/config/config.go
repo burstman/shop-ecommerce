@@ -164,6 +164,7 @@ type StoreHour struct {
 }
 
 type ChatConfig struct {
+	Mode              string `json:"mode"` // standard, whatsapp, disabled
 	PrimaryColor      string `json:"primary_color"`
 	HeaderTextColor   string `json:"header_text_color"`
 	ClientBubbleColor string `json:"client_bubble_color"`
@@ -172,6 +173,7 @@ type ChatConfig struct {
 	AdminTextColor    string `json:"admin_text_color"`
 	EnablePopup       bool   `json:"enable_popup"`
 	PopupTimeout      int    `json:"popup_timeout"`
+	WhatsAppPhone     string `json:"whatsapp_phone"` // international format without "+", e.g. 21620123456
 }
 
 type PaymentConfig struct {
@@ -387,14 +389,16 @@ func defaultConfig() *Config {
 			},
 		},
 		Chat: ChatConfig{
-			PrimaryColor:      "#2E7D32",
-			HeaderTextColor:   "#FFFFFF",
+			Mode:             "standard",
+			PrimaryColor:     "#2E7D32",
+			HeaderTextColor:  "#FFFFFF",
 			ClientBubbleColor: "#2E7D32",
 			ClientTextColor:   "#FFFFFF",
 			AdminBubbleColor:  "#FFFFFF",
 			AdminTextColor:    "#1F2937",
 			EnablePopup:       true,
 			PopupTimeout:      8,
+			WhatsAppPhone:     "",
 		},
 		Payment: PaymentConfig{
 			EnableCOD:       true,
@@ -541,6 +545,9 @@ func FromContext(ctx context.Context) *Config {
 }
 
 func backfill(c *Config) {
+	if c.Chat.Mode == "" {
+		c.Chat.Mode = "standard"
+	}
 	if len(c.StorefrontSidebar) == 0 {
 		c.StorefrontSidebar = defaultConfig().StorefrontSidebar
 	}

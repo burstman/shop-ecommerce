@@ -207,6 +207,12 @@ func HandleAdminSettingsUpdate(kit *kit.Kit) error {
 		}
 
 	case "chat_settings":
+		mode := kit.Request.FormValue("chat_mode")
+		if mode != "whatsapp" && mode != "disabled" {
+			mode = "standard"
+		}
+		cfg.Chat.Mode = mode
+		cfg.Chat.WhatsAppPhone = kit.Request.FormValue("chat_whatsapp_phone")
 		cfg.Chat.PrimaryColor = kit.Request.FormValue("chat_primary_color")
 		cfg.Chat.HeaderTextColor = kit.Request.FormValue("chat_header_text_color")
 		cfg.Chat.ClientBubbleColor = kit.Request.FormValue("chat_client_bubble_color")

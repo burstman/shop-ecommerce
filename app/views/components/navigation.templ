@@ -71,10 +71,12 @@ templ Navigation(user models.AuthUser, cfg *config.Config, categories []models.C
 								<div class="px-4 py-2 text-xs text-gray-500 border-b border-gray-100 mb-1 truncate">{ services.GetI18n().T(ctx, "welcome") }, { user.Email }</div>
 								if user.Role == "admin" {
 									<a href="/configuration" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">{ services.GetI18n().T(ctx, "admin_panel") }</a>
+									if cfg.Chat.Mode == "standard" {
 									<a href="/admin/chats" class="flex justify-between items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
 										<span>{ services.GetI18n().T(ctx, "live_chat") }</span>
 										@ChatNotificationDot(cfg, false, "", 0, templ.Attributes{"id": "admin-topnav-chat-dot"})
 									</a>
+									}
 									<a href="/admin/users" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">{ services.GetI18n().T(ctx, "users_list") }</a>
 								}
 								<a href="/profile" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">{ services.GetI18n().T(ctx, "profile") }</a>
@@ -124,10 +126,12 @@ templ Navigation(user models.AuthUser, cfg *config.Config, categories []models.C
 					<div class="px-3 py-2 text-base font-medium text-gray-500">{ services.GetI18n().T(ctx, "welcome") }, { user.Email }</div>
 					if user.Role == "admin" {
 						<a href="/configuration" class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">{ services.GetI18n().T(ctx, "admin_panel") }</a>
+						if cfg.Chat.Mode == "standard" {
 						<a href="/admin/chats" class="flex justify-between items-center px-3 py-2 text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">
 							<span>{ services.GetI18n().T(ctx, "live_chat") }</span>
 							@ChatNotificationDot(cfg, false, "", 0, templ.Attributes{"id": "admin-topnav-chat-dot"})
 						</a>
+						}
 						<a href="/admin/users" class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">{ services.GetI18n().T(ctx, "users_list") }</a>
 					}
 					<a href="/profile" class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">{ services.GetI18n().T(ctx, "profile") }</a>
