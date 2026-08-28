@@ -269,7 +269,7 @@ func Navigation(user models.AuthUser, cfg *config.Config, categories []models.Ca
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				if cfg.Chat.Mode == "standard" {
+				if cfg.Chat.Mode != "disabled" {
 					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "<a href=\"/admin/chats\" class=\"flex justify-between items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100\"><span>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
@@ -491,7 +491,7 @@ func Navigation(user models.AuthUser, cfg *config.Config, categories []models.Ca
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				if cfg.Chat.Mode == "standard" {
+				if cfg.Chat.Mode != "disabled" {
 					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 47, "<a href=\"/admin/chats\" class=\"flex justify-between items-center px-3 py-2 text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50\"><span>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err

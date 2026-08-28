@@ -327,17 +327,17 @@ func adminSetupMiddleware(next http.Handler) http.Handler {
 }
 
 // ChatEnabledMiddleware blocks all chat endpoints (client WebSocket/API and
-// admin panels) when the storefront chat mode is not "standard" (i.e. when
-// WhatsApp Chat or Disabled is selected). Admin routes redirect to the
-// dashboard; other routes return 404.
+// admin panels) when the storefront chat mode is "disabled". For the client
+// API, non-standard modes also return 404 since the in-app widget isn't shown.
 func ChatEnabledMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		cfg := config.FromContext(r.Context())
-		if cfg.Chat.Mode != "standard" {
-			if strings.HasPrefix(r.URL.Path, "/admin") {
-				http.Redirect(w, r, "/admin/dashboard", http.StatusSeeOther)
-				return
-			}
+		if cfg.Chat.Mode == "disabled" {
+			http.NotFound(w, r)
+			return
+		}
+		// Block client-side chat API when mode is "whatsapp" (no in-app widget)
+		if cfg.Chat.Mode != "standard" && !strings.HasPrefix(r.URL.Path, "/admin") {
 			http.NotFound(w, r)
 			return
 		}
