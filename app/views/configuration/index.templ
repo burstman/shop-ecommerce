@@ -420,21 +420,21 @@ templ chatSettingsForm(cfg *config.Config) {
 			<h4 class="text-sm font-medium text-gray-900 mb-3">Chat Mode</h4>
 			<div class="space-y-3">
 				<label class="flex items-start cursor-pointer">
-					<input type="radio" name="chat_mode" value="standard" checked={ cfg.Chat.Mode == "standard" } class="mt-0.5 focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300"/>
+					<input type="radio" name="chat_mode" value="standard" checked?={ cfg.Chat.Mode == "standard" } class="mt-0.5 focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300"/>
 					<span class="ml-3 text-sm">
 						<span class="font-medium text-gray-700">Standard Chat (in-app)</span>
 						<p class="text-gray-500">Built-in live chat with WebSocket. Customers chat directly on your website and you reply from <code>/admin/chats</code>.</p>
 					</span>
 				</label>
 				<label class="flex items-start cursor-pointer">
-					<input type="radio" name="chat_mode" value="whatsapp" checked={ cfg.Chat.Mode == "whatsapp" } class="mt-0.5 focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300"/>
+					<input type="radio" name="chat_mode" value="whatsapp" checked?={ cfg.Chat.Mode == "whatsapp" } class="mt-0.5 focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300"/>
 					<span class="ml-3 text-sm">
 						<span class="font-medium text-gray-700">WhatsApp Chat</span>
 						<p class="text-gray-500">A WhatsApp button is shown on the site. Customers message you on WhatsApp and you reply from the WhatsApp app. Requires the WhatsApp Cloud API settings below to be configured.</p>
 					</span>
 				</label>
 				<label class="flex items-start cursor-pointer">
-					<input type="radio" name="chat_mode" value="disabled" checked={ cfg.Chat.Mode == "disabled" } class="mt-0.5 focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300"/>
+					<input type="radio" name="chat_mode" value="disabled" checked?={ cfg.Chat.Mode == "disabled" } class="mt-0.5 focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300"/>
 					<span class="ml-3 text-sm">
 						<span class="font-medium text-gray-700">Disabled</span>
 						<p class="text-gray-500">No chat button is shown anywhere on the site.</p>
