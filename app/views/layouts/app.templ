@@ -384,44 +384,8 @@ templ AdminPage(user models.AuthUser, cfg *config.Config, categories []models.Ca
 						</nav>
 					</div>
 
-					<!-- Global Polling for Admin Chat (HTMX trigger doesn't work reliably, use JS setInterval) -->
-					<script>
-						(function() {
-							let lastSidebarHTML = '';
-							let activeChatId = null;
-							function updateActiveId() {
-								const match = window.location.pathname.match(/\/admin\/chat\/(\d+)/);
-								activeChatId = match ? match[1] : null;
-							}
-							function playPing() {
-								const audio = document.getElementById('chat-ping-sound');
-								if (audio) { audio.currentTime = 0; audio.play().catch(() => {}); }
-							}
-							function pollSidebar() {
-								fetch('/admin/chats/sidebar', { headers: { 'Cache-Control': 'no-cache' } })
-									.then(r => r.text())
-									.then(html => {
-										const el = document.getElementById('sidebar-session-list');
-										if (el && html !== lastSidebarHTML) {
-											if (lastSidebarHTML !== '') playPing();
-											lastSidebarHTML = html;
-											el.outerHTML = html;
-										}
-									}).catch(() => {});
-							}
-							function pollMessages() {
-								if (!activeChatId) return;
-								fetch('/admin/chat/' + activeChatId + '/messages?nocache=' + Date.now(), { headers: { 'Cache-Control': 'no-cache' } })
-									.then(r => r.text())
-									.then(html => {
-										const el = document.getElementById('chat-messages-' + activeChatId);
-										if (el) el.innerHTML = html;
-									}).catch(() => {});
-							}
-							updateActiveId();
-							setInterval(function() { updateActiveId(); pollSidebar(); pollMessages(); }, 3000);
-						})();
-					</script>
+					<!-- Marker for admin chat polling (detected by index.js) -->
+					<div id="admin-global-poller" class="hidden"></div>
 
 					<!-- Header bar -->
 					<header class="admin-header">
