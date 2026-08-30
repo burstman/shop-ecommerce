@@ -219,8 +219,10 @@ func pushWhatsAppMessageToAdmins(session models.ChatSession, msg models.ChatMess
 	}
 	clientsMu.Unlock()
 
+	slog.Info("whatsapp: push check", "adminCount", len(admins), "totalActiveAdmins", len(activeAdmins))
+
 	if len(admins) == 0 {
-		slog.Debug("whatsapp: no admins connected, skipping push", "sessionID", session.ID)
+		slog.Warn("whatsapp: no admins connected, skipping push", "sessionID", session.ID)
 		return
 	}
 

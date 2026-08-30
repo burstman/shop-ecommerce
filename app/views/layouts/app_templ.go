@@ -798,7 +798,7 @@ func AdminPage(user models.AuthUser, cfg *config.Config, categories []models.Cat
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 55, "\"><div hx-get=\"/admin/chats/sidebar\" hx-target=\"#sidebar-session-list\" hx-swap=\"innerHTML\" hx-trigger=\"every 3s\"></div><template x-if=\"activeChatId\"><div :hx-get=\"'/admin/chat/' + activeChatId + '/messages'\" :hx-target=\"'#chat-messages-' + activeChatId\" hx-swap=\"innerHTML\" hx-trigger=\"every 3s\"></div></template></div><!-- Header bar --><header class=\"admin-header\"><div class=\"admin-breadcrumbs\"><span class=\"muted\">Admin</span> <i class=\"i\">&#xea61;</i> <span style=\"font-weight:500;\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 55, "\"><div hx-get=\"/admin/chats/sidebar\" hx-target=\"#sidebar-session-list\" hx-swap=\"outerHTML\" hx-trigger=\"every 3s\"></div><template x-if=\"activeChatId\"><div :hx-get=\"'/admin/chat/' + activeChatId + '/messages'\" :hx-target=\"'#chat-messages-' + activeChatId\" hx-swap=\"innerHTML\" hx-trigger=\"every 3s\" hx-vals=\"js:{nocache: Date.now()}\"></div></template></div><!-- Header bar --><header class=\"admin-header\"><div class=\"admin-breadcrumbs\"><span class=\"muted\">Admin</span> <i class=\"i\">&#xea61;</i> <span style=\"font-weight:500;\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
