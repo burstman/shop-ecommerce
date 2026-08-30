@@ -384,25 +384,35 @@ templ AdminPage(user models.AuthUser, cfg *config.Config, categories []models.Ca
 						</nav>
 					</div>
 
-					<!-- Global Polling for Admin Chat (if WebSocket fails) -->
+					<!-- Global Polling for Admin Chat -->
 					<div 
 						id="admin-global-poller"
 						x-data={ `{ 
 							activeChatId: null,
+							lastSessionHash: "",
 							updateActiveId() {
 								const match = window.location.pathname.match(/\/admin\/chat\/(\d+)/);
 								this.activeChatId = match ? match[1] : null;
+							},
+							playPing() {
+								const audio = document.getElementById('chat-ping-sound');
+								if (audio) { audio.currentTime = 0; audio.play().catch(() => {}); }
 							}
 						}` }
 						x-init={ `
 							updateActiveId();
 							htmx.on('htmx:afterSwap', (evt) => {
 								updateActiveId();
+								if (evt.detail.elt && evt.detail.elt.id === 'sidebar-session-list') {
+									const hash = evt.detail.elt.innerHTML.substring(0, 500);
+									if (lastSessionHash && hash !== lastSessionHash) { playPing(); }
+									lastSessionHash = hash;
+								}
 							});
 							window.addEventListener('popstate', () => updateActiveId());
 						` }
 					>
-						<div hx-get="/admin/chats/sidebar" hx-target="#sidebar-session-list" hx-swap="outerHTML" hx-trigger="every 3s"></div>
+						<div hx-get="/admin/chats/sidebar" hx-target="#sidebar-session-list" hx-swap="outerHTML" hx-trigger="every 3s" hx-headers='{"Cache-Control":"no-cache"}'></div>
 						<template x-if="activeChatId">
 							<div :hx-get="'/admin/chat/' + activeChatId + '/messages'" :hx-target="'#chat-messages-' + activeChatId" hx-swap="innerHTML" hx-trigger="every 3s" hx-vals="js:{nocache: Date.now()}"></div>
 						</template>
