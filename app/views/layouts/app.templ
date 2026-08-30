@@ -402,9 +402,9 @@ templ AdminPage(user models.AuthUser, cfg *config.Config, categories []models.Ca
 							window.addEventListener('popstate', () => updateActiveId());
 						` }
 					>
-						<div hx-get="/admin/chats/sidebar" hx-target="#sidebar-session-list" hx-swap="innerHTML" x-bind:hx-trigger="$store.chat.wsError ? 'every 2s' : 'every 30s'"></div>
+						<div hx-get="/admin/chats/sidebar" hx-target="#sidebar-session-list" hx-swap="innerHTML" hx-trigger="every 3s"></div>
 						<template x-if="activeChatId">
-							<div :hx-get="'/admin/chat/' + activeChatId + '/messages'" :hx-target="'#chat-messages-' + activeChatId" hx-swap="innerHTML" x-bind:hx-trigger="$store.chat.wsError ? 'every 1s' : 'every 10s'"></div>
+							<div :hx-get="'/admin/chat/' + activeChatId + '/messages'" :hx-target="'#chat-messages-' + activeChatId" hx-swap="innerHTML" hx-trigger="every 3s"></div>
 						</template>
 					</div>
 
