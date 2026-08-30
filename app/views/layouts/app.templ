@@ -50,7 +50,7 @@ templ App(user models.AuthUser, cfg *config.Config, categories []models.Category
 			<link rel="stylesheet" href="/public/assets/styles.css"/>
 			<script src="https://unpkg.com/htmx.org@1.9.10"></script>
 			<script src="https://unpkg.com/htmx.org@1.9.10/dist/ext/ws.js"></script>
-			<script src="/public/assets/index.js?v=2"></script>
+			<script src="/public/assets/index.js"></script>
 			<style>
 				[x-cloak] {
 					display: none !important;
@@ -253,7 +253,7 @@ templ AdminPage(user models.AuthUser, cfg *config.Config, categories []models.Ca
 			<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lucide-static@latest/font/lucide.css">
 			<script src="https://unpkg.com/htmx.org@1.9.10"></script>
 			<script src="https://unpkg.com/htmx.org@1.9.10/dist/ext/ws.js"></script>
-			<script src="/public/assets/index.js?v=2"></script>
+			<script src="/public/assets/index.js"></script>
 			<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
 			<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
 			<style>
@@ -384,8 +384,19 @@ templ AdminPage(user models.AuthUser, cfg *config.Config, categories []models.Ca
 						</nav>
 					</div>
 
-					<!-- Marker for admin chat polling (detected by index.js) -->
-					<div id="admin-global-poller" class="hidden"></div>
+					<!-- Admin Chat Polling -->
+					<script>
+					(function(){
+						var lastHTML="";
+						var chatId=null;
+						function up(){var m=location.pathname.match(/\/admin\/chat\/(\d+)/);chatId=m?m[1]:null;}
+						function ping(){var a=document.getElementById("chat-ping-sound");if(a){a.currentTime=0;a.play().catch(function(){});}}
+						function pollS(){fetch("/admin/chats/sidebar").then(function(r){return r.text();}).then(function(h){var el=document.getElementById("sidebar-session-list");if(el&&h!==lastHTML){if(lastHTML)ping();lastHTML=h;var t=document.createElement("div");t.innerHTML=h;var items=t.querySelectorAll("li");if(items.length){el.innerHTML="";items.forEach(function(li){el.appendChild(li.cloneNode(true));});}}}).catch(function(){});}
+						function pollM(){if(!chatId)return;fetch("/admin/chat/"+chatId+"/messages?_="+Date.now()).then(function(r){return r.text();}).then(function(h){var el=document.getElementById("chat-messages-"+chatId);if(el){el.innerHTML=h;el.scrollTop=el.scrollHeight;}}).catch(function(){});}
+						up();
+						setInterval(function(){up();pollS();pollM();},3000);
+					})();
+					</script>
 
 					<!-- Header bar -->
 					<header class="admin-header">
