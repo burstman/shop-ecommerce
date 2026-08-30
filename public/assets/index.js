@@ -40,7 +40,9 @@
 
   // Admin Chat Polling — polls sidebar + messages every 3s on admin pages
   function initAdminChatPolling() {
-    if (!document.getElementById("admin-global-poller")) return;
+    var marker = document.getElementById("admin-global-poller");
+    if (!marker) return;
+    console.log("[chat-poll] initialized");
     var lastSidebarHTML = "";
     var activeChatId = null;
     function updateActiveId() {
@@ -56,12 +58,18 @@
         .then(function(r) { return r.text(); })
         .then(function(html) {
           var el = document.getElementById("sidebar-session-list");
-          if (el && html !== lastSidebarHTML) {
-            if (lastSidebarHTML !== "") playPing();
+          if (el) {
+            if (lastSidebarHTML && html !== lastSidebarHTML) playPing();
             lastSidebarHTML = html;
-            el.outerHTML = html;
+            var temp = document.createElement("div");
+            temp.innerHTML = html;
+            var items = temp.querySelectorAll("li");
+            if (items.length) {
+              el.innerHTML = "";
+              items.forEach(function(li) { el.appendChild(li.cloneNode(true)); });
+            }
           }
-        }).catch(function(){});
+        }).catch(function(e) { console.error("[chat-poll] sidebar error:", e); });
     }
     function pollMessages() {
       if (!activeChatId) return;
@@ -69,10 +77,11 @@
         .then(function(r) { return r.text(); })
         .then(function(html) {
           var el = document.getElementById("chat-messages-" + activeChatId);
-          if (el) el.innerHTML = html;
-        }).catch(function(){});
+          if (el) { el.innerHTML = html; el.scrollTop = el.scrollHeight; }
+        }).catch(function(e) { console.error("[chat-poll] messages error:", e); });
     }
     updateActiveId();
+    console.log("[chat-poll] polling started, activeChatId=" + activeChatId);
     setInterval(function() { updateActiveId(); pollSidebar(); pollMessages(); }, 3000);
   }
   if (document.readyState === "loading") {
