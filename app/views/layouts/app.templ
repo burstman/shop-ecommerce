@@ -386,16 +386,17 @@ templ AdminPage(user models.AuthUser, cfg *config.Config, categories []models.Ca
 
 					<!-- Admin Chat Polling -->
 					<script>
-					(function(){
+					document.addEventListener("DOMContentLoaded", function() {
 						var lastHTML="";
 						var chatId=null;
 						function up(){var m=location.pathname.match(/\/admin\/chat\/(\d+)/);chatId=m?m[1]:null;}
 						function ping(){var a=document.getElementById("chat-ping-sound");if(a){a.currentTime=0;a.play().catch(function(){});}}
-						function pollS(){fetch("/admin/chats/sidebar").then(function(r){return r.text();}).then(function(h){var el=document.getElementById("sidebar-session-list");if(el&&h!==lastHTML){if(lastHTML)ping();lastHTML=h;var t=document.createElement("div");t.innerHTML=h;var items=t.querySelectorAll("li");if(items.length){el.innerHTML="";items.forEach(function(li){el.appendChild(li.cloneNode(true));});}}}).catch(function(){});}
-						function pollM(){if(!chatId)return;fetch("/admin/chat/"+chatId+"/messages?_="+Date.now()).then(function(r){return r.text();}).then(function(h){var el=document.getElementById("chat-messages-"+chatId);if(el){el.innerHTML=h;el.scrollTop=el.scrollHeight;}}).catch(function(){});}
+						function pollS(){fetch("/admin/chats/sidebar").then(function(r){return r.text();}).then(function(h){var el=document.getElementById("sidebar-session-list");if(el&&h!==lastHTML){if(lastHTML)ping();lastHTML=h;var t=document.createElement("div");t.innerHTML=h;var items=t.querySelectorAll("li");if(items.length){el.innerHTML="";items.forEach(function(li){el.appendChild(li.cloneNode(true));});}}}).catch(function(e){});}
+						function pollM(){if(!chatId)return;fetch("/admin/chat/"+chatId+"/messages?_="+Date.now()).then(function(r){return r.text();}).then(function(h){var el=document.getElementById("chat-messages-"+chatId);if(el){el.innerHTML=h;el.scrollTop=el.scrollHeight;}}).catch(function(e){});}
+						console.log("[chat-poll] loaded on "+location.pathname);
 						up();
 						setInterval(function(){up();pollS();pollM();},3000);
-					})();
+					});
 					</script>
 
 					<!-- Header bar -->

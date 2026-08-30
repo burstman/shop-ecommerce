@@ -760,14 +760,14 @@ func AdminPage(user models.AuthUser, cfg *config.Config, categories []models.Cat
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 53, "</nav></div><!-- Admin Chat Polling --><script>\n\t\t\t\t\t(function(){\n\t\t\t\t\t\tvar lastHTML=\"\";\n\t\t\t\t\t\tvar chatId=null;\n\t\t\t\t\t\tfunction up(){var m=location.pathname.match(/\\/admin\\/chat\\/(\\d+)/);chatId=m?m[1]:null;}\n\t\t\t\t\t\tfunction ping(){var a=document.getElementById(\"chat-ping-sound\");if(a){a.currentTime=0;a.play().catch(function(){});}}\n\t\t\t\t\t\tfunction pollS(){fetch(\"/admin/chats/sidebar\").then(function(r){return r.text();}).then(function(h){var el=document.getElementById(\"sidebar-session-list\");if(el&&h!==lastHTML){if(lastHTML)ping();lastHTML=h;var t=document.createElement(\"div\");t.innerHTML=h;var items=t.querySelectorAll(\"li\");if(items.length){el.innerHTML=\"\";items.forEach(function(li){el.appendChild(li.cloneNode(true));});}}}).catch(function(){});}\n\t\t\t\t\t\tfunction pollM(){if(!chatId)return;fetch(\"/admin/chat/\"+chatId+\"/messages?_=\"+Date.now()).then(function(r){return r.text();}).then(function(h){var el=document.getElementById(\"chat-messages-\"+chatId);if(el){el.innerHTML=h;el.scrollTop=el.scrollHeight;}}).catch(function(){});}\n\t\t\t\t\t\tup();\n\t\t\t\t\t\tsetInterval(function(){up();pollS();pollM();},3000);\n\t\t\t\t\t})();\n\t\t\t\t\t</script><!-- Header bar --><header class=\"admin-header\"><div class=\"admin-breadcrumbs\"><span class=\"muted\">Admin</span> <i class=\"i\">&#xea61;</i> <span style=\"font-weight:500;\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 53, "</nav></div><!-- Admin Chat Polling --><script>\n\t\t\t\t\tdocument.addEventListener(\"DOMContentLoaded\", function() {\n\t\t\t\t\t\tvar lastHTML=\"\";\n\t\t\t\t\t\tvar chatId=null;\n\t\t\t\t\t\tfunction up(){var m=location.pathname.match(/\\/admin\\/chat\\/(\\d+)/);chatId=m?m[1]:null;}\n\t\t\t\t\t\tfunction ping(){var a=document.getElementById(\"chat-ping-sound\");if(a){a.currentTime=0;a.play().catch(function(){});}}\n\t\t\t\t\t\tfunction pollS(){fetch(\"/admin/chats/sidebar\").then(function(r){return r.text();}).then(function(h){var el=document.getElementById(\"sidebar-session-list\");if(el&&h!==lastHTML){if(lastHTML)ping();lastHTML=h;var t=document.createElement(\"div\");t.innerHTML=h;var items=t.querySelectorAll(\"li\");if(items.length){el.innerHTML=\"\";items.forEach(function(li){el.appendChild(li.cloneNode(true));});}}}).catch(function(e){});}\n\t\t\t\t\t\tfunction pollM(){if(!chatId)return;fetch(\"/admin/chat/\"+chatId+\"/messages?_=\"+Date.now()).then(function(r){return r.text();}).then(function(h){var el=document.getElementById(\"chat-messages-\"+chatId);if(el){el.innerHTML=h;el.scrollTop=el.scrollHeight;}}).catch(function(e){});}\n\t\t\t\t\t\tconsole.log(\"[chat-poll] loaded on \"+location.pathname);\n\t\t\t\t\t\tup();\n\t\t\t\t\t\tsetInterval(function(){up();pollS();pollM();},3000);\n\t\t\t\t\t});\n\t\t\t\t\t</script><!-- Header bar --><header class=\"admin-header\"><div class=\"admin-breadcrumbs\"><span class=\"muted\">Admin</span> <i class=\"i\">&#xea61;</i> <span style=\"font-weight:500;\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var32 string
 		templ_7745c5c3_Var32, templ_7745c5c3_Err = templ.JoinStringErrs(services.GetI18n().T(ctx, pageTitleFromPath(activePath)))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/layouts/app.templ`, Line: 406, Col: 96}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/layouts/app.templ`, Line: 407, Col: 96}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var32))
 		if templ_7745c5c3_Err != nil {
@@ -785,7 +785,7 @@ func AdminPage(user models.AuthUser, cfg *config.Config, categories []models.Cat
 			var templ_7745c5c3_Var33 string
 			templ_7745c5c3_Var33, templ_7745c5c3_Err = templ.JoinStringErrs(int(time.Until(*expiresAt).Hours() / 24))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/layouts/app.templ`, Line: 410, Col: 181}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/layouts/app.templ`, Line: 411, Col: 181}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var33))
 			if templ_7745c5c3_Err != nil {
@@ -814,7 +814,7 @@ func AdminPage(user models.AuthUser, cfg *config.Config, categories []models.Cat
 			var templ_7745c5c3_Var34 string
 			templ_7745c5c3_Var34, templ_7745c5c3_Err = templ.JoinStringErrs(user.Email)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/layouts/app.templ`, Line: 417, Col: 56}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/layouts/app.templ`, Line: 418, Col: 56}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var34))
 			if templ_7745c5c3_Err != nil {
