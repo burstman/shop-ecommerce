@@ -40,7 +40,7 @@ func main() {
 	if kit.IsDevelopment() {
 		router.Handle("/public/*", disableCache(staticDev()))
 	} else if kit.IsProduction() {
-		router.Handle("/public/*", staticProd())
+		router.Handle("/public/*", disableCache(staticProd()))
 	}
 
 	kit.UseErrorHandler(app.ErrorHandler)
