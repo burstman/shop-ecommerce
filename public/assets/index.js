@@ -39,7 +39,7 @@
   };
 
   // Admin Chat Polling — polls sidebar + messages every 3s on admin pages
-  (function initAdminChatPolling() {
+  function initAdminChatPolling() {
     if (!document.getElementById("admin-global-poller")) return;
     var lastSidebarHTML = "";
     var activeChatId = null;
@@ -74,5 +74,10 @@
     }
     updateActiveId();
     setInterval(function() { updateActiveId(); pollSidebar(); pollMessages(); }, 3000);
-  })();
+  }
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initAdminChatPolling);
+  } else {
+    initAdminChatPolling();
+  }
 })();
