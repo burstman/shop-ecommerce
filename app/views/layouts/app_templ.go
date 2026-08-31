@@ -390,7 +390,7 @@ func iconFor(name string) templ.Component {
 	})
 }
 
-func AdminPage(user models.AuthUser, cfg *config.Config, categories []models.Category, cartCount int, expiresAt *time.Time, sidebar []config.SidebarGroup, activePath string, content templ.Component, csrfToken string) templ.Component {
+func AdminPage(user models.AuthUser, cfg *config.Config, categories []models.Category, cartCount int, expiresAt *time.Time, sidebar []config.SidebarGroup, activePath string, content templ.Component, csrfToken string, unreadChatCount int) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -830,6 +830,10 @@ func AdminPage(user models.AuthUser, cfg *config.Config, categories []models.Cat
 			return templ_7745c5c3_Err
 		}
 		templ_7745c5c3_Err = components.ChatNotificationDot(cfg, false, "", 0, templ.Attributes{"id": "admin-topnav-chat-dot"}).Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = components.ChatUnreadBadge(unreadChatCount).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

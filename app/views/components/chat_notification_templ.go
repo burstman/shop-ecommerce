@@ -23,7 +23,9 @@ func chatNotificationID(attrs templ.Attributes) string {
 	return "sidebar-chat-dot"
 }
 
-func ChatNotificationDot(cfg *config.Config, show bool, content string, sessionID uint, attrs templ.Attributes) templ.Component {
+// ChatUnreadBadge renders the persistent unread-count badge next to the
+// admin chat icon. Rendered server-side on every admin page load.
+func ChatUnreadBadge(count int) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -44,7 +46,107 @@ func ChatNotificationDot(cfg *config.Config, show bool, content string, sessionI
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div")
+		if count > 0 {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<span id=\"admin-chat-unread-badge\" class=\"inline-flex items-center justify-center h-4 min-w-4 px-1 rounded-full text-[10px] font-bold text-white\" style=\"background:#ef4444;position:absolute;top:-4px;right:-4px;border:2px solid #fff;box-shadow:0 1px 2px rgba(0,0,0,0.2)\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var2 string
+			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(count)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/components/chat_notification.templ`, Line: 22, Col: 279}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</span>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		} else {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<span id=\"admin-chat-unread-badge\" class=\"hidden\" style=\"display:none\"></span>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		return nil
+	})
+}
+
+// ChatUnreadBadgeOOB renders the unread badge as an OOB swap fragment so it
+// can be pushed to admins over WebSocket.
+func ChatUnreadBadgeOOB(count int) templ.Component {
+	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
+			return templ_7745c5c3_CtxErr
+		}
+		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+		if !templ_7745c5c3_IsBuffer {
+			defer func() {
+				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err == nil {
+					templ_7745c5c3_Err = templ_7745c5c3_BufErr
+				}
+			}()
+		}
+		ctx = templ.InitializeContext(ctx)
+		templ_7745c5c3_Var3 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var3 == nil {
+			templ_7745c5c3_Var3 = templ.NopComponent
+		}
+		ctx = templ.ClearChildren(ctx)
+		if count > 0 {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<span id=\"admin-chat-unread-badge\" hx-swap-oob=\"outerHTML\" class=\"inline-flex items-center justify-center h-4 min-w-4 px-1 rounded-full text-[10px] font-bold text-white\" style=\"background:#ef4444;position:absolute;top:-4px;right:-4px;border:2px solid #fff;box-shadow:0 1px 2px rgba(0,0,0,0.2)\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var4 string
+			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(count)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/components/chat_notification.templ`, Line: 32, Col: 303}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</span>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		} else {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<span id=\"admin-chat-unread-badge\" hx-swap-oob=\"outerHTML\" class=\"hidden\" style=\"display:none\"></span>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		return nil
+	})
+}
+
+func ChatNotificationDot(cfg *config.Config, show bool, content string, sessionID uint, attrs templ.Attributes) templ.Component {
+	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
+			return templ_7745c5c3_CtxErr
+		}
+		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+		if !templ_7745c5c3_IsBuffer {
+			defer func() {
+				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err == nil {
+					templ_7745c5c3_Err = templ_7745c5c3_BufErr
+				}
+			}()
+		}
+		ctx = templ.InitializeContext(ctx)
+		templ_7745c5c3_Var5 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var5 == nil {
+			templ_7745c5c3_Var5 = templ.NopComponent
+		}
+		ctx = templ.ClearChildren(ctx)
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<div")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -52,66 +154,66 @@ func ChatNotificationDot(cfg *config.Config, show bool, content string, sessionI
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, " class=\"inline-flex items-center justify-center\" hx-get=\"/admin/chats\" hx-select=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, " class=\"inline-flex items-center justify-center\" hx-get=\"/admin/chats\" hx-select=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var2 string
-		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.ResolveAttributeValue(fmt.Sprintf("#%s", chatNotificationID(attrs)))
+		var templ_7745c5c3_Var6 string
+		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.ResolveAttributeValue(fmt.Sprintf("#%s", chatNotificationID(attrs)))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/components/chat_notification.templ`, Line: 23, Col: 59}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/components/chat_notification.templ`, Line: 43, Col: 59}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var2)
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var6)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "\" hx-swap=\"outerHTML\" x-bind:hx-trigger=\"$store.chat.wsError ? 'every 5s' : 'intersect once, every 15s'\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "\" hx-swap=\"outerHTML\" x-bind:hx-trigger=\"$store.chat.wsError ? 'every 5s' : 'intersect once, every 15s'\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		if show {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<span class=\"relative flex h-2 w-2\"><span class=\"animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75\"></span> <span class=\"relative inline-flex rounded-full h-2 w-2 bg-red-500\"></span></span><!-- Popup Notification --> ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<span class=\"relative flex h-2 w-2\"><span class=\"animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75\"></span> <span class=\"relative inline-flex rounded-full h-2 w-2 bg-red-500\"></span></span><!-- Popup Notification --> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if cfg.Chat.EnablePopup {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<div x-data=\"{ visible: true }\" x-init=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<div x-data=\"{ visible: true }\" x-init=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				var templ_7745c5c3_Var3 string
-				templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.ResolveAttributeValue(fmt.Sprintf("setTimeout(() => visible = false, %d)", cfg.Chat.PopupTimeout*1000))
+				var templ_7745c5c3_Var7 string
+				templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.ResolveAttributeValue(fmt.Sprintf("setTimeout(() => visible = false, %d)", cfg.Chat.PopupTimeout*1000))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/components/chat_notification.templ`, Line: 37, Col: 95}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/components/chat_notification.templ`, Line: 57, Col: 95}
 				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var3)
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\" x-show=\"visible\" x-transition:enter=\"transform ease-out duration-300 transition\" x-transition:enter-start=\"translate-y-2 opacity-0 sm:translate-y-0 sm:translate-x-2\" x-transition:enter-end=\"translate-y-0 opacity-100 sm:translate-x-0\" x-transition:leave=\"transition ease-in duration-100\" x-transition:leave-start=\"opacity-100\" x-transition:leave-end=\"opacity-0\" class=\"fixed bottom-4 right-4 z-[60] w-full max-w-sm bg-white rounded-lg shadow-2xl border border-gray-200 pointer-events-auto overflow-hidden\"><div class=\"p-4\"><div class=\"flex items-start\"><div class=\"flex-shrink-0\"><div class=\"h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600\"><svg class=\"h-6 w-6\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z\"></path></svg></div></div><div class=\"ml-3 w-0 flex-1 pt-0.5\"><p class=\"text-sm font-bold text-gray-900\">Nouveau message client</p><p class=\"mt-1 text-sm text-gray-500 line-clamp-2\">")
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var7)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				var templ_7745c5c3_Var4 string
-				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(content)
-				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/components/chat_notification.templ`, Line: 56, Col: 67}
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "\" x-show=\"visible\" x-transition:enter=\"transform ease-out duration-300 transition\" x-transition:enter-start=\"translate-y-2 opacity-0 sm:translate-y-0 sm:translate-x-2\" x-transition:enter-end=\"translate-y-0 opacity-100 sm:translate-x-0\" x-transition:leave=\"transition ease-in duration-100\" x-transition:leave-start=\"opacity-100\" x-transition:leave-end=\"opacity-0\" class=\"fixed bottom-4 right-4 z-[60] w-full max-w-sm bg-white rounded-lg shadow-2xl border border-gray-200 pointer-events-auto overflow-hidden\"><div class=\"p-4\"><div class=\"flex items-start\"><div class=\"flex-shrink-0\"><div class=\"h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600\"><svg class=\"h-6 w-6\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z\"></path></svg></div></div><div class=\"ml-3 w-0 flex-1 pt-0.5\"><p class=\"text-sm font-bold text-gray-900\">Nouveau message client</p><p class=\"mt-1 text-sm text-gray-500 line-clamp-2\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</p><div class=\"mt-3 flex space-x-7\"><a href=\"/admin/chats\" class=\"text-sm font-medium text-indigo-600 hover:text-indigo-500\">Voir la discussion</a> <button @click=\"visible = false\" class=\"text-sm font-medium text-gray-700 hover:text-gray-500\">Fermer</button></div></div></div></div></div>")
+				var templ_7745c5c3_Var8 string
+				templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(content)
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/components/chat_notification.templ`, Line: 76, Col: 67}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "</p><div class=\"mt-3 flex space-x-7\"><a href=\"/admin/chats\" class=\"text-sm font-medium text-indigo-600 hover:text-indigo-500\">Voir la discussion</a> <button @click=\"visible = false\" class=\"text-sm font-medium text-gray-700 hover:text-gray-500\">Fermer</button></div></div></div></div></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, " <script>\n\t\t\t\t(function() {\n\t\t\t\t\t// 1. Native Desktop Notification\n\t\t\t\t\tif (window.Notification && Notification.permission === \"granted\") {\n\t\t\t\t\t\tnew Notification(\"Nouveau message client\");\n\t\t\t\t\t} else if (window.Notification && Notification.permission !== \"denied\") {\n\t\t\t\t\t\tNotification.requestPermission();\n\t\t\t\t\t}\n\t\t\t\t\t\n\t\t\t\t\t// 2. Audio Ping\n\t\t\t\t\tconst audio = document.getElementById('chat-ping-sound');\n\t\t\t\t\tif (audio) {\n\t\t\t\t\t\taudio.currentTime = 0; // Reset to start\n\t\t\t\t\t\taudio.play().catch(err => {\n\t\t\t\t\t\t\tconsole.warn('Chat Sound: Playback blocked by browser policy. Click anywhere on the page (like a menu item) to enable audio alerts.');\n\t\t\t\t\t\t});\n\t\t\t\t\t} else {\n\t\t\t\t\t\tconsole.error('Chat Sound: Audio element #chat-ping-sound (ping.wav) not found in DOM.');\n\t\t\t\t\t}\n\t\t\t\t})();\n\t\t\t</script>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, " <script>\n\t\t\t\t(function() {\n\t\t\t\t\t// 1. Native Desktop Notification\n\t\t\t\t\tif (window.Notification && Notification.permission === \"granted\") {\n\t\t\t\t\t\tnew Notification(\"Nouveau message client\");\n\t\t\t\t\t} else if (window.Notification && Notification.permission !== \"denied\") {\n\t\t\t\t\t\tNotification.requestPermission();\n\t\t\t\t\t}\n\t\t\t\t\t\n\t\t\t\t\t// 2. Audio Ping\n\t\t\t\t\tconst audio = document.getElementById('chat-ping-sound');\n\t\t\t\t\tif (audio) {\n\t\t\t\t\t\taudio.currentTime = 0; // Reset to start\n\t\t\t\t\t\taudio.play().catch(err => {\n\t\t\t\t\t\t\tconsole.warn('Chat Sound: Playback blocked by browser policy. Click anywhere on the page (like a menu item) to enable audio alerts.');\n\t\t\t\t\t\t});\n\t\t\t\t\t} else {\n\t\t\t\t\t\tconsole.error('Chat Sound: Audio element #chat-ping-sound (ping.wav) not found in DOM.');\n\t\t\t\t\t}\n\t\t\t\t})();\n\t\t\t</script>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "</div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

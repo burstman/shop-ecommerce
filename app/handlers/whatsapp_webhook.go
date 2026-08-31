@@ -254,16 +254,21 @@ func pushWhatsAppMessageToAdmins(session models.ChatSession, msg models.ChatMess
 		return
 	}
 
+	badgeHTML, err := componentToString(ctx, components.ChatUnreadBadgeOOB(int(unreadChatMessagesCount())))
+	if err != nil {
+		return
+	}
+
 	for _, a := range admins {
 		payload := fmt.Sprintf(
 			"<div id=\"chat-messages-%d\" hx-swap-oob=\"beforeend\">%s</div>"+
 				"<div id=\"delete-helper-%d\" hx-swap-oob=\"delete:#chat-session-item-%d\"></div>"+
 				"<div hx-swap-oob=\"afterbegin:#sidebar-session-list\">%s</div>"+
-				"%s%s%s",
+				"%s%s%s%s",
 			session.ID, bubbleHTML,
 			session.ID, session.ID,
 			sessionItemHTML,
-			sessionDotHTML, adminSidebarDotHTML, adminTopnavDotHTML,
+			sessionDotHTML, adminSidebarDotHTML, adminTopnavDotHTML, badgeHTML,
 		)
 
 		if err := a.conn.WriteMessage(websocket.TextMessage, []byte(payload)); err != nil {

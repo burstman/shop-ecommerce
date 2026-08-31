@@ -50,5 +50,5 @@ func RenderAdminWithLayout(kit *kit.Kit, sidebar []config.SidebarGroup, activePa
 		}
 	}
 
-	return kit.Render(layouts.AdminPage(user, cfg, categories, cart.Total, expiresAt, sidebar, activePath, content, csrfToken))
+	return kit.Render(layouts.AdminPage(user, cfg, categories, cart.Total, expiresAt, sidebar, activePath, content, csrfToken, int(unreadChatMessagesCount())))
 }

@@ -76,6 +76,45 @@ func componentToString(ctx context.Context, comp templ.Component) (string, error
 	return buf.String(), nil
 }
 
+// unreadChatMessagesCount returns how many client-sent messages have not been
+// seen by an admin yet.
+func unreadChatMessagesCount() int64 {
+	var count int64
+	if err := db.Get().Model(&models.ChatMessage{}).Where("sender = ? AND is_read = ?", "client", false).Count(&count).Error; err != nil {
+		slog.Error("failed to count unread chat messages", "err", err)
+	}
+	return count
+}
+
+// markChatSessionRead marks all unread client messages of a session as read.
+// It returns true if any message was actually updated.
+func markChatSessionRead(sessionID uint) bool {
+	res := db.Get().Model(&models.ChatMessage{}).
+		Where("chat_session_id = ? AND sender = ? AND is_read = ?", sessionID, "client", false).
+		Update("is_read", true)
+	if res.Error != nil {
+		slog.Error("failed to mark chat session read", "sessionID", sessionID, "err", res.Error)
+		return false
+	}
+	return res.RowsAffected > 0
+}
+
+// broadcastChatUnreadBadge pushes the latest unread badge HTML to all connected admins.
+func broadcastChatUnreadBadge() {
+	badgeHTML, err := componentToString(context.Background(), components.ChatUnreadBadgeOOB(int(unreadChatMessagesCount())))
+	if err != nil {
+		slog.Error("failed to render unread badge", "err", err)
+		return
+	}
+	clientsMu.Lock()
+	defer clientsMu.Unlock()
+	for _, adminConn := range activeAdmins {
+		if err := adminConn.WriteMessage(websocket.TextMessage, []byte(badgeHTML)); err != nil {
+			slog.Error("failed to push unread badge to admin", "err", err)
+		}
+	}
+}
+
 // getChatIdentifier retrieves the unique ID from a cookie or creates a new one for guests.
 func getChatIdentifier(kit *kit.Kit) string {
 	cookie, err := kit.Request.Cookie("chat_id")
@@ -313,6 +352,12 @@ func HandleChatSend(kit *kit.Kit) error {
 		return err
 	}
 
+	// Generate HTML for persistence unread badge update
+	badgeHTML, err := componentToString(kit.Request.Context(), components.ChatUnreadBadgeOOB(int(unreadChatMessagesCount())))
+	if err != nil {
+		return err
+	}
+
 	// Collect active admin connections
 	clientsMu.Lock()
 	type connInfo struct {
@@ -340,6 +385,7 @@ func HandleChatSend(kit *kit.Kit) error {
 		payload.WriteString(sessionDotHTML)      // Update session-specific dot
 		payload.WriteString(adminSidebarDotHTML) // Update global sidebar dot
 		payload.WriteString(adminTopnavDotHTML)  // Update global topnav dot
+		payload.WriteString(badgeHTML)           // Update unread count badge
 
 		if err := a.conn.WriteMessage(websocket.TextMessage, []byte(payload.String())); err != nil {
 			slog.Error("failed to push to admin", "adminID", a.id, "err", err)
@@ -443,6 +489,10 @@ func HandleAdminChatMessages(kit *kit.Kit) error {
 	// Prevent caching of polling results
 	kit.Response.Header().Set("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
 
+	if markChatSessionRead(uint(sessionID)) {
+		broadcastChatUnreadBadge()
+	}
+
 	return kit.Render(components.ChatMessages(config.FromContext(kit.Request.Context()), session.Messages))
 }
 
@@ -471,6 +521,10 @@ func HandleAdminChatShow(kit *kit.Kit) error {
 	}
 
 	cfg := config.FromContext(kit.Request.Context())
+
+	if markChatSessionRead(session.ID) {
+		broadcastChatUnreadBadge()
+	}
 
 	if kit.Request.Header.Get("HX-Request") == "true" {
 		clientsMu.Lock()
@@ -512,6 +566,10 @@ func HandleAdminChatSend(kit *kit.Kit) error {
 
 	if err := db.Get().Create(&msg).Error; err != nil {
 		return err
+	}
+
+	if markChatSessionRead(msg.ChatSessionID) {
+		broadcastChatUnreadBadge()
 	}
 
 	// Update session activity
