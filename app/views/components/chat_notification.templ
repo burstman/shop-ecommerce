@@ -3,13 +3,24 @@ package components
 import "fmt"
 import "shopTemplate/app/config"
 
+// chatNotificationID returns the element id to use. Callers may pass an "id"
+// in attrs (needed for WebSocket OOB swaps); otherwise we default to the
+// storefront sidebar dot id.
+func chatNotificationID(attrs templ.Attributes) string {
+	if attrs != nil {
+		if id, ok := attrs["id"].(string); ok && id != "" {
+			return id
+		}
+	}
+	return "sidebar-chat-dot"
+}
+
 templ ChatNotificationDot(cfg *config.Config, show bool, content string, sessionID uint, attrs templ.Attributes) {
 	<div 
-		id="sidebar-chat-dot" 
-		class="inline-flex items-center justify-center" 
 		{ attrs... }
+		class="inline-flex items-center justify-center" 
 		hx-get="/admin/chats"
-		hx-select="#sidebar-chat-dot"
+		hx-select={ fmt.Sprintf("#%s", chatNotificationID(attrs)) }
 		hx-swap="outerHTML"
 		x-bind:hx-trigger="$store.chat.wsError ? 'every 5s' : 'intersect once, every 15s'"
 	>

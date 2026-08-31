@@ -281,6 +281,18 @@ templ AdminPage(user models.AuthUser, cfg *config.Config, categories []models.Ca
 						evt.detail.headers['X-CSRF-Token'] = csrfToken;
 					}
 				});
+				console.log("[chat-poll] head script loaded on " + location.pathname);
+				(function(){
+					var lastHTML="";
+					var chatId=null;
+					function up(){var m=location.pathname.match(/\/admin\/chat\/(\d+)/);chatId=m?m[1]:null;}
+					function ping(){var a=document.getElementById("chat-ping-sound");if(a){a.currentTime=0;a.play().catch(function(){});}}
+					function pollS(){fetch("/admin/chats/sidebar").then(function(r){return r.text();}).then(function(h){var el=document.getElementById("sidebar-session-list");if(el&&h!==lastHTML){if(lastHTML)ping();lastHTML=h;var t=document.createElement("div");t.innerHTML=h;var items=t.querySelectorAll("li");if(items.length){el.innerHTML="";items.forEach(function(li){el.appendChild(li.cloneNode(true));});}}}).catch(function(e){});}
+					function pollM(){if(!chatId)return;fetch("/admin/chat/"+chatId+"/messages?_="+Date.now()).then(function(r){return r.text();}).then(function(h){var el=document.getElementById("chat-messages-"+chatId);if(el){el.innerHTML=h;el.scrollTop=el.scrollHeight;}}).catch(function(e){});}
+					console.log("[chat-poll] IIFE running on "+location.pathname);
+					up();
+					setInterval(function(){up();pollS();pollM();},3000);
+				})();
 			</script>
 		</head>
 		<body 
@@ -384,22 +396,7 @@ templ AdminPage(user models.AuthUser, cfg *config.Config, categories []models.Ca
 						</nav>
 					</div>
 
-					<!-- Admin Chat Polling -->
-					<script>
-					document.addEventListener("DOMContentLoaded", function() {
-						var lastHTML="";
-						var chatId=null;
-						function up(){var m=location.pathname.match(/\/admin\/chat\/(\d+)/);chatId=m?m[1]:null;}
-						function ping(){var a=document.getElementById("chat-ping-sound");if(a){a.currentTime=0;a.play().catch(function(){});}}
-						function pollS(){fetch("/admin/chats/sidebar").then(function(r){return r.text();}).then(function(h){var el=document.getElementById("sidebar-session-list");if(el&&h!==lastHTML){if(lastHTML)ping();lastHTML=h;var t=document.createElement("div");t.innerHTML=h;var items=t.querySelectorAll("li");if(items.length){el.innerHTML="";items.forEach(function(li){el.appendChild(li.cloneNode(true));});}}}).catch(function(e){});}
-						function pollM(){if(!chatId)return;fetch("/admin/chat/"+chatId+"/messages?_="+Date.now()).then(function(r){return r.text();}).then(function(h){var el=document.getElementById("chat-messages-"+chatId);if(el){el.innerHTML=h;el.scrollTop=el.scrollHeight;}}).catch(function(e){});}
-						console.log("[chat-poll] loaded on "+location.pathname);
-						up();
-						setInterval(function(){up();pollS();pollM();},3000);
-					});
-					</script>
-
-					<!-- Header bar -->
+				<!-- Header bar -->
 					<header class="admin-header">
 						<div class="admin-breadcrumbs">
 							<span class="muted">Admin</span>
@@ -417,6 +414,10 @@ templ AdminPage(user models.AuthUser, cfg *config.Config, categories []models.Ca
 							if user.ID != 0 {
 								<span class="text-sm text-gray-500">{ user.Email }</span>
 							}
+							<a href="/admin/chats" title="Live chat" style="position:relative; display:inline-flex; align-items:center; justify-content:center; height:32px; width:32px; border-radius:6px; border:1px solid var(--border); background:var(--admin-card); color:inherit; text-decoration:none;">
+								@components.ChatNotificationDot(cfg, false, "", 0, templ.Attributes{"id": "admin-topnav-chat-dot"})
+								<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
+							</a>
 							<a href="/logout" class="btn" style="height:32px; padding:0 12px; border-radius:6px; border:1px solid var(--border); background:var(--admin-card); font-size:13px; display:inline-flex; align-items:center; gap:6px; text-decoration:none; color:inherit;">Logout</a>
 						</div>
 					</header>
