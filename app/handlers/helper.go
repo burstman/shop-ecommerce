@@ -24,7 +24,12 @@ func RenderWithLayout(kit *kit.Kit, content templ.Component) error {
 	cart := helpers.GetCart(kit)
 	csrfToken := csrf.Token(kit.Request)
 
-	return kit.Render(layouts.App(user, config.FromContext(kit.Request.Context()), categories, cart.Total, content, csrfToken))
+	unread := 0
+	if user.Role == "admin" {
+		unread = int(helpers.CountUnreadChatMessages())
+	}
+
+	return kit.Render(layouts.App(user, config.FromContext(kit.Request.Context()), categories, cart.Total, content, csrfToken, unread))
 }
 
 func RenderAdminWithLayout(kit *kit.Kit, sidebar []config.SidebarGroup, activePath string, content templ.Component) error {
@@ -50,5 +55,5 @@ func RenderAdminWithLayout(kit *kit.Kit, sidebar []config.SidebarGroup, activePa
 		}
 	}
 
-	return kit.Render(layouts.AdminPage(user, cfg, categories, cart.Total, expiresAt, sidebar, activePath, content, csrfToken, int(unreadChatMessagesCount())))
+	return kit.Render(layouts.AdminPage(user, cfg, categories, cart.Total, expiresAt, sidebar, activePath, content, csrfToken, int(helpers.CountUnreadChatMessages())))
 }

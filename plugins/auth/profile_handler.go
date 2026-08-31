@@ -45,7 +45,12 @@ func HandleProfileShow(kit *kit.Kit) error {
 	cart := helpers.GetCart(kit)
 	csrfToken := csrf.Token(kit.Request)
 
-	return kit.Render(layouts.App(pluginAuth, config.FromContext(kit.Request.Context()), categories, cart.Total, ProfileShow(formValues), csrfToken))
+	unread := 0
+	if pluginAuth.Role == "admin" {
+		unread = int(helpers.CountUnreadChatMessages())
+	}
+
+	return kit.Render(layouts.App(pluginAuth, config.FromContext(kit.Request.Context()), categories, cart.Total, ProfileShow(formValues), csrfToken, unread))
 }
 
 func HandleProfileUpdate(kit *kit.Kit) error {

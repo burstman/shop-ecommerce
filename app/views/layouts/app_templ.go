@@ -33,7 +33,7 @@ func initFacebookPixel(id string) templ.ComponentScript {
 	}
 }
 
-func App(user models.AuthUser, cfg *config.Config, categories []models.Category, cartCount int, content templ.Component, csrfToken string) templ.Component {
+func App(user models.AuthUser, cfg *config.Config, categories []models.Category, cartCount int, content templ.Component, csrfToken string, unreadChatCount int) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -205,13 +205,31 @@ func App(user models.AuthUser, cfg *config.Config, categories []models.Category,
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		if cfg.Chat.Mode == "standard" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "<audio id=\"chat-ping-sound\" src=\"/public/assets/ping.wav\" preload=\"auto\" class=\"hidden\"></audio>")
+		if user.Role == "admin" && cfg.Chat.Mode != "disabled" {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "<a href=\"/admin/chats\" title=\"Messages\" style=\"position:fixed;left:1rem;bottom:1rem;z-index:60;display:inline-flex;align-items:center;justify-content:center;height:40px;width:40px;border-radius:9999px;background:#111827;color:#fff;box-shadow:0 4px 12px rgba(0,0,0,0.25);text-decoration:none;\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = components.ChatNotificationDot(cfg, false, "", 0, false, templ.Attributes{"id": "admin-storefront-chat-dot"}).Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = components.ChatUnreadBadge(unreadChatCount).Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "<svg class=\"w-5 h-5\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z\"></path></svg></a> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</body></html>")
+		if cfg.Chat.Mode == "standard" {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "<audio id=\"chat-ping-sound\" src=\"/public/assets/ping.wav\" preload=\"auto\" class=\"hidden\"></audio>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "</body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -228,16 +246,16 @@ func getPageStyle(cfg *config.Config) string {
 	return fmt.Sprintf("background-color: %s;", cfg.Theme.PageBgColor)
 }
 
-// chatBodyAttrs returns the <body> attributes. The WS extension is only
-// activated when the storefront chat mode is "standard" and the visitor
-// is not an admin.
+// chatBodyAttrs returns the <body> attributes. The WS extension is activated
+// when the storefront chat mode is "standard", so both visitors (as chat
+// clients) and admins (to receive chat notifications) stay connected.
 func chatBodyAttrs(cfg *config.Config, user models.AuthUser) templ.Attributes {
 	attrs := templ.Attributes{
 		"class":  "h-full flex flex-col font-sans antialiased text-gray-900 pt-16 sm:pt-28",
 		"style":  getPageStyle(cfg),
 		"x-data": "{}",
 	}
-	if cfg.Chat.Mode == "standard" && user.Role != "admin" {
+	if cfg.Chat.Mode == "standard" {
 		attrs["hx-ext"] = "ws"
 		attrs["ws-connect"] = "/api/chat/ws"
 		attrs["@htmx:ws-error"] = "$store.chat.wsError = true"
@@ -411,98 +429,98 @@ func AdminPage(user models.AuthUser, cfg *config.Config, categories []models.Cat
 			templ_7745c5c3_Var10 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "<!doctype html><html lang=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "<!doctype html><html lang=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var11 string
 		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.ResolveAttributeValue(fmt.Sprint(ctx.Value("lang")))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/layouts/app.templ`, Line: 246, Col: 43}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/layouts/app.templ`, Line: 253, Col: 43}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var11)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "\" class=\"h-full\" dir=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "\" class=\"h-full\" dir=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var12 string
 		templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.ResolveAttributeValue(getDir(ctx))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/layouts/app.templ`, Line: 246, Col: 78}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/layouts/app.templ`, Line: 253, Col: 78}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var12)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "\" style=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "\" style=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var13 string
 		templ_7745c5c3_Var13, templ_7745c5c3_Err = templruntime.SanitizeStyleAttributeValues(templ.KV("--primary", hslStr(cfg.Theme.PrimaryColor)))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/layouts/app.templ`, Line: 246, Col: 142}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/layouts/app.templ`, Line: 253, Col: 142}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><meta name=\"csrf-token\" content=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><meta name=\"csrf-token\" content=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var14 string
 		templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.ResolveAttributeValue(csrfToken)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/layouts/app.templ`, Line: 250, Col: 46}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/layouts/app.templ`, Line: 257, Col: 46}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var14)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "\"><title>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "\"><title>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var15 string
 		templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(pageTitleFromPath(activePath))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/layouts/app.templ`, Line: 251, Col: 41}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/layouts/app.templ`, Line: 258, Col: 41}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, " — ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, " — ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var16 string
 		templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(cfg.Site.Name)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/layouts/app.templ`, Line: 251, Col: 63}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/layouts/app.templ`, Line: 258, Col: 63}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "</title><link rel=\"stylesheet\" href=\"/public/assets/styles.css\"><link rel=\"stylesheet\" href=\"https://cdn.jsdelivr.net/npm/lucide-static@latest/font/lucide.css\"><script src=\"https://unpkg.com/htmx.org@1.9.10\"></script><script src=\"https://unpkg.com/htmx.org@1.9.10/dist/ext/ws.js\"></script><script src=\"/public/assets/index.js\"></script><script src=\"https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js\"></script><script defer src=\"https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js\"></script><style>\n\t\t\t\t[x-cloak] { display: none !important; }\n\t\t\t</style><script>\n\t\t\t\tdocument.addEventListener('alpine:init', () => {\n\t\t\t\t\tAlpine.store('chat', {\n\t\t\t\t\t\twsError: false,\n\t\t\t\t\t\tsocket: null\n\t\t\t\t\t})\n\t\t\t\t})\n\t\t\t\tdocument.addEventListener('htmx:oobBeforeSwap', (evt) => {\n\t\t\t\t\tconst oob = evt.detail.elt.getAttribute('hx-swap-oob');\n\t\t\t\t\tif (oob && (oob === 'delete' || oob.startsWith('delete:'))) {\n\t\t\t\t\t\tconst selector = oob.includes(':') ? oob.split(':')[1] : null;\n\t\t\t\t\t\tconst target = selector ? document.querySelector(selector) : (evt.detail.target || document.getElementById(evt.detail.elt.id));\n\t\t\t\t\t\tif (target) target.remove();\n\t\t\t\t\t\tevt.preventDefault();\n\t\t\t\t\t}\n\t\t\t\t});\n\t\t\t\tdocument.addEventListener('htmx:configRequest', (evt) => {\n\t\t\t\t\tconst csrfToken = document.querySelector('meta[name=\"csrf-token\"]')?.getAttribute('content');\n\t\t\t\t\tif (csrfToken) {\n\t\t\t\t\t\tevt.detail.headers['X-CSRF-Token'] = csrfToken;\n\t\t\t\t\t}\n\t\t\t\t});\n\t\t\t\tconsole.log(\"[chat-poll] head script loaded on \" + location.pathname);\n\t\t\t\t(function(){\n\t\t\t\t\tvar lastHTML=\"\";\n\t\t\t\t\tvar chatId=null;\n\t\t\t\t\tfunction up(){var m=location.pathname.match(/\\/admin\\/chat\\/(\\d+)/);chatId=m?m[1]:null;}\n\t\t\t\t\tfunction ping(){var a=document.getElementById(\"chat-ping-sound\");if(a){a.currentTime=0;a.play().catch(function(){});}}\n\t\t\t\t\tfunction pollS(){fetch(\"/admin/chats/sidebar\").then(function(r){return r.text();}).then(function(h){var el=document.getElementById(\"sidebar-session-list\");if(el&&h!==lastHTML){if(lastHTML)ping();lastHTML=h;var t=document.createElement(\"div\");t.innerHTML=h;var items=t.querySelectorAll(\"li\");if(items.length){el.innerHTML=\"\";items.forEach(function(li){el.appendChild(li.cloneNode(true));});}}}).catch(function(e){});}\n\t\t\t\t\tfunction pollM(){if(!chatId)return;fetch(\"/admin/chat/\"+chatId+\"/messages?_=\"+Date.now()).then(function(r){return r.text();}).then(function(h){var el=document.getElementById(\"chat-messages-\"+chatId);if(el){el.innerHTML=h;el.scrollTop=el.scrollHeight;}}).catch(function(e){});}\n\t\t\t\t\tconsole.log(\"[chat-poll] IIFE running on \"+location.pathname);\n\t\t\t\t\tup();\n\t\t\t\t\tsetInterval(function(){up();pollS();pollM();},3000);\n\t\t\t\t})();\n\t\t\t</script></head><body class=\"font-sans antialiased\" style=\"background: var(--admin-bg); color: var(--foreground);\" hx-ext=\"ws\" ws-connect=\"/api/chat/ws\" x-data=\"{ mobileMenuOpen: false }\" @htmx:ws-error=\"$store.chat.wsError = true\" @htmx:ws-close=\"$store.chat.wsError = true\" @htmx:ws-open=\"$store.chat.wsError = false; $store.chat.socket = $event.detail.socket\"><div class=\"admin-layout\"><!-- Sidebar --><aside class=\"admin-sidebar\"><div class=\"admin-sidebar-head\"><div class=\"admin-brand\"><div class=\"admin-brand-logo\">BS</div><div style=\"flex:1; min-width:0;\"><div class=\"admin-brand-title\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "</title><link rel=\"stylesheet\" href=\"/public/assets/styles.css\"><link rel=\"stylesheet\" href=\"https://cdn.jsdelivr.net/npm/lucide-static@latest/font/lucide.css\"><script src=\"https://unpkg.com/htmx.org@1.9.10\"></script><script src=\"https://unpkg.com/htmx.org@1.9.10/dist/ext/ws.js\"></script><script src=\"/public/assets/index.js\"></script><script src=\"https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js\"></script><script defer src=\"https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js\"></script><style>\n\t\t\t\t[x-cloak] { display: none !important; }\n\t\t\t</style><script>\n\t\t\t\tdocument.addEventListener('alpine:init', () => {\n\t\t\t\t\tAlpine.store('chat', {\n\t\t\t\t\t\twsError: false,\n\t\t\t\t\t\tsocket: null\n\t\t\t\t\t})\n\t\t\t\t})\n\t\t\t\tdocument.addEventListener('htmx:oobBeforeSwap', (evt) => {\n\t\t\t\t\tconst oob = evt.detail.elt.getAttribute('hx-swap-oob');\n\t\t\t\t\tif (oob && (oob === 'delete' || oob.startsWith('delete:'))) {\n\t\t\t\t\t\tconst selector = oob.includes(':') ? oob.split(':')[1] : null;\n\t\t\t\t\t\tconst target = selector ? document.querySelector(selector) : (evt.detail.target || document.getElementById(evt.detail.elt.id));\n\t\t\t\t\t\tif (target) target.remove();\n\t\t\t\t\t\tevt.preventDefault();\n\t\t\t\t\t}\n\t\t\t\t});\n\t\t\t\tdocument.addEventListener('htmx:configRequest', (evt) => {\n\t\t\t\t\tconst csrfToken = document.querySelector('meta[name=\"csrf-token\"]')?.getAttribute('content');\n\t\t\t\t\tif (csrfToken) {\n\t\t\t\t\t\tevt.detail.headers['X-CSRF-Token'] = csrfToken;\n\t\t\t\t\t}\n\t\t\t\t});\n\t\t\t\tconsole.log(\"[chat-poll] head script loaded on \" + location.pathname);\n\t\t\t\t(function(){\n\t\t\t\t\tvar lastHTML=\"\";\n\t\t\t\t\tvar chatId=null;\n\t\t\t\t\tfunction up(){var m=location.pathname.match(/\\/admin\\/chat\\/(\\d+)/);chatId=m?m[1]:null;}\n\t\t\t\t\tfunction ping(){var a=document.getElementById(\"chat-ping-sound\");if(a){a.currentTime=0;a.play().catch(function(){});}}\n\t\t\t\t\tfunction pollS(){fetch(\"/admin/chats/sidebar\").then(function(r){return r.text();}).then(function(h){var el=document.getElementById(\"sidebar-session-list\");if(el&&h!==lastHTML){if(lastHTML)ping();lastHTML=h;var t=document.createElement(\"div\");t.innerHTML=h;var items=t.querySelectorAll(\"li\");if(items.length){el.innerHTML=\"\";items.forEach(function(li){el.appendChild(li.cloneNode(true));});}}}).catch(function(e){});}\n\t\t\t\t\tfunction pollM(){if(!chatId)return;fetch(\"/admin/chat/\"+chatId+\"/messages?_=\"+Date.now()).then(function(r){return r.text();}).then(function(h){var el=document.getElementById(\"chat-messages-\"+chatId);if(el){el.innerHTML=h;el.scrollTop=el.scrollHeight;}}).catch(function(e){});}\n\t\t\t\t\tconsole.log(\"[chat-poll] IIFE running on \"+location.pathname);\n\t\t\t\t\tup();\n\t\t\t\t\tsetInterval(function(){up();pollS();pollM();},3000);\n\t\t\t\t})();\n\t\t\t</script></head><body class=\"font-sans antialiased\" style=\"background: var(--admin-bg); color: var(--foreground);\" hx-ext=\"ws\" ws-connect=\"/api/chat/ws\" x-data=\"{ mobileMenuOpen: false }\" @htmx:ws-error=\"$store.chat.wsError = true\" @htmx:ws-close=\"$store.chat.wsError = true\" @htmx:ws-open=\"$store.chat.wsError = false; $store.chat.socket = $event.detail.socket\"><div class=\"admin-layout\"><!-- Sidebar --><aside class=\"admin-sidebar\"><div class=\"admin-sidebar-head\"><div class=\"admin-brand\"><div class=\"admin-brand-logo\">BS</div><div style=\"flex:1; min-width:0;\"><div class=\"admin-brand-title\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var17 string
 		templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(cfg.Site.Name)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/layouts/app.templ`, Line: 315, Col: 54}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/layouts/app.templ`, Line: 322, Col: 54}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "</div><div class=\"admin-brand-sub\">Admin Panel</div></div></div></div><a href=\"/\" class=\"admin-back-btn\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "</div><div class=\"admin-brand-sub\">Admin Panel</div></div></div></div><a href=\"/\" class=\"admin-back-btn\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -510,25 +528,25 @@ func AdminPage(user models.AuthUser, cfg *config.Config, categories []models.Cat
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "Back to store</a><nav class=\"admin-nav\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "Back to store</a><nav class=\"admin-nav\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		for _, group := range sidebar {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "<div class=\"admin-nav-group\"><div class=\"admin-nav-group-label\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "<div class=\"admin-nav-group\"><div class=\"admin-nav-group-label\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var18 string
 			templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(services.GetI18n().T(ctx, group.Label))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/layouts/app.templ`, Line: 326, Col: 83}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/layouts/app.templ`, Line: 333, Col: 83}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "</div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "</div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -538,20 +556,20 @@ func AdminPage(user models.AuthUser, cfg *config.Config, categories []models.Cat
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "<a href=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "<a href=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var20 templ.SafeURL
 				templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(item.Link))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/layouts/app.templ`, Line: 329, Col: 41}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/layouts/app.templ`, Line: 336, Col: 41}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "\" class=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "\" class=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -564,7 +582,7 @@ func AdminPage(user models.AuthUser, cfg *config.Config, categories []models.Cat
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -572,79 +590,79 @@ func AdminPage(user models.AuthUser, cfg *config.Config, categories []models.Cat
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "<span>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "<span>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var22 string
 				templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs(services.GetI18n().T(ctx, item.Title))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/layouts/app.templ`, Line: 333, Col: 55}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/layouts/app.templ`, Line: 340, Col: 55}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "</span> ")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "</span> ")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				if item.Badge != "" {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "<span class=\"admin-badge-sm\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "<span class=\"admin-badge-sm\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var23 string
 					templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.JoinStringErrs(item.Badge)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/layouts/app.templ`, Line: 335, Col: 52}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/layouts/app.templ`, Line: 342, Col: 52}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var23))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "</span>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "</span>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "</a>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "</a>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "</div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, "</div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "</nav></aside><!-- Main --><div class=\"main\" style=\"flex:1; display:flex; flex-direction:column; min-width:0;\"><!-- Mobile header --><div class=\"lg:hidden flex items-center justify-between\" style=\"background:var(--admin-sidebar); padding:12px 16px; color:#fff;\"><span class=\"font-bold text-lg\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, "</nav></aside><!-- Main --><div class=\"main\" style=\"flex:1; display:flex; flex-direction:column; min-width:0;\"><!-- Mobile header --><div class=\"lg:hidden flex items-center justify-between\" style=\"background:var(--admin-sidebar); padding:12px 16px; color:#fff;\"><span class=\"font-bold text-lg\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var24 string
 		templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.JoinStringErrs(cfg.Site.Name)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/layouts/app.templ`, Line: 349, Col: 53}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/layouts/app.templ`, Line: 356, Col: 53}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var24))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, "</span> <button @click=\"mobileMenuOpen = true\" class=\"p-2 rounded-md hover:opacity-80 focus:outline-none\"><svg class=\"h-6 w-6\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M4 6h16M4 12h16M4 18h16\"></path></svg></button></div><!-- Mobile sidebar overlay --><div x-show=\"mobileMenuOpen\" x-cloak class=\"fixed inset-0 z-40 lg:hidden\" @click=\"mobileMenuOpen = false\"><div class=\"absolute inset-0 bg-gray-600 opacity-75\"></div></div><!-- Mobile sidebar drawer --><div :class=\"mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'\" class=\"fixed inset-y-0 left-0 z-50 flex w-64 flex-col transition-transform duration-300 ease-in-out lg:hidden\" style=\"background:var(--admin-sidebar); color:var(--admin-sidebar-fg);\"><div class=\"flex items-center justify-between px-4 py-4 border-b\" style=\"border-color:var(--admin-sidebar-border);\"><span class=\"font-bold\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, "</span> <button @click=\"mobileMenuOpen = true\" class=\"p-2 rounded-md hover:opacity-80 focus:outline-none\"><svg class=\"h-6 w-6\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M4 6h16M4 12h16M4 18h16\"></path></svg></button></div><!-- Mobile sidebar overlay --><div x-show=\"mobileMenuOpen\" x-cloak class=\"fixed inset-0 z-40 lg:hidden\" @click=\"mobileMenuOpen = false\"><div class=\"absolute inset-0 bg-gray-600 opacity-75\"></div></div><!-- Mobile sidebar drawer --><div :class=\"mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'\" class=\"fixed inset-y-0 left-0 z-50 flex w-64 flex-col transition-transform duration-300 ease-in-out lg:hidden\" style=\"background:var(--admin-sidebar); color:var(--admin-sidebar-fg);\"><div class=\"flex items-center justify-between px-4 py-4 border-b\" style=\"border-color:var(--admin-sidebar-border);\"><span class=\"font-bold\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var25 string
 		templ_7745c5c3_Var25, templ_7745c5c3_Err = templ.JoinStringErrs(cfg.Site.Name)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/layouts/app.templ`, Line: 369, Col: 46}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/layouts/app.templ`, Line: 376, Col: 46}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var25))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, "</span> <button @click=\"mobileMenuOpen = false\" class=\"p-1 rounded hover:opacity-80\"><svg class=\"h-5 w-5\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M6 18L18 6M6 6l12 12\"></path></svg></button></div><a href=\"/\" class=\"admin-back-btn\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, "</span> <button @click=\"mobileMenuOpen = false\" class=\"p-1 rounded hover:opacity-80\"><svg class=\"h-5 w-5\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M6 18L18 6M6 6l12 12\"></path></svg></button></div><a href=\"/\" class=\"admin-back-btn\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -652,25 +670,25 @@ func AdminPage(user models.AuthUser, cfg *config.Config, categories []models.Cat
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, "Back to store</a><nav class=\"admin-nav\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 43, "Back to store</a><nav class=\"admin-nav\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		for _, group := range sidebar {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, "<div class=\"admin-nav-group\"><div class=\"admin-nav-group-label\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 44, "<div class=\"admin-nav-group\"><div class=\"admin-nav-group-label\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var26 string
 			templ_7745c5c3_Var26, templ_7745c5c3_Err = templ.JoinStringErrs(services.GetI18n().T(ctx, group.Label))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/layouts/app.templ`, Line: 380, Col: 84}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/layouts/app.templ`, Line: 387, Col: 84}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var26))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 43, "</div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 45, "</div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -680,20 +698,20 @@ func AdminPage(user models.AuthUser, cfg *config.Config, categories []models.Cat
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 44, "<a href=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 46, "<a href=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var28 templ.SafeURL
 				templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(item.Link))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/layouts/app.templ`, Line: 383, Col: 42}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/layouts/app.templ`, Line: 390, Col: 42}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var28))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 45, "\" class=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 47, "\" class=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -706,7 +724,7 @@ func AdminPage(user models.AuthUser, cfg *config.Config, categories []models.Cat
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 46, "\" @click=\"mobileMenuOpen = false\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, "\" @click=\"mobileMenuOpen = false\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -714,122 +732,122 @@ func AdminPage(user models.AuthUser, cfg *config.Config, categories []models.Cat
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 47, "<span>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 49, "<span>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var30 string
 				templ_7745c5c3_Var30, templ_7745c5c3_Err = templ.JoinStringErrs(services.GetI18n().T(ctx, item.Title))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/layouts/app.templ`, Line: 388, Col: 56}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/layouts/app.templ`, Line: 395, Col: 56}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var30))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, "</span> ")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 50, "</span> ")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				if item.Badge != "" {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 49, "<span class=\"admin-badge-sm\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 51, "<span class=\"admin-badge-sm\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var31 string
 					templ_7745c5c3_Var31, templ_7745c5c3_Err = templ.JoinStringErrs(item.Badge)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/layouts/app.templ`, Line: 390, Col: 53}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/layouts/app.templ`, Line: 397, Col: 53}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var31))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 50, "</span>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 52, "</span>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 51, "</a>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 53, "</a>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 52, "</div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 54, "</div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 53, "</nav></div><!-- Header bar --><header class=\"admin-header\"><div class=\"admin-breadcrumbs\"><span class=\"muted\">Admin</span> <i class=\"i\">&#xea61;</i> <span style=\"font-weight:500;\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 55, "</nav></div><!-- Header bar --><header class=\"admin-header\"><div class=\"admin-breadcrumbs\"><span class=\"muted\">Admin</span> <i class=\"i\">&#xea61;</i> <span style=\"font-weight:500;\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var32 string
 		templ_7745c5c3_Var32, templ_7745c5c3_Err = templ.JoinStringErrs(services.GetI18n().T(ctx, pageTitleFromPath(activePath)))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/layouts/app.templ`, Line: 404, Col: 96}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/layouts/app.templ`, Line: 411, Col: 96}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var32))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 54, "</span></div><div class=\"admin-header-actions\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 56, "</span></div><div class=\"admin-header-actions\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		if expiresAt != nil && time.Until(*expiresAt).Hours()/24 > 0 {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 55, "<span style=\"font-size:11px;padding:2px 8px;border-radius:4px;background:#dbeafe;color:#1e40af;font-weight:600;white-space:nowrap\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 57, "<span style=\"font-size:11px;padding:2px 8px;border-radius:4px;background:#dbeafe;color:#1e40af;font-weight:600;white-space:nowrap\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var33 string
 			templ_7745c5c3_Var33, templ_7745c5c3_Err = templ.JoinStringErrs(int(time.Until(*expiresAt).Hours() / 24))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/layouts/app.templ`, Line: 408, Col: 181}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/layouts/app.templ`, Line: 415, Col: 181}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var33))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 56, " days left</span> ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 58, " days left</span> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		} else if expiresAt != nil {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 57, "<span style=\"font-size:11px;padding:2px 8px;border-radius:4px;background:#fee2e2;color:#991b1b;font-weight:600;white-space:nowrap\">Expired</span> ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 59, "<span style=\"font-size:11px;padding:2px 8px;border-radius:4px;background:#fee2e2;color:#991b1b;font-weight:600;white-space:nowrap\">Expired</span> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		} else {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 58, "<span class=\"subscription-badge\" style=\"font-size:11px;padding:2px 8px;border-radius:4px;background:#f3f4f6;color:#6b7280;font-weight:600;white-space:nowrap\">No subscription</span> ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 60, "<span class=\"subscription-badge\" style=\"font-size:11px;padding:2px 8px;border-radius:4px;background:#f3f4f6;color:#6b7280;font-weight:600;white-space:nowrap\">No subscription</span> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
 		if user.ID != 0 {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 59, "<span class=\"text-sm text-gray-500\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 61, "<span class=\"text-sm text-gray-500\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var34 string
 			templ_7745c5c3_Var34, templ_7745c5c3_Err = templ.JoinStringErrs(user.Email)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/layouts/app.templ`, Line: 415, Col: 56}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/layouts/app.templ`, Line: 422, Col: 56}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var34))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 60, "</span> ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 62, "</span> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 61, "<a href=\"/admin/chats\" title=\"Live chat\" style=\"position:relative; display:inline-flex; align-items:center; justify-content:center; height:32px; width:32px; border-radius:6px; border:1px solid var(--border); background:var(--admin-card); color:inherit; text-decoration:none;\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 63, "<a href=\"/admin/chats\" title=\"Live chat\" style=\"position:relative; display:inline-flex; align-items:center; justify-content:center; height:32px; width:32px; border-radius:6px; border:1px solid var(--border); background:var(--admin-card); color:inherit; text-decoration:none;\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = components.ChatNotificationDot(cfg, false, "", 0, templ.Attributes{"id": "admin-topnav-chat-dot"}).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = components.ChatNotificationDot(cfg, false, "", 0, false, templ.Attributes{"id": "admin-topnav-chat-dot"}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -837,7 +855,7 @@ func AdminPage(user models.AuthUser, cfg *config.Config, categories []models.Cat
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 62, "<svg class=\"w-4 h-4\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z\"></path></svg></a> <a href=\"/logout\" class=\"btn\" style=\"height:32px; padding:0 12px; border-radius:6px; border:1px solid var(--border); background:var(--admin-card); font-size:13px; display:inline-flex; align-items:center; gap:6px; text-decoration:none; color:inherit;\">Logout</a></div></header><div class=\"admin-body\"><div class=\"admin-content\"><div class=\"admin-content-inner\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 64, "<svg class=\"w-4 h-4\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z\"></path></svg></a> <a href=\"/logout\" class=\"btn\" style=\"height:32px; padding:0 12px; border-radius:6px; border:1px solid var(--border); background:var(--admin-card); font-size:13px; display:inline-flex; align-items:center; gap:6px; text-decoration:none; color:inherit;\">Logout</a></div></header><div class=\"admin-body\"><div class=\"admin-content\"><div class=\"admin-content-inner\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -845,7 +863,7 @@ func AdminPage(user models.AuthUser, cfg *config.Config, categories []models.Cat
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 63, "</div></div></div><audio id=\"chat-ping-sound\" src=\"/public/assets/ping.wav\" preload=\"auto\" class=\"hidden\"></audio></div></div></body></html>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 65, "</div></div></div><audio id=\"chat-ping-sound\" src=\"/public/assets/ping.wav\" preload=\"auto\" class=\"hidden\"></audio></div></div></body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

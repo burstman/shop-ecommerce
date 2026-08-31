@@ -35,7 +35,7 @@ templ ChatUnreadBadgeOOB(count int) {
 	}
 }
 
-templ ChatNotificationDot(cfg *config.Config, show bool, content string, sessionID uint, attrs templ.Attributes) {
+templ ChatNotificationDot(cfg *config.Config, show bool, content string, sessionID uint, notify bool, attrs templ.Attributes) {
 	<div 
 		{ attrs... }
 		class="inline-flex items-center justify-center" 
@@ -50,8 +50,8 @@ templ ChatNotificationDot(cfg *config.Config, show bool, content string, session
 				<span class="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
 			</span>
 
-			<!-- Popup Notification -->
-			if cfg.Chat.EnablePopup {
+			<!-- Popup + sound only on the visible notification targets (notify=true) -->
+			if notify && cfg.Chat.EnablePopup {
 			<div
 				x-data="{ visible: true }"
 				x-init={ fmt.Sprintf("setTimeout(() => visible = false, %d)", cfg.Chat.PopupTimeout * 1000) }
@@ -84,8 +84,15 @@ templ ChatNotificationDot(cfg *config.Config, show bool, content string, session
 			</div>
 			}
 
+			if notify {
 			<script>
 				(function() {
+					// Only play once per page within a short window to avoid
+					// duplicates when several OOB dots are swapped at once.
+					var now = Date.now();
+					if (window.__chatNotifiedAt && (now - window.__chatNotifiedAt) < 2000) return;
+					window.__chatNotifiedAt = now;
+
 					// 1. Native Desktop Notification
 					if (window.Notification && Notification.permission === "granted") {
 						new Notification("Nouveau message client");
@@ -105,6 +112,7 @@ templ ChatNotificationDot(cfg *config.Config, show bool, content string, session
 					}
 				})();
 			</script>
+			}
 		}
 	</div>
 }

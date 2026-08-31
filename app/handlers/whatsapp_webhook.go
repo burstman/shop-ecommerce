@@ -11,6 +11,7 @@ import (
 
 	"shopTemplate/app/config"
 	"shopTemplate/app/db"
+	"shopTemplate/app/helpers"
 	"shopTemplate/app/models"
 	"shopTemplate/app/views/admin"
 	"shopTemplate/app/views/components"
@@ -238,23 +239,28 @@ func pushWhatsAppMessageToAdmins(session models.ChatSession, msg models.ChatMess
 	}
 	sessionItemHTML, _ := componentToString(ctx, admin.ChatSessionItem(session, false, nil))
 
-	sessionDotHTML, err := componentToString(ctx, components.ChatNotificationDot(cfg, true, msg.Content, session.ID, templ.Attributes{"hx-swap-oob": "outerHTML", "id": fmt.Sprintf("chat-notification-dot-%d", session.ID)}))
+	sessionDotHTML, err := componentToString(ctx, components.ChatNotificationDot(cfg, true, msg.Content, session.ID, false, templ.Attributes{"hx-swap-oob": "outerHTML", "id": fmt.Sprintf("chat-notification-dot-%d", session.ID)}))
 	if err != nil {
 		slog.Error("whatsapp: failed to render session dot", "err", err)
 		return
 	}
 
-	adminSidebarDotHTML, err := componentToString(ctx, components.ChatNotificationDot(cfg, true, msg.Content, 0, templ.Attributes{"hx-swap-oob": "outerHTML", "id": "admin-sidebar-chat-dot"}))
+	adminSidebarDotHTML, err := componentToString(ctx, components.ChatNotificationDot(cfg, true, msg.Content, 0, false, templ.Attributes{"hx-swap-oob": "outerHTML", "id": "admin-sidebar-chat-dot"}))
 	if err != nil {
 		return
 	}
 
-	adminTopnavDotHTML, err := componentToString(ctx, components.ChatNotificationDot(cfg, true, msg.Content, 0, templ.Attributes{"hx-swap-oob": "outerHTML", "id": "admin-topnav-chat-dot"}))
+adminTopnavDotHTML, err := componentToString(ctx, components.ChatNotificationDot(cfg, true, msg.Content, 0, true, templ.Attributes{"hx-swap-oob": "outerHTML", "id": "admin-topnav-chat-dot"}))
 	if err != nil {
 		return
 	}
 
-	badgeHTML, err := componentToString(ctx, components.ChatUnreadBadgeOOB(int(unreadChatMessagesCount())))
+	storefrontDotHTML, err := componentToString(ctx, components.ChatNotificationDot(cfg, true, msg.Content, 0, true, templ.Attributes{"hx-swap-oob": "outerHTML", "id": "admin-storefront-chat-dot"}))
+	if err != nil {
+		return
+	}
+
+	badgeHTML, err := componentToString(ctx, components.ChatUnreadBadgeOOB(int(helpers.CountUnreadChatMessages())))
 	if err != nil {
 		return
 	}
@@ -264,11 +270,11 @@ func pushWhatsAppMessageToAdmins(session models.ChatSession, msg models.ChatMess
 			"<div id=\"chat-messages-%d\" hx-swap-oob=\"beforeend\">%s</div>"+
 				"<div id=\"delete-helper-%d\" hx-swap-oob=\"delete:#chat-session-item-%d\"></div>"+
 				"<div hx-swap-oob=\"afterbegin:#sidebar-session-list\">%s</div>"+
-				"%s%s%s%s",
+				"%s%s%s%s%s",
 			session.ID, bubbleHTML,
 			session.ID, session.ID,
 			sessionItemHTML,
-			sessionDotHTML, adminSidebarDotHTML, adminTopnavDotHTML, badgeHTML,
+			sessionDotHTML, adminSidebarDotHTML, adminTopnavDotHTML, storefrontDotHTML, badgeHTML,
 		)
 
 		if err := a.conn.WriteMessage(websocket.TextMessage, []byte(payload)); err != nil {

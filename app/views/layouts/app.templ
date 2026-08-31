@@ -19,7 +19,7 @@ script initFacebookPixel(id string) {
     fbq('track', 'PageView');
 }
 
-templ App(user models.AuthUser, cfg *config.Config, categories []models.Category, cartCount int, content templ.Component, csrfToken string) {
+templ App(user models.AuthUser, cfg *config.Config, categories []models.Category, cartCount int, content templ.Component, csrfToken string, unreadChatCount int) {
 	<!DOCTYPE html>
 	<html lang={ fmt.Sprint(ctx.Value("lang")) } class="h-full" dir={ getDir(ctx) } style={ templ.KV("--primary", hslStr(cfg.Theme.PrimaryColor)) }>
 		<head>
@@ -88,6 +88,13 @@ templ App(user models.AuthUser, cfg *config.Config, categories []models.Category
 			</main>
 			@components.Footer(ctx, user, cfg)
 			@components.ChatWidget(ctx, user, cfg)
+			if user.Role == "admin" && cfg.Chat.Mode != "disabled" {
+				<a href="/admin/chats" title="Messages" style="position:fixed;left:1rem;bottom:1rem;z-index:60;display:inline-flex;align-items:center;justify-content:center;height:40px;width:40px;border-radius:9999px;background:#111827;color:#fff;box-shadow:0 4px 12px rgba(0,0,0,0.25);text-decoration:none;">
+					@components.ChatNotificationDot(cfg, false, "", 0, false, templ.Attributes{"id": "admin-storefront-chat-dot"})
+					@components.ChatUnreadBadge(unreadChatCount)
+					<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
+				</a>
+			}
 			if cfg.Chat.Mode == "standard" {
 				<audio id="chat-ping-sound" src="/public/assets/ping.wav" preload="auto" class="hidden"></audio>
 			}
@@ -104,16 +111,16 @@ func getPageStyle(cfg *config.Config) string {
 	return fmt.Sprintf("background-color: %s;", cfg.Theme.PageBgColor)
 }
 
-// chatBodyAttrs returns the <body> attributes. The WS extension is only
-// activated when the storefront chat mode is "standard" and the visitor
-// is not an admin.
+// chatBodyAttrs returns the <body> attributes. The WS extension is activated
+// when the storefront chat mode is "standard", so both visitors (as chat
+// clients) and admins (to receive chat notifications) stay connected.
 func chatBodyAttrs(cfg *config.Config, user models.AuthUser) templ.Attributes {
 	attrs := templ.Attributes{
 		"class": "h-full flex flex-col font-sans antialiased text-gray-900 pt-16 sm:pt-28",
 		"style": getPageStyle(cfg),
 		"x-data": "{}",
 	}
-	if cfg.Chat.Mode == "standard" && user.Role != "admin" {
+	if cfg.Chat.Mode == "standard" {
 		attrs["hx-ext"] = "ws"
 		attrs["ws-connect"] = "/api/chat/ws"
 		attrs["@htmx:ws-error"] = "$store.chat.wsError = true"
@@ -415,7 +422,7 @@ templ AdminPage(user models.AuthUser, cfg *config.Config, categories []models.Ca
 								<span class="text-sm text-gray-500">{ user.Email }</span>
 							}
 							<a href="/admin/chats" title="Live chat" style="position:relative; display:inline-flex; align-items:center; justify-content:center; height:32px; width:32px; border-radius:6px; border:1px solid var(--border); background:var(--admin-card); color:inherit; text-decoration:none;">
-								@components.ChatNotificationDot(cfg, false, "", 0, templ.Attributes{"id": "admin-topnav-chat-dot"})
+								@components.ChatNotificationDot(cfg, false, "", 0, false, templ.Attributes{"id": "admin-topnav-chat-dot"})
 								@components.ChatUnreadBadge(unreadChatCount)
 								<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
 							</a>

@@ -11,6 +11,7 @@ import (
 	"os"
 	"shopTemplate/app/config"
 	"shopTemplate/app/db"
+	"shopTemplate/app/helpers"
 	"shopTemplate/app/models"
 	"shopTemplate/app/services"
 	"shopTemplate/app/views/admin"
@@ -76,16 +77,6 @@ func componentToString(ctx context.Context, comp templ.Component) (string, error
 	return buf.String(), nil
 }
 
-// unreadChatMessagesCount returns how many client-sent messages have not been
-// seen by an admin yet.
-func unreadChatMessagesCount() int64 {
-	var count int64
-	if err := db.Get().Model(&models.ChatMessage{}).Where("sender = ? AND is_read = ?", "client", false).Count(&count).Error; err != nil {
-		slog.Error("failed to count unread chat messages", "err", err)
-	}
-	return count
-}
-
 // markChatSessionRead marks all unread client messages of a session as read.
 // It returns true if any message was actually updated.
 func markChatSessionRead(sessionID uint) bool {
@@ -101,7 +92,7 @@ func markChatSessionRead(sessionID uint) bool {
 
 // broadcastChatUnreadBadge pushes the latest unread badge HTML to all connected admins.
 func broadcastChatUnreadBadge() {
-	badgeHTML, err := componentToString(context.Background(), components.ChatUnreadBadgeOOB(int(unreadChatMessagesCount())))
+	badgeHTML, err := componentToString(context.Background(), components.ChatUnreadBadgeOOB(int(helpers.CountUnreadChatMessages())))
 	if err != nil {
 		slog.Error("failed to render unread badge", "err", err)
 		return
@@ -335,25 +326,31 @@ func HandleChatSend(kit *kit.Kit) error {
 	sessionItemHTML, _ := componentToString(kit.Request.Context(), admin.ChatSessionItem(session, true, nil)) // Sidebar item (no OOB on itself)
 
 	// Generate HTML for the session-specific dot (e.g., next to the session in the sidebar list)
-	sessionDotHTML, err := componentToString(kit.Request.Context(), components.ChatNotificationDot(cfg, true, msg.Content, session.ID, templ.Attributes{"hx-swap-oob": "outerHTML", "id": fmt.Sprintf("chat-notification-dot-%d", session.ID)}))
+	sessionDotHTML, err := componentToString(kit.Request.Context(), components.ChatNotificationDot(cfg, true, msg.Content, session.ID, false, templ.Attributes{"hx-swap-oob": "outerHTML", "id": fmt.Sprintf("chat-notification-dot-%d", session.ID)}))
 	if err != nil {
 		return err
 	}
 
 	// Generate HTML for the global notification dot in the admin sidebar
-	adminSidebarDotHTML, err := componentToString(kit.Request.Context(), components.ChatNotificationDot(cfg, true, msg.Content, 0, templ.Attributes{"hx-swap-oob": "outerHTML", "id": "admin-sidebar-chat-dot"}))
+	adminSidebarDotHTML, err := componentToString(kit.Request.Context(), components.ChatNotificationDot(cfg, true, msg.Content, 0, false, templ.Attributes{"hx-swap-oob": "outerHTML", "id": "admin-sidebar-chat-dot"}))
 	if err != nil {
 		return err
 	}
 
 	// Generate HTML for the global notification dot in the top navigation (if it exists)
-	adminTopnavDotHTML, err := componentToString(kit.Request.Context(), components.ChatNotificationDot(cfg, true, msg.Content, 0, templ.Attributes{"hx-swap-oob": "outerHTML", "id": "admin-topnav-chat-dot"}))
+	adminTopnavDotHTML, err := componentToString(kit.Request.Context(), components.ChatNotificationDot(cfg, true, msg.Content, 0, true, templ.Attributes{"hx-swap-oob": "outerHTML", "id": "admin-topnav-chat-dot"}))
+	if err != nil {
+		return err
+	}
+
+	// Generate HTML for the storefront notification chip (admin browsing the shop)
+	storefrontDotHTML, err := componentToString(kit.Request.Context(), components.ChatNotificationDot(cfg, true, msg.Content, 0, true, templ.Attributes{"hx-swap-oob": "outerHTML", "id": "admin-storefront-chat-dot"}))
 	if err != nil {
 		return err
 	}
 
 	// Generate HTML for persistence unread badge update
-	badgeHTML, err := componentToString(kit.Request.Context(), components.ChatUnreadBadgeOOB(int(unreadChatMessagesCount())))
+	badgeHTML, err := componentToString(kit.Request.Context(), components.ChatUnreadBadgeOOB(int(helpers.CountUnreadChatMessages())))
 	if err != nil {
 		return err
 	}
@@ -382,10 +379,11 @@ func HandleChatSend(kit *kit.Kit) error {
 		payload.WriteString(fmt.Sprintf("<div hx-swap-oob=\"afterbegin:#sidebar-session-list\">%s</div>", sessionItemHTML))
 
 		// 3. Update the red notification dots and play the sound
-		payload.WriteString(sessionDotHTML)      // Update session-specific dot
-		payload.WriteString(adminSidebarDotHTML) // Update global sidebar dot
-		payload.WriteString(adminTopnavDotHTML)  // Update global topnav dot
-		payload.WriteString(badgeHTML)           // Update unread count badge
+		payload.WriteString(sessionDotHTML)        // Update session-specific dot
+		payload.WriteString(adminSidebarDotHTML)   // Update global sidebar dot
+		payload.WriteString(adminTopnavDotHTML)    // Update global topnav dot
+		payload.WriteString(storefrontDotHTML)     // Update storefront notification chip
+		payload.WriteString(badgeHTML)             // Update unread count badge
 
 		if err := a.conn.WriteMessage(websocket.TextMessage, []byte(payload.String())); err != nil {
 			slog.Error("failed to push to admin", "adminID", a.id, "err", err)
@@ -633,15 +631,15 @@ func HandleAdminChatSend(kit *kit.Kit) error {
 		if err != nil {
 			return err
 		}
-		adminSidebarDotHTML, err := componentToString(kit.Request.Context(), components.ChatNotificationDot(cfg, false, "", 0, templ.Attributes{"hx-swap-oob": "outerHTML", "id": "admin-sidebar-chat-dot"}))
+		adminSidebarDotHTML, err := componentToString(kit.Request.Context(), components.ChatNotificationDot(cfg, false, "", 0, false, templ.Attributes{"hx-swap-oob": "outerHTML", "id": "admin-sidebar-chat-dot"}))
 		if err != nil {
 			return err
 		}
-		adminTopnavDotHTML, err := componentToString(kit.Request.Context(), components.ChatNotificationDot(cfg, false, "", 0, templ.Attributes{"hx-swap-oob": "outerHTML", "id": "admin-topnav-chat-dot"}))
+		adminTopnavDotHTML, err := componentToString(kit.Request.Context(), components.ChatNotificationDot(cfg, false, "", 0, false, templ.Attributes{"hx-swap-oob": "outerHTML", "id": "admin-topnav-chat-dot"}))
 		if err != nil {
 			return err
 		}
-		dotHTML, err := componentToString(kit.Request.Context(), components.ChatNotificationDot(cfg, false, "", uint(sessionID), templ.Attributes{"hx-swap-oob": "outerHTML", "id": fmt.Sprintf("chat-notification-dot-%d", sessionID)}))
+		dotHTML, err := componentToString(kit.Request.Context(), components.ChatNotificationDot(cfg, false, "", uint(sessionID), false, templ.Attributes{"hx-swap-oob": "outerHTML", "id": fmt.Sprintf("chat-notification-dot-%d", sessionID)}))
 		if err != nil {
 			return err
 		}

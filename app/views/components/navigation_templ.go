@@ -287,7 +287,7 @@ func Navigation(user models.AuthUser, cfg *config.Config, categories []models.Ca
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = ChatNotificationDot(cfg, false, "", 0, templ.Attributes{"id": "admin-topnav-chat-dot"}).Render(ctx, templ_7745c5c3_Buffer)
+					templ_7745c5c3_Err = ChatNotificationDot(cfg, false, "", 0, false, templ.Attributes{"id": "admin-topnav-chat-dot"}).Render(ctx, templ_7745c5c3_Buffer)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -509,7 +509,7 @@ func Navigation(user models.AuthUser, cfg *config.Config, categories []models.Ca
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = ChatNotificationDot(cfg, false, "", 0, templ.Attributes{"id": "admin-topnav-chat-dot"}).Render(ctx, templ_7745c5c3_Buffer)
+					templ_7745c5c3_Err = ChatNotificationDot(cfg, false, "", 0, false, templ.Attributes{"id": "admin-topnav-chat-dot"}).Render(ctx, templ_7745c5c3_Buffer)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}

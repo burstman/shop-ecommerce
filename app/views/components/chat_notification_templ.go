@@ -125,7 +125,7 @@ func ChatUnreadBadgeOOB(count int) templ.Component {
 	})
 }
 
-func ChatNotificationDot(cfg *config.Config, show bool, content string, sessionID uint, attrs templ.Attributes) templ.Component {
+func ChatNotificationDot(cfg *config.Config, show bool, content string, sessionID uint, notify bool, attrs templ.Attributes) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -172,11 +172,11 @@ func ChatNotificationDot(cfg *config.Config, show bool, content string, sessionI
 			return templ_7745c5c3_Err
 		}
 		if show {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<span class=\"relative flex h-2 w-2\"><span class=\"animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75\"></span> <span class=\"relative inline-flex rounded-full h-2 w-2 bg-red-500\"></span></span><!-- Popup Notification --> ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<span class=\"relative flex h-2 w-2\"><span class=\"animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75\"></span> <span class=\"relative inline-flex rounded-full h-2 w-2 bg-red-500\"></span></span><!-- Popup + sound only on the visible notification targets (notify=true) --> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			if cfg.Chat.EnablePopup {
+			if notify && cfg.Chat.EnablePopup {
 				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<div x-data=\"{ visible: true }\" x-init=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
@@ -208,12 +208,18 @@ func ChatNotificationDot(cfg *config.Config, show bool, content string, sessionI
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, " <script>\n\t\t\t\t(function() {\n\t\t\t\t\t// 1. Native Desktop Notification\n\t\t\t\t\tif (window.Notification && Notification.permission === \"granted\") {\n\t\t\t\t\t\tnew Notification(\"Nouveau message client\");\n\t\t\t\t\t} else if (window.Notification && Notification.permission !== \"denied\") {\n\t\t\t\t\t\tNotification.requestPermission();\n\t\t\t\t\t}\n\t\t\t\t\t\n\t\t\t\t\t// 2. Audio Ping\n\t\t\t\t\tconst audio = document.getElementById('chat-ping-sound');\n\t\t\t\t\tif (audio) {\n\t\t\t\t\t\taudio.currentTime = 0; // Reset to start\n\t\t\t\t\t\taudio.play().catch(err => {\n\t\t\t\t\t\t\tconsole.warn('Chat Sound: Playback blocked by browser policy. Click anywhere on the page (like a menu item) to enable audio alerts.');\n\t\t\t\t\t\t});\n\t\t\t\t\t} else {\n\t\t\t\t\t\tconsole.error('Chat Sound: Audio element #chat-ping-sound (ping.wav) not found in DOM.');\n\t\t\t\t\t}\n\t\t\t\t})();\n\t\t\t</script>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, " ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
+			if notify {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "<script>\n\t\t\t\t(function() {\n\t\t\t\t\t// Only play once per page within a short window to avoid\n\t\t\t\t\t// duplicates when several OOB dots are swapped at once.\n\t\t\t\t\tvar now = Date.now();\n\t\t\t\t\tif (window.__chatNotifiedAt && (now - window.__chatNotifiedAt) < 2000) return;\n\t\t\t\t\twindow.__chatNotifiedAt = now;\n\n\t\t\t\t\t// 1. Native Desktop Notification\n\t\t\t\t\tif (window.Notification && Notification.permission === \"granted\") {\n\t\t\t\t\t\tnew Notification(\"Nouveau message client\");\n\t\t\t\t\t} else if (window.Notification && Notification.permission !== \"denied\") {\n\t\t\t\t\t\tNotification.requestPermission();\n\t\t\t\t\t}\n\t\t\t\t\t\n\t\t\t\t\t// 2. Audio Ping\n\t\t\t\t\tconst audio = document.getElementById('chat-ping-sound');\n\t\t\t\t\tif (audio) {\n\t\t\t\t\t\taudio.currentTime = 0; // Reset to start\n\t\t\t\t\t\taudio.play().catch(err => {\n\t\t\t\t\t\t\tconsole.warn('Chat Sound: Playback blocked by browser policy. Click anywhere on the page (like a menu item) to enable audio alerts.');\n\t\t\t\t\t\t});\n\t\t\t\t\t} else {\n\t\t\t\t\t\tconsole.error('Chat Sound: Audio element #chat-ping-sound (ping.wav) not found in DOM.');\n\t\t\t\t\t}\n\t\t\t\t})();\n\t\t\t</script>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "</div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "</div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
