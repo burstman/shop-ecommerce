@@ -7,12 +7,12 @@ import (
 	"shopTemplate/app/views/components"
 )
 
-templ ChatIndex(sessions []models.ChatSession, onlineMap map[string]bool) {
+templ ChatIndex(sessions []models.ChatSession, onlineMap map[string]bool, detail templ.Component) {
 	<div class="max-w-7xl mx-auto px-0 sm:px-6 lg:px-8 py-0 sm:py-10" x-data="{ showDetail: false }">
 		<h1 class="text-3xl font-bold text-gray-900 mb-8 hidden lg:block">Live Customer Support</h1>
 		<div class="flex h-[calc(100vh-8rem)] sm:h-[calc(100vh-20rem)] bg-white sm:rounded-lg shadow-sm sm:border border-gray-200 overflow-hidden">
 		<!-- Sidebar: Session List -->
-		<div :class="{ 'hidden': showDetail, 'flex': !showDetail }" class="w-full lg:w-1/3 border-r border-gray-200 flex-col lg:flex">
+		<div :class="showDetail ? 'hidden lg:flex' : 'flex'" class="w-full lg:w-1/3 border-r border-gray-200 flex-col">
 			<div class="p-4 border-b border-gray-200 bg-gray-50">
 				<h2 class="font-bold text-gray-700">Conversations</h2>
 			</div>
@@ -29,10 +29,14 @@ templ ChatIndex(sessions []models.ChatSession, onlineMap map[string]bool) {
 		</div>
 
 		<!-- Chat Detail Area -->
-		<div id="admin-chat-detail" :class="{ 'flex': showDetail, 'hidden': !showDetail }" class="flex-1 lg:flex flex-col bg-gray-50">
-			<div class="flex-1 flex items-center justify-center text-gray-400 italic p-4 text-center">
-				Sélectionnez une conversation pour répondre
-			</div>
+		<div id="admin-chat-detail" :class="showDetail ? 'flex' : 'hidden lg:flex'" class="flex-1 flex-col bg-gray-50">
+			if detail != nil {
+				@detail
+			} else {
+				<div class="flex-1 flex items-center justify-center text-gray-400 italic p-4 text-center">
+					Sélectionnez une conversation pour répondre
+				</div>
+			}
 		</div>
 		</div>
 	</div>

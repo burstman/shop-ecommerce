@@ -371,7 +371,7 @@ func HandleChatSend(kit *kit.Kit) error {
 	for _, a := range admins {
 		var payload strings.Builder
 		// 1. Append the message bubble to the chat window
-		payload.WriteString(fmt.Sprintf("<div id=\"chat-messages-%d\" hx-swap-oob=\"beforeend\">%s</div>", session.ID, bubbleHTML))
+		payload.WriteString(fmt.Sprintf("<div hx-swap-oob=\"beforeend:#chat-messages-%d\">%s</div>", session.ID, bubbleHTML))
 
 		// 2. Move this session to the top of the sidebar list
 		payload.WriteString(fmt.Sprintf("<div id=\"delete-helper-%d\" hx-swap-oob=\"delete:#chat-session-item-%d\"></div>", session.ID, session.ID))
@@ -401,16 +401,20 @@ func HandleChatSend(kit *kit.Kit) error {
 }
 
 // HandleAdminChatIndex displays the list of all chat sessions for the admin.
-func HandleAdminChatIndex(kit *kit.Kit) error {
-	user, ok := kit.Auth().(models.AuthUser)
-	if !ok || user.Role != "admin" {
-		return kit.Redirect(http.StatusForbidden, "/")
+func handleAdminChatIndex(kit *kit.Kit, detail templ.Component) error {
+	sessions, onlineMap := loadAdminChatSessions()
+	if kit.Request.Header.Get("HX-Request") == "true" {
+		return kit.Render(admin.ChatIndex(sessions, onlineMap, nil))
 	}
 
+	return RenderWithLayout(kit, admin.ChatIndex(sessions, onlineMap, detail))
+}
+
+func loadAdminChatSessions() ([]models.ChatSession, map[string]bool) {
 	var sessions []models.ChatSession
 	// Get sessions ordered by most recent message
 	if err := db.Get().Order("updated_at desc").Find(&sessions).Error; err != nil {
-		return err
+		slog.Error("chat: failed to load sessions", "err", err)
 	}
 
 	clientsMu.Lock()
@@ -425,11 +429,16 @@ func HandleAdminChatIndex(kit *kit.Kit) error {
 	}
 	clientsMu.Unlock()
 
-	if kit.Request.Header.Get("HX-Request") == "true" {
-		return kit.Render(admin.ChatIndex(sessions, onlineMap))
+	return sessions, onlineMap
+}
+
+func HandleAdminChatIndex(kit *kit.Kit) error {
+	user, ok := kit.Auth().(models.AuthUser)
+	if !ok || user.Role != "admin" {
+		return kit.Redirect(http.StatusForbidden, "/")
 	}
 
-	return RenderWithLayout(kit, admin.ChatIndex(sessions, onlineMap))
+	return handleAdminChatIndex(kit, nil)
 }
 
 // HandleAdminChatSidebar returns only the sidebar session list for polling.
@@ -532,8 +541,14 @@ func HandleAdminChatShow(kit *kit.Kit) error {
 		return kit.Render(admin.ChatDetail(session, cfg, isOnline))
 	}
 
-	// Fallback for full page refresh: render the main index
-	return HandleAdminChatIndex(kit)
+	// Fallback for full page refresh: render the main index with this
+	// conversation already open.
+	clientsMu.Lock()
+	_, wsOnline := activeClients[session.Identifier]
+	isOnline := wsOnline || time.Since(session.UpdatedAt) < 15*time.Second
+	clientsMu.Unlock()
+	sessions, onlineMap := loadAdminChatSessions()
+	return RenderWithLayout(kit, admin.ChatIndex(sessions, onlineMap, admin.ChatDetail(session, cfg, isOnline)))
 }
 
 // HandleAdminChatSend allows an admin to respond to a specific session.
@@ -618,7 +633,7 @@ func HandleAdminChatSend(kit *kit.Kit) error {
 
 		// Push to client
 		if isOnline {
-			payload := fmt.Sprintf("<div id=\"chat-messages\" hx-swap-oob=\"beforeend\">%s</div>", bubbleHTML)
+			payload := fmt.Sprintf("<div hx-swap-oob=\"beforeend:#chat-messages\">%s</div>", bubbleHTML)
 			if err := clientConn.WriteMessage(websocket.TextMessage, []byte(payload)); err != nil {
 				clientsMu.Lock()
 				delete(activeClients, session.Identifier)
@@ -649,7 +664,7 @@ func HandleAdminChatSend(kit *kit.Kit) error {
 			}
 
 			var payload strings.Builder
-			payload.WriteString(fmt.Sprintf("<div id=\"chat-messages-%d\" hx-swap-oob=\"beforeend\">%s</div>", session.ID, bubbleHTML))
+			payload.WriteString(fmt.Sprintf("<div hx-swap-oob=\"beforeend:#chat-messages-%d\">%s</div>", session.ID, bubbleHTML))
 			payload.WriteString(fmt.Sprintf("<div id=\"delete-helper-%d\" hx-swap-oob=\"delete:#chat-session-item-%d\"></div>", session.ID, session.ID))
 			payload.WriteString(fmt.Sprintf("<div hx-swap-oob=\"afterbegin:#sidebar-session-list\">%s</div>", sessionItemHTML))
 			payload.WriteString(adminSidebarDotHTML)

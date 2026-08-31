@@ -267,7 +267,7 @@ adminTopnavDotHTML, err := componentToString(ctx, components.ChatNotificationDot
 
 	for _, a := range admins {
 		payload := fmt.Sprintf(
-			"<div id=\"chat-messages-%d\" hx-swap-oob=\"beforeend\">%s</div>"+
+			"<div hx-swap-oob=\"beforeend:#chat-messages-%d\">%s</div>"+
 				"<div id=\"delete-helper-%d\" hx-swap-oob=\"delete:#chat-session-item-%d\"></div>"+
 				"<div hx-swap-oob=\"afterbegin:#sidebar-session-list\">%s</div>"+
 				"%s%s%s%s%s",
