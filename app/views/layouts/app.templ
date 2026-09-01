@@ -92,6 +92,20 @@ templ App(user models.AuthUser, cfg *config.Config, categories []models.Category
 						}
 					}
 				});
+				(function() {
+					function nearBottom(el){ return el.scrollTop + el.clientHeight >= el.scrollHeight - 250; }
+					document.addEventListener('DOMContentLoaded', function() {
+						var mo = new MutationObserver(function(muts) {
+							for (var i=0;i<muts.length;i++) {
+								var box = muts[i].target.closest ? muts[i].target.closest('.overflow-y-auto') : null;
+								if (box && box.id && box.id.indexOf('chat-messages-') === 0) {
+									if (muts[i].addedNodes.length && nearBottom(box)) box.scrollTop = box.scrollHeight;
+								}
+							}
+						});
+						mo.observe(document.body, { childList: true, subtree: true });
+					});
+				})();
 			</script>
 		</head>
 		<body { chatBodyAttrs(cfg, user)... }>
@@ -314,6 +328,20 @@ templ AdminPage(user models.AuthUser, cfg *config.Config, categories []models.Ca
 						}
 					}
 				});
+				(function() {
+					function nearBottom(el){ return el.scrollTop + el.clientHeight >= el.scrollHeight - 250; }
+					document.addEventListener('DOMContentLoaded', function() {
+						var mo = new MutationObserver(function(muts) {
+							for (var i=0;i<muts.length;i++) {
+								var box = muts[i].target.closest ? muts[i].target.closest('.overflow-y-auto') : null;
+								if (box && box.id && box.id.indexOf('chat-messages-') === 0) {
+									if (muts[i].addedNodes.length && nearBottom(box)) box.scrollTop = box.scrollHeight;
+								}
+							}
+						});
+						mo.observe(document.body, { childList: true, subtree: true });
+					});
+				})();
 			</script>
 		</head>
 		<body 

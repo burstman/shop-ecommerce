@@ -22,7 +22,7 @@ templ ChatMessageBubble(cfg *config.Config, msg models.ChatMessage) {
 		x-init="$nextTick(() => { 
 			const container = $el.closest('.overflow-y-auto');
 			if (container) {
-				const nearBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 60;
+				const nearBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 250;
 				if (nearBottom) { container.scrollTop = container.scrollHeight; }
 			}
 		})"

@@ -78,7 +78,7 @@ func ChatMessageBubble(cfg *config.Config, msg models.ChatMessage) templ.Compone
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div x-data x-init=\"$nextTick(() => { \n\t\t\tconst container = $el.closest('.overflow-y-auto');\n\t\t\tif (container) {\n\t\t\t\tconst nearBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 60;\n\t\t\t\tif (nearBottom) { container.scrollTop = container.scrollHeight; }\n\t\t\t}\n\t\t})\" class=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div x-data x-init=\"$nextTick(() => { \n\t\t\tconst container = $el.closest('.overflow-y-auto');\n\t\t\tif (container) {\n\t\t\t\tconst nearBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 250;\n\t\t\t\tif (nearBottom) { container.scrollTop = container.scrollHeight; }\n\t\t\t}\n\t\t})\" class=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
