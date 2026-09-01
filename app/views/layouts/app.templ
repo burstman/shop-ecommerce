@@ -90,6 +90,8 @@ templ App(user models.AuthUser, cfg *config.Config, categories []models.Category
 							target.classList.remove('hidden');
 							target.classList.add('flex');
 						}
+						const box = target.querySelector('.overflow-y-auto[id^="chat-messages-"]');
+						if (box) { requestAnimationFrame(function(){ box.scrollTop = box.scrollHeight; }); }
 					}
 				});
 				(function() {
@@ -326,6 +328,8 @@ templ AdminPage(user models.AuthUser, cfg *config.Config, categories []models.Ca
 							target.classList.remove('hidden');
 							target.classList.add('flex');
 						}
+						const box = target.querySelector('.overflow-y-auto[id^="chat-messages-"]');
+						if (box) { requestAnimationFrame(function(){ box.scrollTop = box.scrollHeight; }); }
 					}
 				});
 				(function() {
