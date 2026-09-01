@@ -21,7 +21,10 @@ templ ChatMessageBubble(cfg *config.Config, msg models.ChatMessage) {
 		x-data
 		x-init="$nextTick(() => { 
 			const container = $el.closest('.overflow-y-auto');
-			if (container) { container.scrollTop = container.scrollHeight; }
+			if (container) {
+				const nearBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 60;
+				if (nearBottom) { container.scrollTop = container.scrollHeight; }
+			}
 		})"
 		class={ "flex w-full", templ.KV("justify-end", msg.Sender == "client"), templ.KV("justify-start", msg.Sender == "admin") }>
 		<div class={ "max-w-[80%] rounded-2xl px-4 py-2 text-sm shadow-sm", templ.KV("rounded-br-none", msg.Sender == "client"), templ.KV("border border-gray-100 rounded-bl-none", msg.Sender == "admin") }

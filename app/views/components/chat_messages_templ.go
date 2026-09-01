@@ -78,7 +78,7 @@ func ChatMessageBubble(cfg *config.Config, msg models.ChatMessage) templ.Compone
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div x-data x-init=\"$nextTick(() => { \n\t\t\tconst container = $el.closest('.overflow-y-auto');\n\t\t\tif (container) { container.scrollTop = container.scrollHeight; }\n\t\t})\" class=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div x-data x-init=\"$nextTick(() => { \n\t\t\tconst container = $el.closest('.overflow-y-auto');\n\t\t\tif (container) {\n\t\t\t\tconst nearBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 60;\n\t\t\t\tif (nearBottom) { container.scrollTop = container.scrollHeight; }\n\t\t\t}\n\t\t})\" class=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -120,7 +120,7 @@ func ChatMessageBubble(cfg *config.Config, msg models.ChatMessage) templ.Compone
 		var templ_7745c5c3_Var7 string
 		templ_7745c5c3_Var7, templ_7745c5c3_Err = templruntime.SanitizeStyleAttributeValues(getBubbleStyle(cfg, msg.Sender))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/components/chat_messages.templ`, Line: 28, Col: 42}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/components/chat_messages.templ`, Line: 31, Col: 42}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 		if templ_7745c5c3_Err != nil {
@@ -133,7 +133,7 @@ func ChatMessageBubble(cfg *config.Config, msg models.ChatMessage) templ.Compone
 		var templ_7745c5c3_Var8 string
 		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(msg.Content)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/components/chat_messages.templ`, Line: 29, Col: 39}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/components/chat_messages.templ`, Line: 32, Col: 39}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 		if templ_7745c5c3_Err != nil {
@@ -169,7 +169,7 @@ func ChatMessageBubble(cfg *config.Config, msg models.ChatMessage) templ.Compone
 		var templ_7745c5c3_Var11 string
 		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(msg.CreatedAt.Format("15:04"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/components/chat_messages.templ`, Line: 32, Col: 35}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/components/chat_messages.templ`, Line: 35, Col: 35}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 		if templ_7745c5c3_Err != nil {
