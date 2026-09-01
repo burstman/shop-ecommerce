@@ -141,15 +141,16 @@ func getPageStyle(cfg *config.Config) string {
 }
 
 // chatBodyAttrs returns the <body> attributes. The WS extension is activated
-// when the storefront chat mode is "standard", so both visitors (as chat
-// clients) and admins (to receive chat notifications) stay connected.
+// in "standard" mode for everyone, and additionally for admins in "whatsapp"
+// mode so they receive live WhatsApp message pushes while reading a session.
 func chatBodyAttrs(cfg *config.Config, user models.AuthUser) templ.Attributes {
 	attrs := templ.Attributes{
 		"class": "h-full flex flex-col font-sans antialiased text-gray-900 pt-16 sm:pt-28",
 		"style": getPageStyle(cfg),
 		"x-data": "{}",
 	}
-	if cfg.Chat.Mode == "standard" {
+	wantWS := cfg.Chat.Mode == "standard" || (cfg.Chat.Mode == "whatsapp" && user.Role == "admin")
+	if wantWS {
 		attrs["hx-ext"] = "ws"
 		attrs["ws-connect"] = "/api/chat/ws"
 		attrs["@htmx:ws-error"] = "$store.chat.wsError = true"
