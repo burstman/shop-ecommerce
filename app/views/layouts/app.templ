@@ -92,18 +92,6 @@ templ App(user models.AuthUser, cfg *config.Config, categories []models.Category
 						}
 					}
 				});
-				(function(){
-					var lastHTML="";
-					var chatId=null;
-					function up(){var m=location.pathname.match(/\/admin\/chat\/(\d+)/);chatId=m?m[1]:null;}
-					function chatPage(){return !!document.getElementById("admin-chat-detail");}
-					function ping(){var a=document.getElementById("chat-ping-sound");if(a){a.currentTime=0;a.play().catch(function(){});}}
-					function isFragment(h){return !!h && !/<!DOCTYPE|<html|<body/i.test(h.slice(0,400));}
-					function norm(s){return (s||'').replace(/\s+/g,' ').trim();}
-					function pollS(){fetch("/admin/chats/sidebar",{credentials:"same-origin"}).then(function(r){return r.text();}).then(function(h){if(!isFragment(h))return;var el=document.getElementById("sidebar-session-list");if(!el)return;var t=document.createElement("div");t.innerHTML=h;var items=t.querySelectorAll('li[id^="chat-session-item-"]');var ids=Array.prototype.map.call(items,function(li){return li.id;}).sort().join(',');var cur=el.querySelectorAll('li[id^="chat-session-item-"]');var curIds=Array.prototype.map.call(cur,function(li){return li.id;}).sort().join(',');if(curIds===ids)return;el.innerHTML="";Array.prototype.forEach.call(items,function(li){el.appendChild(li.cloneNode(true));});}).catch(function(e){});}
-					function pollM(){if(!chatId)return;fetch("/admin/chat/"+chatId+"/messages?_="+Date.now(),{credentials:"same-origin"}).then(function(r){return r.text();}).then(function(h){if(!isFragment(h))return;var el=document.getElementById("chat-messages-"+chatId);if(!el)return;var nearBottom=el.scrollTop+el.clientHeight>=el.scrollHeight-60;if(norm(h)!==norm(el.innerHTML)){el.innerHTML=h;if(nearBottom){el.scrollTop=el.scrollHeight;}}}).catch(function(e){});}
-					setInterval(function(){if(!chatPage())return;up();pollS();pollM();},3000);
-				})();
 			</script>
 		</head>
 		<body { chatBodyAttrs(cfg, user)... }>
@@ -326,20 +314,6 @@ templ AdminPage(user models.AuthUser, cfg *config.Config, categories []models.Ca
 						}
 					}
 				});
-				console.log("[chat-poll] head script loaded on " + location.pathname);
-				(function(){
-					var lastHTML="";
-					var chatId=null;
-					function up(){var m=location.pathname.match(/\/admin\/chat\/(\d+)/);chatId=m?m[1]:null;}
-					function ping(){var a=document.getElementById("chat-ping-sound");if(a){a.currentTime=0;a.play().catch(function(){});}}
-					function isFragment(h){return !!h && !/<!DOCTYPE|<html|<body/i.test(h.slice(0,400));}
-					function norm(s){return (s||'').replace(/\s+/g,' ').trim();}
-					function pollS(){fetch("/admin/chats/sidebar",{credentials:"same-origin"}).then(function(r){return r.text();}).then(function(h){if(!isFragment(h))return;var el=document.getElementById("sidebar-session-list");if(!el)return;var t=document.createElement("div");t.innerHTML=h;var items=t.querySelectorAll('li[id^="chat-session-item-"]');var ids=Array.prototype.map.call(items,function(li){return li.id;}).sort().join(',');var cur=el.querySelectorAll('li[id^="chat-session-item-"]');var curIds=Array.prototype.map.call(cur,function(li){return li.id;}).sort().join(',');if(curIds===ids)return;el.innerHTML="";Array.prototype.forEach.call(items,function(li){el.appendChild(li.cloneNode(true));});}).catch(function(e){});}
-					function pollM(){if(!chatId)return;fetch("/admin/chat/"+chatId+"/messages?_="+Date.now(),{credentials:"same-origin"}).then(function(r){return r.text();}).then(function(h){if(!isFragment(h))return;var el=document.getElementById("chat-messages-"+chatId);if(!el)return;var nearBottom=el.scrollTop+el.clientHeight>=el.scrollHeight-60;if(norm(h)!==norm(el.innerHTML)){el.innerHTML=h;if(nearBottom){el.scrollTop=el.scrollHeight;}}}).catch(function(e){});}
-					console.log("[chat-poll] IIFE running on "+location.pathname);
-					function chatPage(){return !!document.getElementById("admin-chat-detail");}
-					setInterval(function(){if(!chatPage())return;up();pollS();pollM();},3000);
-				})();
 			</script>
 		</head>
 		<body 
