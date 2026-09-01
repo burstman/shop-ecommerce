@@ -23,7 +23,7 @@ templ ChatMessageBubble(cfg *config.Config, msg models.ChatMessage) {
 			const container = $el.closest('.overflow-y-auto');
 			if (container) {
 				const nearBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 250;
-				if (nearBottom) { container.scrollTop = container.scrollHeight; }
+				if (nearBottom) { container.style.scrollBehavior='auto'; container.scrollTop = container.scrollHeight; container.style.scrollBehavior=''; }
 			}
 		})"
 		class={ "flex w-full", templ.KV("justify-end", msg.Sender == "client"), templ.KV("justify-start", msg.Sender == "admin") }>

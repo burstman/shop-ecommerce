@@ -91,7 +91,7 @@ templ App(user models.AuthUser, cfg *config.Config, categories []models.Category
 							target.classList.add('flex');
 						}
 						const box = target.querySelector('.overflow-y-auto[id^="chat-messages-"]');
-						if (box) { requestAnimationFrame(function(){ box.scrollTop = box.scrollHeight; }); }
+						if (box) { requestAnimationFrame(function(){ box.style.scrollBehavior='auto'; box.scrollTop = box.scrollHeight; box.style.scrollBehavior=''; }); }
 					}
 				});
 				(function() {
@@ -101,7 +101,7 @@ templ App(user models.AuthUser, cfg *config.Config, categories []models.Category
 							for (var i=0;i<muts.length;i++) {
 								var box = muts[i].target.closest ? muts[i].target.closest('.overflow-y-auto') : null;
 								if (box && box.id && box.id.indexOf('chat-messages-') === 0) {
-									if (muts[i].addedNodes.length && nearBottom(box)) box.scrollTop = box.scrollHeight;
+									if (muts[i].addedNodes.length && nearBottom(box)) { box.style.scrollBehavior='auto'; box.scrollTop = box.scrollHeight; box.style.scrollBehavior=''; }
 								}
 							}
 						});
@@ -329,7 +329,7 @@ templ AdminPage(user models.AuthUser, cfg *config.Config, categories []models.Ca
 							target.classList.add('flex');
 						}
 						const box = target.querySelector('.overflow-y-auto[id^="chat-messages-"]');
-						if (box) { requestAnimationFrame(function(){ box.scrollTop = box.scrollHeight; }); }
+						if (box) { requestAnimationFrame(function(){ box.style.scrollBehavior='auto'; box.scrollTop = box.scrollHeight; box.style.scrollBehavior=''; }); }
 					}
 				});
 				(function() {
@@ -339,7 +339,7 @@ templ AdminPage(user models.AuthUser, cfg *config.Config, categories []models.Ca
 							for (var i=0;i<muts.length;i++) {
 								var box = muts[i].target.closest ? muts[i].target.closest('.overflow-y-auto') : null;
 								if (box && box.id && box.id.indexOf('chat-messages-') === 0) {
-									if (muts[i].addedNodes.length && nearBottom(box)) box.scrollTop = box.scrollHeight;
+									if (muts[i].addedNodes.length && nearBottom(box)) { box.style.scrollBehavior='auto'; box.scrollTop = box.scrollHeight; box.style.scrollBehavior=''; }
 								}
 							}
 						});
