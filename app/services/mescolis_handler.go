@@ -3,6 +3,9 @@ package services
 import (
 	"fmt"
 	"log/slog"
+	"strings"
+	"time"
+
 	"shopTemplate/app/config"
 	"shopTemplate/app/db"
 	"shopTemplate/app/models"
@@ -47,6 +50,40 @@ func HandleMescolisEvent(evt MescolisEvent) {
 	sendWhatsAppStatusUpdate(order, evt.Status)
 }
 
+// whatsappLangForPhone picks the template language for a customer's status update.
+// Tunisian numbers (+216) get Arabic; everyone else falls back to the configured default.
+func whatsappLangForPhone(phone, defaultLang string) string {
+	if strings.HasPrefix(phone, "216") {
+		return "ar"
+	}
+	return defaultLang
+}
+
+// arabicMonthNames maps Go's time.Month to Arabic month names.
+var arabicMonthNames = map[time.Month]string{
+	time.January:   "جانفي",
+	time.February:  "فيفري",
+	time.March:     "مارس",
+	time.April:     "أفريل",
+	time.May:       "ماي",
+	time.June:      "جوان",
+	time.July:      "جويلية",
+	time.August:    "أوت",
+	time.September: "سبتمبر",
+	time.October:   "أكتوبر",
+	time.November:  "نوفمبر",
+	time.December:  "ديسمبر",
+}
+
+// arabicDate formats a date as Tunisian Arabic, e.g. "1 جانفي، 2024".
+func arabicDate(t time.Time) string {
+	month := arabicMonthNames[t.Month()]
+	if month == "" {
+		month = t.Month().String()
+	}
+	return fmt.Sprintf("%d %s، %d", t.Day(), month, t.Year())
+}
+
 // sendWhatsAppStatusUpdate sends a WhatsApp template message with the parcel status.
 func sendWhatsAppStatusUpdate(order models.Order, mescolisStatus string) {
 	cfg := config.Get()
@@ -63,7 +100,7 @@ func sendWhatsAppStatusUpdate(order models.Order, mescolisStatus string) {
 		phone = "216" + phone
 	}
 
-	lang := cfg.WhatsApp.TemplateLang
+	lang := whatsappLangForPhone(phone, cfg.WhatsApp.TemplateLang)
 	if lang == "" {
 		lang = "fr"
 	}
@@ -80,6 +117,30 @@ func sendWhatsAppStatusUpdate(order models.Order, mescolisStatus string) {
 	trackingURL := fmt.Sprintf("https://mescolis.tn/suivi/%s", order.MescolisBarcode)
 
 	client := NewWhatsAppCloudClient(cfg.WhatsApp.PhoneNumberID, cfg.WhatsApp.AccessToken)
+
+	// Tunisian numbers get the Arabic tracking template; everyone else uses the
+	// configured template + language.
+	if strings.HasPrefix(phone, "216") {
+		err := client.SendTemplate(phone, "order_ar_tracking", "ar", []string{
+			fmt.Sprintf("%d", order.ID),
+			arabicDate(time.Now().AddDate(0, 0, 2)),
+		})
+		if err != nil {
+			slog.Error("whatsapp: failed to send arabic status update",
+				"orderID", order.ID,
+				"phone", phone,
+				"err", err,
+			)
+			return
+		}
+		slog.Info("whatsapp: arabic status update sent",
+			"orderID", order.ID,
+			"phone", phone,
+			"template", "order_ar_tracking",
+		)
+		return
+	}
+
 	err := client.SendTemplate(phone, cfg.WhatsApp.TemplateName, lang, []string{
 		fmt.Sprintf("%d", order.ID),
 		mescolisStatus,
