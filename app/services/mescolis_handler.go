@@ -86,7 +86,15 @@ func arabicDate(t time.Time) string {
 
 // sendWhatsAppStatusUpdate sends a WhatsApp template message with the parcel status.
 func sendWhatsAppStatusUpdate(order models.Order, mescolisStatus string) {
+	// Load the affiliate-scoped config: WhatsApp credentials live per-shop
+	// (app_config:AFF-xxx), not in the global app_config.
 	cfg := config.Get()
+	if order.AffiliateID != nil {
+		var aff models.Affiliate
+		if err := db.Get().First(&aff, *order.AffiliateID).Error; err == nil && aff.AffiliateID != "" {
+			cfg = config.LoadByAffiliateID(aff.AffiliateID)
+		}
+	}
 	if !cfg.WhatsApp.Enabled || cfg.WhatsApp.AccessToken == "" || cfg.WhatsApp.PhoneNumberID == "" || cfg.WhatsApp.TemplateName == "" {
 		return
 	}
