@@ -598,7 +598,7 @@ func HandleAdminChatSend(kit *kit.Kit) error {
 
 	// If this is a WhatsApp session, send via WhatsApp Cloud API
 	if session.Channel == "whatsapp" && session.Phone != "" {
-		cfg := config.Get()
+		cfg := config.FromContext(kit.Request.Context())
 		if cfg.WhatsApp.AccessToken != "" && cfg.WhatsApp.PhoneNumberID != "" {
 			client := services.NewWhatsAppCloudClient(cfg.WhatsApp.PhoneNumberID, cfg.WhatsApp.AccessToken)
 			if err := client.SendText(session.Phone, content); err != nil {
