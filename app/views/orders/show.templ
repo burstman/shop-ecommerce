@@ -156,10 +156,13 @@ templ Show(order models.Order) {
 					}
 				</div>
 			</div>
-			<div class="bg-white shadow rounded-lg overflow-hidden">
-				<div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
-					<h2 class="text-lg font-medium text-gray-900">{ services.GetI18n().T(ctx, "shipping_info") }</h2>
-				</div>
+		</div>
+	</div>
+
+	<div class="mt-8 bg-white shadow rounded-lg overflow-hidden">
+		<div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+			<h2 class="text-lg font-medium text-gray-900">{ services.GetI18n().T(ctx, "shipping_info") }</h2>
+		</div>
 				if order.Status == "pending" || order.Status == "abandoned" || order.Status == "test" {
 					<form hx-post={ fmt.Sprintf("/admin/orders/%d/info", order.ID) } class="p-6 space-y-4">
 						<div class="grid grid-cols-2 gap-4">
@@ -228,6 +231,4 @@ templ Show(order models.Order) {
 					</div>
 				}
 			</div>
-		</div>
-	</div>
-}
+	}

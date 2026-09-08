@@ -599,14 +599,14 @@ func Show(order models.Order) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 51, "</div></div><div class=\"bg-white shadow rounded-lg overflow-hidden\"><div class=\"px-6 py-4 border-b border-gray-200 bg-gray-50\"><h2 class=\"text-lg font-medium text-gray-900\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 51, "</div></div></div></div><div class=\"mt-8 bg-white shadow rounded-lg overflow-hidden\"><div class=\"px-6 py-4 border-b border-gray-200 bg-gray-50\"><h2 class=\"text-lg font-medium text-gray-900\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var40 string
 		templ_7745c5c3_Var40, templ_7745c5c3_Err = templ.JoinStringErrs(services.GetI18n().T(ctx, "shipping_info"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/show.templ`, Line: 161, Col: 95}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/show.templ`, Line: 164, Col: 93}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var40))
 		if templ_7745c5c3_Err != nil {
@@ -624,7 +624,7 @@ func Show(order models.Order) templ.Component {
 			var templ_7745c5c3_Var41 string
 			templ_7745c5c3_Var41, templ_7745c5c3_Err = templ.ResolveAttributeValue(fmt.Sprintf("/admin/orders/%d/info", order.ID))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/show.templ`, Line: 164, Col: 67}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/show.templ`, Line: 167, Col: 67}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var41)
 			if templ_7745c5c3_Err != nil {
@@ -637,7 +637,7 @@ func Show(order models.Order) templ.Component {
 			var templ_7745c5c3_Var42 string
 			templ_7745c5c3_Var42, templ_7745c5c3_Err = templ.JoinStringErrs(services.GetI18n().T(ctx, "first_name"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/show.templ`, Line: 167, Col: 129}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/show.templ`, Line: 170, Col: 129}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var42))
 			if templ_7745c5c3_Err != nil {
@@ -650,7 +650,7 @@ func Show(order models.Order) templ.Component {
 			var templ_7745c5c3_Var43 string
 			templ_7745c5c3_Var43, templ_7745c5c3_Err = templ.ResolveAttributeValue(order.FirstName)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/show.templ`, Line: 168, Col: 67}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/show.templ`, Line: 171, Col: 67}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var43)
 			if templ_7745c5c3_Err != nil {
@@ -663,7 +663,7 @@ func Show(order models.Order) templ.Component {
 			var templ_7745c5c3_Var44 string
 			templ_7745c5c3_Var44, templ_7745c5c3_Err = templ.JoinStringErrs(services.GetI18n().T(ctx, "last_name"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/show.templ`, Line: 171, Col: 128}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/show.templ`, Line: 174, Col: 128}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var44))
 			if templ_7745c5c3_Err != nil {
@@ -676,7 +676,7 @@ func Show(order models.Order) templ.Component {
 			var templ_7745c5c3_Var45 string
 			templ_7745c5c3_Var45, templ_7745c5c3_Err = templ.ResolveAttributeValue(order.LastName)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/show.templ`, Line: 172, Col: 65}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/show.templ`, Line: 175, Col: 65}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var45)
 			if templ_7745c5c3_Err != nil {
@@ -689,7 +689,7 @@ func Show(order models.Order) templ.Component {
 			var templ_7745c5c3_Var46 string
 			templ_7745c5c3_Var46, templ_7745c5c3_Err = templ.JoinStringErrs(services.GetI18n().T(ctx, "email_label"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/show.templ`, Line: 176, Col: 129}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/show.templ`, Line: 179, Col: 129}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var46))
 			if templ_7745c5c3_Err != nil {
@@ -702,7 +702,7 @@ func Show(order models.Order) templ.Component {
 			var templ_7745c5c3_Var47 string
 			templ_7745c5c3_Var47, templ_7745c5c3_Err = templ.ResolveAttributeValue(order.Email)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/show.templ`, Line: 177, Col: 59}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/show.templ`, Line: 180, Col: 59}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var47)
 			if templ_7745c5c3_Err != nil {
@@ -715,7 +715,7 @@ func Show(order models.Order) templ.Component {
 			var templ_7745c5c3_Var48 string
 			templ_7745c5c3_Var48, templ_7745c5c3_Err = templ.JoinStringErrs(services.GetI18n().T(ctx, "phone_label"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/show.templ`, Line: 180, Col: 129}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/show.templ`, Line: 183, Col: 129}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var48))
 			if templ_7745c5c3_Err != nil {
@@ -728,7 +728,7 @@ func Show(order models.Order) templ.Component {
 			var templ_7745c5c3_Var49 string
 			templ_7745c5c3_Var49, templ_7745c5c3_Err = templ.ResolveAttributeValue(order.Phone)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/show.templ`, Line: 181, Col: 57}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/show.templ`, Line: 184, Col: 57}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var49)
 			if templ_7745c5c3_Err != nil {
@@ -741,7 +741,7 @@ func Show(order models.Order) templ.Component {
 			var templ_7745c5c3_Var50 string
 			templ_7745c5c3_Var50, templ_7745c5c3_Err = templ.ResolveAttributeValue(services.GetI18n().T(ctx, "phone_8_digits"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/show.templ`, Line: 181, Col: 130}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/show.templ`, Line: 184, Col: 130}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var50)
 			if templ_7745c5c3_Err != nil {
@@ -754,7 +754,7 @@ func Show(order models.Order) templ.Component {
 			var templ_7745c5c3_Var51 string
 			templ_7745c5c3_Var51, templ_7745c5c3_Err = templ.JoinStringErrs(services.GetI18n().T(ctx, "address"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/show.templ`, Line: 184, Col: 125}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/show.templ`, Line: 187, Col: 125}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var51))
 			if templ_7745c5c3_Err != nil {
@@ -767,7 +767,7 @@ func Show(order models.Order) templ.Component {
 			var templ_7745c5c3_Var52 string
 			templ_7745c5c3_Var52, templ_7745c5c3_Err = templ.ResolveAttributeValue(order.Address)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/show.templ`, Line: 185, Col: 62}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/show.templ`, Line: 188, Col: 62}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var52)
 			if templ_7745c5c3_Err != nil {
@@ -780,7 +780,7 @@ func Show(order models.Order) templ.Component {
 			var templ_7745c5c3_Var53 string
 			templ_7745c5c3_Var53, templ_7745c5c3_Err = templ.JoinStringErrs(services.GetI18n().T(ctx, "governorate"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/show.templ`, Line: 189, Col: 130}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/show.templ`, Line: 192, Col: 130}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var53))
 			if templ_7745c5c3_Err != nil {
@@ -793,7 +793,7 @@ func Show(order models.Order) templ.Component {
 			var templ_7745c5c3_Var54 string
 			templ_7745c5c3_Var54, templ_7745c5c3_Err = templ.JoinStringErrs(services.GetI18n().T(ctx, "select"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/show.templ`, Line: 191, Col: 66}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/show.templ`, Line: 194, Col: 66}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var54))
 			if templ_7745c5c3_Err != nil {
@@ -811,7 +811,7 @@ func Show(order models.Order) templ.Component {
 				var templ_7745c5c3_Var55 string
 				templ_7745c5c3_Var55, templ_7745c5c3_Err = templ.ResolveAttributeValue(g)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/show.templ`, Line: 193, Col: 27}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/show.templ`, Line: 196, Col: 27}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var55)
 				if templ_7745c5c3_Err != nil {
@@ -834,7 +834,7 @@ func Show(order models.Order) templ.Component {
 				var templ_7745c5c3_Var56 string
 				templ_7745c5c3_Var56, templ_7745c5c3_Err = templ.JoinStringErrs(g)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/show.templ`, Line: 193, Col: 70}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/show.templ`, Line: 196, Col: 70}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var56))
 				if templ_7745c5c3_Err != nil {
@@ -852,7 +852,7 @@ func Show(order models.Order) templ.Component {
 			var templ_7745c5c3_Var57 string
 			templ_7745c5c3_Var57, templ_7745c5c3_Err = templ.JoinStringErrs(services.GetI18n().T(ctx, "city"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/show.templ`, Line: 198, Col: 123}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/show.templ`, Line: 201, Col: 123}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var57))
 			if templ_7745c5c3_Err != nil {
@@ -865,7 +865,7 @@ func Show(order models.Order) templ.Component {
 			var templ_7745c5c3_Var58 string
 			templ_7745c5c3_Var58, templ_7745c5c3_Err = templ.ResolveAttributeValue(order.City)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/show.templ`, Line: 199, Col: 57}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/show.templ`, Line: 202, Col: 57}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var58)
 			if templ_7745c5c3_Err != nil {
@@ -878,7 +878,7 @@ func Show(order models.Order) templ.Component {
 			var templ_7745c5c3_Var59 string
 			templ_7745c5c3_Var59, templ_7745c5c3_Err = templ.JoinStringErrs(services.GetI18n().T(ctx, "location"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/show.templ`, Line: 203, Col: 126}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/show.templ`, Line: 206, Col: 126}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var59))
 			if templ_7745c5c3_Err != nil {
@@ -891,7 +891,7 @@ func Show(order models.Order) templ.Component {
 			var templ_7745c5c3_Var60 string
 			templ_7745c5c3_Var60, templ_7745c5c3_Err = templ.ResolveAttributeValue(order.Location)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/show.templ`, Line: 204, Col: 64}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/show.templ`, Line: 207, Col: 64}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var60)
 			if templ_7745c5c3_Err != nil {
@@ -904,7 +904,7 @@ func Show(order models.Order) templ.Component {
 			var templ_7745c5c3_Var61 string
 			templ_7745c5c3_Var61, templ_7745c5c3_Err = templ.ResolveAttributeValue(services.GetI18n().T(ctx, "location_placeholder"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/show.templ`, Line: 204, Col: 250}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/show.templ`, Line: 207, Col: 250}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var61)
 			if templ_7745c5c3_Err != nil {
@@ -917,7 +917,7 @@ func Show(order models.Order) templ.Component {
 			var templ_7745c5c3_Var62 string
 			templ_7745c5c3_Var62, templ_7745c5c3_Err = templ.JoinStringErrs(services.GetI18n().T(ctx, "save_client_info"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/show.templ`, Line: 207, Col: 54}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/show.templ`, Line: 210, Col: 54}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var62))
 			if templ_7745c5c3_Err != nil {
@@ -935,7 +935,7 @@ func Show(order models.Order) templ.Component {
 			var templ_7745c5c3_Var63 string
 			templ_7745c5c3_Var63, templ_7745c5c3_Err = templ.JoinStringErrs(services.GetI18n().T(ctx, "customer"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/show.templ`, Line: 213, Col: 126}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/show.templ`, Line: 216, Col: 126}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var63))
 			if templ_7745c5c3_Err != nil {
@@ -948,7 +948,7 @@ func Show(order models.Order) templ.Component {
 			var templ_7745c5c3_Var64 string
 			templ_7745c5c3_Var64, templ_7745c5c3_Err = templ.JoinStringErrs(order.FirstName)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/show.templ`, Line: 214, Col: 62}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/show.templ`, Line: 217, Col: 62}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var64))
 			if templ_7745c5c3_Err != nil {
@@ -961,7 +961,7 @@ func Show(order models.Order) templ.Component {
 			var templ_7745c5c3_Var65 string
 			templ_7745c5c3_Var65, templ_7745c5c3_Err = templ.JoinStringErrs(order.LastName)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/show.templ`, Line: 214, Col: 81}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/show.templ`, Line: 217, Col: 81}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var65))
 			if templ_7745c5c3_Err != nil {
@@ -974,7 +974,7 @@ func Show(order models.Order) templ.Component {
 			var templ_7745c5c3_Var66 string
 			templ_7745c5c3_Var66, templ_7745c5c3_Err = templ.JoinStringErrs(services.GetI18n().T(ctx, "email_label"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/show.templ`, Line: 217, Col: 129}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/show.templ`, Line: 220, Col: 129}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var66))
 			if templ_7745c5c3_Err != nil {
@@ -987,7 +987,7 @@ func Show(order models.Order) templ.Component {
 			var templ_7745c5c3_Var67 string
 			templ_7745c5c3_Var67, templ_7745c5c3_Err = templ.JoinStringErrs(order.Email)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/show.templ`, Line: 218, Col: 58}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/show.templ`, Line: 221, Col: 58}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var67))
 			if templ_7745c5c3_Err != nil {
@@ -1000,7 +1000,7 @@ func Show(order models.Order) templ.Component {
 			var templ_7745c5c3_Var68 string
 			templ_7745c5c3_Var68, templ_7745c5c3_Err = templ.JoinStringErrs(services.GetI18n().T(ctx, "phone_label"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/show.templ`, Line: 221, Col: 129}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/show.templ`, Line: 224, Col: 129}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var68))
 			if templ_7745c5c3_Err != nil {
@@ -1013,7 +1013,7 @@ func Show(order models.Order) templ.Component {
 			var templ_7745c5c3_Var69 string
 			templ_7745c5c3_Var69, templ_7745c5c3_Err = templ.JoinStringErrs(order.Phone)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/show.templ`, Line: 222, Col: 58}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/show.templ`, Line: 225, Col: 58}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var69))
 			if templ_7745c5c3_Err != nil {
@@ -1026,7 +1026,7 @@ func Show(order models.Order) templ.Component {
 			var templ_7745c5c3_Var70 string
 			templ_7745c5c3_Var70, templ_7745c5c3_Err = templ.JoinStringErrs(services.GetI18n().T(ctx, "address"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/show.templ`, Line: 225, Col: 125}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/show.templ`, Line: 228, Col: 125}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var70))
 			if templ_7745c5c3_Err != nil {
@@ -1039,7 +1039,7 @@ func Show(order models.Order) templ.Component {
 			var templ_7745c5c3_Var71 string
 			templ_7745c5c3_Var71, templ_7745c5c3_Err = templ.JoinStringErrs(order.Address)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/show.templ`, Line: 226, Col: 60}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/show.templ`, Line: 229, Col: 60}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var71))
 			if templ_7745c5c3_Err != nil {
@@ -1052,7 +1052,7 @@ func Show(order models.Order) templ.Component {
 			var templ_7745c5c3_Var72 string
 			templ_7745c5c3_Var72, templ_7745c5c3_Err = templ.JoinStringErrs(order.City)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/show.templ`, Line: 226, Col: 76}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/show.templ`, Line: 229, Col: 76}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var72))
 			if templ_7745c5c3_Err != nil {
@@ -1063,7 +1063,7 @@ func Show(order models.Order) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 91, "</div></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 91, "</div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
