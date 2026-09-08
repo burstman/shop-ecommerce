@@ -139,6 +139,52 @@ func HandleAdminOrderUpdateStatus(kit *kit.Kit) error {
 	return kit.Redirect(http.StatusSeeOther, fmt.Sprintf("/admin/orders/%d", id))
 }
 
+// HandleAdminOrderUpdateInfo lets an admin correct client/shipping details on
+// an order before it is confirmed.
+func HandleAdminOrderUpdateInfo(kit *kit.Kit) error {
+	user, ok := kit.Auth().(models.AuthUser)
+	if !ok || user.Role != "admin" {
+		return kit.Redirect(http.StatusSeeOther, "/")
+	}
+
+	idStr := chi.URLParam(kit.Request, "id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		return kit.Render(viewerrors.Error500())
+	}
+
+	var order models.Order
+	if err := db.Get().First(&order, id).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return kit.Render(viewerrors.Error404())
+		}
+		return err
+	}
+
+	// Only allow editing while the order is not yet confirmed to avoid
+	// diverging from the Mes Colis parcel already created.
+	if order.Status != "pending" && order.Status != "abandoned" && order.Status != "test" {
+		return kit.Redirect(http.StatusSeeOther, fmt.Sprintf("/admin/orders/%d", id))
+	}
+
+	updates := map[string]any{
+		"first_name":  kit.Request.FormValue("firstName"),
+		"last_name":   kit.Request.FormValue("lastName"),
+		"email":       kit.Request.FormValue("email"),
+		"phone":       kit.Request.FormValue("phone"),
+		"address":     kit.Request.FormValue("address"),
+		"city":        kit.Request.FormValue("city"),
+		"governorate": kit.Request.FormValue("governorate"),
+		"location":    kit.Request.FormValue("location"),
+	}
+
+	if err := db.Get().Model(&order).Updates(updates).Error; err != nil {
+		return err
+	}
+
+	return kit.Redirect(http.StatusSeeOther, fmt.Sprintf("/admin/orders/%d", id))
+}
+
 func HandleAdminOrderDeleteConfirm(kit *kit.Kit) error {
 	user, ok := kit.Auth().(models.AuthUser)
 	if !ok || user.Role != "admin" {

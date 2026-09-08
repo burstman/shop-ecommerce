@@ -276,6 +276,7 @@ func InitializeRoutes(router *chi.Mux) {
 		app.Get("/admin/orders", kit.Handler(handlers.HandleAdminOrdersIndex))
 		app.Get("/admin/orders/{id}", kit.Handler(handlers.HandleAdminOrderShow))
 		app.Post("/admin/orders/{id}/status", kit.Handler(handlers.HandleAdminOrderUpdateStatus))
+		app.Post("/admin/orders/{id}/info", kit.Handler(handlers.HandleAdminOrderUpdateInfo))
 		app.Get("/admin/orders/{id}/delete", kit.Handler(handlers.HandleAdminOrderDeleteConfirm))
 		app.Get("/admin/orders/{id}/cancel", kit.Handler(handlers.HandleAdminOrderCancelConfirm))
 		app.Delete("/admin/orders/{id}", kit.Handler(handlers.HandleAdminOrderDelete))
