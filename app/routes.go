@@ -2,16 +2,11 @@ package app
 
 import (
 	"context"
-	"crypto/rand"
-	"encoding/hex"
-	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
 	"shopTemplate/app/config"
-	"shopTemplate/app/db"
 	"shopTemplate/app/handlers"
-	"shopTemplate/app/models"
 	"shopTemplate/app/services"
 	"shopTemplate/app/views/errors"
 	"shopTemplate/plugins/auth"
@@ -40,7 +35,8 @@ func InitializeMiddleware(router *chi.Mux) {
 
 // StoreDomainMiddleware looks up the affiliate by the shop URL
 // and stores it in the request context for shop-scoped config access.
-// If no affiliate matches, it auto-creates a new one for this host.
+// If no affiliate matches, it continues without one (the affiliate is
+// created only via the /setup flow, never auto-registered on requests).
 func StoreDomainMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if strings.HasPrefix(r.URL.Path, "/public/") || strings.HasPrefix(r.URL.Path, "/_templ/") {
@@ -55,31 +51,7 @@ func StoreDomainMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		// Auto-register: create a new affiliate for this host
-		var count int64
-		db.Get().Model(&models.Affiliate{}).Count(&count)
-		affiliateID := fmt.Sprintf("AFF-%03d", count+1)
-		keyBytes := make([]byte, 32)
-		if _, err := rand.Read(keyBytes); err != nil {
-			slog.Error("failed to generate api_key", "err", err)
-			next.ServeHTTP(w, r)
-			return
-		}
-		newAff := models.Affiliate{
-			AffiliateID: affiliateID,
-			Name:        r.Host,
-			ShopURL:     r.Host,
-			APIKey:      hex.EncodeToString(keyBytes),
-			Active:      true,
-		}
-		if err := db.Get().Create(&newAff).Error; err != nil {
-			slog.Error("failed to auto-create affiliate", "host", r.Host, "err", err)
-			next.ServeHTTP(w, r)
-			return
-		}
-		slog.Info("auto-created new affiliate", "affiliate_id", affiliateID, "shop_url", newAff.ShopURL)
-		ctx := config.WithAffiliate(r.Context(), &newAff)
-		next.ServeHTTP(w, r.WithContext(ctx))
+		next.ServeHTTP(w, r)
 	})
 }
 

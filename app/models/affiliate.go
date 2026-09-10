@@ -13,7 +13,7 @@ type Affiliate struct {
 	PasswordHash    string     `gorm:"size:255"`
 	Rate            float64
 	Active          bool       `gorm:"default:true"`
-	ShopURL         string     `gorm:"size:255"`
+	ShopURL         string     `gorm:"uniqueIndex;size:255"`
 	APIKey          string     `gorm:"uniqueIndex;size:128"`
 	AuthorizedEmail string     `gorm:"size:255"`
 	ExpiresAt       *time.Time `gorm:"type:timestamp"`
