@@ -149,7 +149,8 @@ func Connect() error {
 		}
 	case "postgres":
 		dbInstance, errGorm = gorm.Open(postgres.New(postgres.Config{
-			Conn: dbinst,
+			Conn:                 dbinst,
+			PreferSimpleProtocol: true, // Neon pooler: unnamed prepared statements break in transaction mode (pq 26000)
 		}), &gorm.Config{
 			Logger:      newLogger,
 			PrepareStmt: false,

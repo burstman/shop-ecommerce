@@ -1,6 +1,7 @@
 package services
 
 import (
+	"errors"
 	"fmt"
 	"log/slog"
 	"strings"
@@ -84,10 +85,27 @@ func arabicDate(t time.Time) string {
 	return fmt.Sprintf("%d %s، %d", t.Day(), month, t.Year())
 }
 
-// sendWhatsAppStatusUpdate sends a WhatsApp template message with the parcel status.
-func sendWhatsAppStatusUpdate(order models.Order, mescolisStatus string) {
-	// Load the affiliate-scoped config: WhatsApp credentials live per-shop
-	// (app_config:AFF-xxx), not in the global app_config.
+// logSendErr logs a failed whatsapp send, but treats ErrRecipientNotOnWhatsApp
+// as an expected, quiet skip.
+func logSendErr(kind string, order models.Order, phone string, err error) {
+	if errors.Is(err, ErrRecipientNotOnWhatsApp) {
+		slog.Info("whatsapp: skipped - recipient has no whatsapp",
+			"kind", kind,
+			"orderID", order.ID,
+			"phone", phone,
+		)
+		return
+	}
+	slog.Error("whatsapp: failed to send "+kind,
+		"orderID", order.ID,
+		"phone", phone,
+		"err", err,
+	)
+}
+
+// loadScopedConfig returns the affiliate-scoped config for an order: WhatsApp
+// credentials live per-shop (app_config:AFF-xxx), not in the global app_config.
+func loadScopedConfig(order models.Order) *config.Config {
 	cfg := config.Get()
 	if order.AffiliateID != nil {
 		var aff models.Affiliate
@@ -95,18 +113,37 @@ func sendWhatsAppStatusUpdate(order models.Order, mescolisStatus string) {
 			cfg = config.LoadByAffiliateID(aff.AffiliateID)
 		}
 	}
+	return cfg
+}
+
+// normalizeWhatsAppPhone turns an order phone (possibly 8-digit local) into
+// international format without "+" (e.g. "21620123456").
+func normalizeWhatsAppPhone(phone string) string {
+	if len(phone) == 8 {
+		return "216" + phone
+	}
+	return phone
+}
+
+// sendWhatsAppStatusUpdate sends a WhatsApp template message with the parcel status.
+func sendWhatsAppStatusUpdate(order models.Order, mescolisStatus string) {
+	cfg := loadScopedConfig(order)
 	if !cfg.WhatsApp.Enabled || cfg.WhatsApp.AccessToken == "" || cfg.WhatsApp.PhoneNumberID == "" || cfg.WhatsApp.TemplateName == "" {
 		return
 	}
 	if order.Phone == "" {
 		return
 	}
+	if order.WhatsappBlocked {
+		slog.Info("whatsapp: skipped - recipient previously undeliverable",
+			"orderID", order.ID,
+			"phone", order.Phone,
+		)
+		return
+	}
 
 	// Format phone: 8-digit local → "216XXXXXXXX" (Tunisia country code, no +)
-	phone := order.Phone
-	if len(phone) == 8 {
-		phone = "216" + phone
-	}
+	phone := normalizeWhatsAppPhone(order.Phone)
 
 	lang := whatsappLangForPhone(phone, cfg.WhatsApp.TemplateLang)
 	if lang == "" {
@@ -134,11 +171,7 @@ func sendWhatsAppStatusUpdate(order models.Order, mescolisStatus string) {
 			arabicDate(time.Now().AddDate(0, 0, 2)),
 		})
 		if err != nil {
-			slog.Error("whatsapp: failed to send arabic status update",
-				"orderID", order.ID,
-				"phone", phone,
-				"err", err,
-			)
+			logSendErr("arabic status update", order, phone, err)
 			return
 		}
 		slog.Info("whatsapp: arabic status update sent",
@@ -155,16 +188,58 @@ func sendWhatsAppStatusUpdate(order models.Order, mescolisStatus string) {
 		trackingURL,
 	})
 	if err != nil {
-		slog.Error("whatsapp: failed to send status update",
-			"orderID", order.ID,
-			"phone", phone,
-			"err", err,
-		)
+		logSendErr("status update", order, phone, err)
 		return
 	}
 	slog.Info("whatsapp: status update sent",
 		"orderID", order.ID,
 		"phone", phone,
 		"status", mescolisStatus,
+	)
+}
+
+// SendOrderConfirmation sends the phase-1 `order_confirmation` template when an
+// order is confirmed by the admin. The template has 3 body vars (name, order
+// number, estimated delivery date) and a dynamic URL button pointing at the
+// public order page.
+func SendOrderConfirmation(order models.Order, orderURL string) {
+	cfg := loadScopedConfig(order)
+	if !cfg.WhatsApp.Enabled || cfg.WhatsApp.AccessToken == "" || cfg.WhatsApp.PhoneNumberID == "" {
+		return
+	}
+	if order.Phone == "" {
+		return
+	}
+	if order.WhatsappBlocked {
+		slog.Info("whatsapp: skipped confirmation - recipient undeliverable",
+			"orderID", order.ID,
+			"phone", order.Phone,
+		)
+		return
+	}
+
+	phone := normalizeWhatsAppPhone(order.Phone)
+	client := NewWhatsAppCloudClient(cfg.WhatsApp.PhoneNumberID, cfg.WhatsApp.AccessToken)
+
+	name := strings.TrimSpace(order.FirstName + " " + order.LastName)
+	if name == "" {
+		name = "العميل"
+	}
+
+	params := []string{
+		name,
+		fmt.Sprintf("%d", order.ID),
+		arabicDate(time.Now().AddDate(0, 0, 2)),
+	}
+
+	err := client.SendOrderConfirmationTemplate(phone, orderURL, params)
+	if err != nil {
+		logSendErr("order confirmation", order, phone, err)
+		return
+	}
+	slog.Info("whatsapp: order confirmation sent",
+		"orderID", order.ID,
+		"phone", phone,
+		"template", "order_confirmation",
 	)
 }

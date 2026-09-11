@@ -20,6 +20,7 @@ type Order struct {
 	AffiliateID        *uint    `gorm:"index"`
 	MescolisBarcode    string   `gorm:"size:32"`
 	MescolisStatus     string   `gorm:"size:64"`
+	WhatsappBlocked    bool     `gorm:"default:false"`
 	Items              []OrderItem
 }
 

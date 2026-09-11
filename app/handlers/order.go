@@ -130,6 +130,11 @@ func HandleAdminOrderUpdateStatus(kit *kit.Kit) error {
 		syncMescolisParcel(order, cfg)
 	}
 
+	// Notify the client on WhatsApp that their order is confirmed.
+	if newStatus == "confirmed" {
+		services.SendOrderConfirmation(order, fmt.Sprintf("%d", order.ID))
+	}
+
 	// Delete the Mes Colis parcel when the order is cancelled.
 	if newStatus == "cancelled" && order.MescolisBarcode != "" {
 		cfg := config.FromContext(kit.Request.Context())

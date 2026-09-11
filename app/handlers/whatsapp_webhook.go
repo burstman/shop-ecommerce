@@ -86,6 +86,17 @@ type whatsAppMessage struct {
 						Body string `json:"body"`
 					} `json:"text"`
 				} `json:"messages"`
+				Statuses []struct {
+					ID          string `json:"id"`
+					Status      string `json:"status"`
+					Timestamp   string `json:"timestamp"`
+					RecipientID string `json:"recipient_id"`
+					Errors      []struct {
+						Code    int    `json:"code"`
+						Title   string `json:"title"`
+						Message string `json:"message"`
+					} `json:"errors"`
+				} `json:"statuses"`
 			} `json:"value"`
 			Field string `json:"field"`
 		} `json:"changes"`
@@ -137,6 +148,10 @@ func handleWhatsAppIncoming(w http.ResponseWriter, r *http.Request, cfg *config.
 
 				saveAndPushWhatsAppMessage(phone, customerName, m.Text.Body)
 			}
+
+			for _, s := range change.Value.Statuses {
+				suppressWhatsAppRecipientIfUndeliverable(s.Status, s.RecipientID, s.Errors)
+			}
 		}
 	}
 
@@ -148,6 +163,58 @@ const whatsappIdentifierPrefix = "whatsapp:"
 
 func whatsappIdentifier(phone string) string {
 	return whatsappIdentifierPrefix + phone
+}
+
+// suppressWhatsAppRecipientIfUndeliverable marks every order for a phone number
+// as whatsapp_blocked when Meta reports the message could not be delivered
+// (#131026: recipient has no WhatsApp account, blocked the business, or hasn't
+// accepted current terms). Those sends are billed but can never succeed, so we
+// must never retry the number.
+func suppressWhatsAppRecipientIfUndeliverable(status, recipientID string, errs []struct {
+	Code    int    `json:"code"`
+	Title   string `json:"title"`
+	Message string `json:"message"`
+}) {
+	if status != "failed" || recipientID == "" {
+		return
+	}
+
+	undeliverable := false
+	for _, e := range errs {
+		if e.Code == 131026 || e.Code == 131030 {
+			undeliverable = true
+			break
+		}
+	}
+	if !undeliverable {
+		// A failure other than "undeliverable" (e.g. template issues) shouldn't
+		// permanently block the customer.
+		slog.Info("whatsapp: send failed (not undeliverable)",
+			"recipient", recipientID,
+			"errs", errs,
+		)
+		return
+	}
+
+	phone := recipientID
+	if len(phone) == 8 {
+		phone = "216" + phone
+	}
+
+	res := db.Get().Model(&models.Order{}).
+		Where("phone = ? OR phone = ?", recipientID, phone).
+		Where("whatsapp_blocked = ?", false).
+		Update("whatsapp_blocked", true)
+	if res.Error != nil {
+		slog.Error("whatsapp: failed to mark orders blocked", "recipient", recipientID, "err", res.Error)
+		return
+	}
+	if res.RowsAffected > 0 {
+		slog.Info("whatsapp: recipient undeliverable, orders suppressed",
+			"recipient", recipientID,
+			"orders", res.RowsAffected,
+		)
+	}
 }
 
 // saveAndPushWhatsAppMessage stores the inbound message in the chat system
@@ -250,7 +317,7 @@ func pushWhatsAppMessageToAdmins(session models.ChatSession, msg models.ChatMess
 		return
 	}
 
-adminTopnavDotHTML, err := componentToString(ctx, components.ChatNotificationDot(cfg, true, msg.Content, 0, true, templ.Attributes{"hx-swap-oob": "outerHTML", "id": "admin-topnav-chat-dot"}))
+	adminTopnavDotHTML, err := componentToString(ctx, components.ChatNotificationDot(cfg, true, msg.Content, 0, true, templ.Attributes{"hx-swap-oob": "outerHTML", "id": "admin-topnav-chat-dot"}))
 	if err != nil {
 		return
 	}
