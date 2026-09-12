@@ -35,6 +35,24 @@ templ Tracking(order models.Order, cfg *config.Config) {
 					<div style="padding:0.75rem 1rem; border-bottom:1px solid #f3f4f6; text-align:center;">
 						<span style="display:inline-block; padding:0.25rem 0.75rem; border-radius:9999px; font-size:0.75rem; font-weight:600; background:{ statusBg(order.Status) }; color:#fff;">{ statusLabel(order.Status, ctx) }</span>
 					</div>
+
+					<div style="padding:1rem 1rem 0.25rem; border-bottom:1px solid #f3f4f6;">
+						<div style="position:relative;">
+							<div style="position:absolute; top:9px; left:12.5%; right:12.5%; height:2px; background:#e5e7eb;"></div>
+							<div style={ templ.KV("position:absolute; top:9px; left:12.5%; height:2px; background:"+cfg.Theme.PrimaryColor+"; width:0%;", stepProgress(order.Status) <= 0), templ.KV("position:absolute; top:9px; left:12.5%; height:2px; background:"+cfg.Theme.PrimaryColor+"; width:"+fmt.Sprintf("%.0f%%", stepProgress(order.Status))+"%;", stepProgress(order.Status) > 0) }></div>
+							<div style="display:flex; justify-content:space-between;">
+								for _, s := range trackingSteps {
+									<div style="display:flex; flex-direction:column; align-items:center; gap:0.3rem; width:25%;">
+										<div style={ templ.KV("width:20px;height:20px;border-radius:9999px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;", stepState(order.Status, s.Key) == "done"), templ.KV("box-shadow:0 0 0 4px "+cfg.Theme.PrimaryColor+"33; background:"+cfg.Theme.PrimaryColor+";", stepState(order.Status, s.Key) == "current"), templ.KV("background:#e5e7eb; color:#6b7280;", stepState(order.Status, s.Key) == "todo") }>
+											{ stepGlyph(order.Status, s.Key) }
+										</div>
+										<span style={ templ.KV("font-size:0.6rem; font-weight:700;", stepState(order.Status, s.Key) == "done" || stepState(order.Status, s.Key) == "current"), templ.KV("font-weight:500;", stepState(order.Status, s.Key) == "todo"), templ.KV("color:"+cfg.Theme.PrimaryColor+";", stepState(order.Status, s.Key) == "current"), templ.KV("color:#6b7280;", stepState(order.Status, s.Key) != "current"), templ.KV("text-align:center;", true) }>{ s.Label(ctx) }</span>
+									</div>
+								}
+							</div>
+						</div>
+					</div>
+
 					<ul style="list-style:none; margin:0; padding:0.5rem 1rem;">
 
 						for _, item := range order.Items {
@@ -112,4 +130,77 @@ func statsAlign(ctx context.Context) string {
 		return "right"
 	}
 	return "left"
+}
+
+type trackStep struct {
+	Key     string
+	OrderNo int
+	label   string
+}
+
+var trackingSteps = []trackStep{
+	{Key: "pending", OrderNo: 0, label: "pending"},
+	{Key: "confirmed", OrderNo: 1, label: "confirmed"},
+	{Key: "shipped", OrderNo: 2, label: "shipped"},
+	{Key: "completed", OrderNo: 3, label: "completed"},
+}
+
+func (s trackStep) Label(ctx context.Context) string {
+	return services.GetI18n().T(ctx, s.label)
+}
+
+// stepState returns the visual state of a step for the order's current status:
+// "done" (behind), "current" (the active one), or "todo" (ahead). Cancelled
+// orders are not shown on the progress bar.
+func stepState(status, key string) string {
+	if status == "cancelled" {
+		return "todo"
+	}
+	idx := 0
+	cur := 0
+	for _, s := range trackingSteps {
+		if s.Key == status {
+			cur = s.OrderNo
+		}
+		if s.Key == key {
+			idx = s.OrderNo
+		}
+	}
+	if idx < cur {
+		return "done"
+	}
+	if idx == cur {
+		return "current"
+	}
+	return "todo"
+}
+
+// stepProgress returns the percentage of the track to paint as complete for the
+// given current status (25% per step past pending).
+func stepProgress(status string) float64 {
+	switch status {
+	case "confirmed":
+		return 33.3
+	case "shipped":
+		return 66.6
+	case "completed":
+		return 100
+	}
+	return 0
+}
+
+// stepGlyph returns the dot content: a checkmark for done steps, the step
+// number for the current step, and empty for future steps.
+func stepGlyph(status, key string) string {
+	switch stepState(status, key) {
+	case "done":
+		return "✓"
+	case "current":
+		for _, s := range trackingSteps {
+			if s.Key == key {
+				return fmt.Sprint(s.OrderNo + 1)
+			}
+		}
+	}
+	return ""
 }
