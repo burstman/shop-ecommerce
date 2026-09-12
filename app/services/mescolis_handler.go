@@ -252,7 +252,8 @@ func SendOrderConfirmation(order models.Order, orderURL string) {
 
 // sendWhatsAppInTransit sends the phase-2 template when MesColis marks a parcel
 // "in-progress" (out for delivery). The template carries the delivery driver's
-// name and phone; the dynamic URL button links to wa.me/<driver phone>.
+// name and phone as plain body variables; WhatsApp linkifies the number if it
+// recognizes it.
 func sendWhatsAppInTransit(order models.Order, evt MescolisEvent) {
 	cfg := loadScopedConfig(order)
 	if !cfg.WhatsApp.Enabled || cfg.WhatsApp.AccessToken == "" || cfg.WhatsApp.PhoneNumberID == "" {
@@ -293,16 +294,13 @@ func sendWhatsAppInTransit(order models.Order, evt MescolisEvent) {
 		driverName = "عامل التوصيل"
 	}
 	driverPhone := normalizeWhatsAppPhone(stripNonDigits(evt.DeliverymanPhoneNumber))
-	if driverPhone == "" {
-		driverPhone = "21600000000"
-	}
 
 	client := NewWhatsAppCloudClient(cfg.WhatsApp.PhoneNumberID, cfg.WhatsApp.AccessToken)
-	err := client.SendTemplateWithURLButton(phone, cfg.WhatsApp.OrderInTransitTemplateName, lang, []string{
+	err := client.SendTemplate(phone, cfg.WhatsApp.OrderInTransitTemplateName, lang, []string{
 		fmt.Sprintf("%d", order.ID),
 		driverName,
 		driverPhone,
-	}, driverPhone)
+	})
 	if err != nil {
 		logSendErr("in-transit update", order, phone, err)
 		return

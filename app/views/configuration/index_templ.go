@@ -828,7 +828,7 @@ func whatsappSettingsForm(cfg *config.Config) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 72, "\" placeholder=\"e.g. order_in_transit\" class=\"mt-1 block w-full border-gray-300 rounded-md shadow-sm sm:text-sm\"><p class=\"mt-1 text-sm text-gray-500\">Sent when MesColis marks a parcel \"in-progress\". Vars: order #, driver name, driver phone.</p></div><div class=\"sm:col-span-2\"><label class=\"block text-sm font-medium text-gray-700\">Webhook Verify Token</label> <input type=\"text\" name=\"whatsapp_verify_token\" value=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 72, "\" placeholder=\"e.g. order_in_transit\" class=\"mt-1 block w-full border-gray-300 rounded-md shadow-sm sm:text-sm\"><p class=\"mt-1 text-sm text-gray-500\">Sent when MesColis marks a parcel \"in-progress\". Body vars: order #, driver name, driver phone (no button).</p></div><div class=\"sm:col-span-2\"><label class=\"block text-sm font-medium text-gray-700\">Webhook Verify Token</label> <input type=\"text\" name=\"whatsapp_verify_token\" value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
