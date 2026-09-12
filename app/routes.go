@@ -23,6 +23,7 @@ import (
 func InitializeMiddleware(router *chi.Mux) {
 	router.Use(chimiddleware.RequestID)
 	router.Use(CORSMiddleware)
+	router.Use(NormalizeTrackingPathMiddleware)
 	router.Use(chimiddleware.RealIP)
 	router.Use(chimiddleware.Logger)
 	router.Use(PanicRecoverer)
@@ -55,6 +56,19 @@ func StoreDomainMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+// NormalizeTrackingPathMiddleware rewrites WhatsApp template paths that keep a
+// literal URL-variable marker (e.g. "/tracking{{1}}?id=..&t=.." produced when a
+// dynamic URL button is stored with its {{1}} placeholder as literal text) to
+// the clean path, preserving the query string.
+func NormalizeTrackingPathMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if strings.Contains(r.URL.Path, "{{1}}") {
+			r.URL.Path = strings.Replace(r.URL.Path, "{{1}}", "", 1)
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
 func CORSMiddleware(next http.Handler) http.Handler {
 	allowedOrigin := os.Getenv("ALLOWED_ORIGIN")
 	if allowedOrigin == "" {
@@ -83,13 +97,13 @@ func I18nMiddleware(next http.Handler) http.Handler {
 		if cookie, err := r.Cookie("lang"); err == nil {
 			lang = cookie.Value
 		} else {
-		// Check Accept-Language header
-		accept := r.Header.Get("Accept-Language")
-		if strings.HasPrefix(accept, "fr") {
-			lang = "fr"
-		} else if strings.HasPrefix(accept, "ar") {
-			lang = "ar"
-		}
+			// Check Accept-Language header
+			accept := r.Header.Get("Accept-Language")
+			if strings.HasPrefix(accept, "fr") {
+				lang = "fr"
+			} else if strings.HasPrefix(accept, "ar") {
+				lang = "ar"
+			}
 		}
 
 		ctx := context.WithValue(r.Context(), "lang", lang)
