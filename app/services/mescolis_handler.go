@@ -198,7 +198,7 @@ func sendWhatsAppStatusUpdate(order models.Order, mescolisStatus string) {
 	)
 }
 
-// SendOrderConfirmation sends the phase-1 `order_confirmed` template when an
+// SendOrderConfirmation sends the phase-1 `order_confirmed_v2` template when an
 // order is confirmed by the admin. The template has 3 body vars (name, order
 // number, estimated delivery date) and a dynamic URL button pointing at the
 // public order page.
@@ -240,6 +240,6 @@ func SendOrderConfirmation(order models.Order, orderURL string) {
 	slog.Info("whatsapp: order confirmation sent",
 		"orderID", order.ID,
 		"phone", phone,
-		"template", "order_confirmed",
+		"template", "order_confirmed_v2",
 	)
 }
