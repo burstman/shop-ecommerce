@@ -1,27 +1,34 @@
 package models
 
-import "gorm.io/gorm"
+import (
+	"time"
+
+	"gorm.io/gorm"
+)
 
 type Order struct {
 	gorm.Model
-	FirstName          string
-	LastName           string
-	Email              string
-	Address            string
-	City               string
-	Governorate        string
-	Location           string
-	Phone              string
-	Total              Currency `gorm:"type:numeric(12,2)"`
-	PlatformCommission Currency `gorm:"type:numeric(12,2)"`
-	CommissionStatus   string   `gorm:"default:pending"` // pending, paid, cancelled
-	Status             string   // pending, completed, cancelled
-	IsTest             bool     `gorm:"default:false"`
-	AffiliateID        *uint    `gorm:"index"`
-	MescolisBarcode    string   `gorm:"size:32"`
-	MescolisStatus     string   `gorm:"size:64"`
-	WhatsappBlocked    bool     `gorm:"default:false"`
-	Items              []OrderItem
+	FirstName           string
+	LastName            string
+	Email               string
+	Address             string
+	City                string
+	Governorate         string
+	Location            string
+	Phone               string
+	Total               Currency `gorm:"type:numeric(12,2)"`
+	PlatformCommission  Currency `gorm:"type:numeric(12,2)"`
+	CommissionStatus    string   `gorm:"default:pending"` // pending, paid, cancelled
+	Status              string   // pending, completed, cancelled
+	IsTest              bool     `gorm:"default:false"`
+	AffiliateID         *uint    `gorm:"index"`
+	MescolisBarcode     string   `gorm:"size:32"`
+	MescolisStatus      string   `gorm:"size:64"`
+	MescolisDriverName  string
+	MescolisDriverPhone string `gorm:"size:32"`
+	InTransitNotifiedAt *time.Time
+	WhatsappBlocked     bool `gorm:"default:false"`
+	Items               []OrderItem
 }
 
 type OrderItem struct {

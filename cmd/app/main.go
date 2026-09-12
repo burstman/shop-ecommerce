@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"log/slog"
 	"net/http"
 	"os"
 	"shopTemplate/app"
@@ -10,6 +11,7 @@ import (
 	"shopTemplate/app/db"
 	"shopTemplate/app/services"
 	"shopTemplate/public"
+	"time"
 
 	"github.com/anthdm/superkit/kit"
 	"github.com/go-chi/chi/v5"
@@ -30,6 +32,17 @@ func main() {
 			log.Println("starting Mes Colis Express socket listener...")
 			socket := services.NewMescolisSocket(cfg.Mescolis.APIKey, services.HandleMescolisEvent)
 			socket.Start()
+		}
+	}()
+
+	// Flush deferred in-transit WhatsApp notifications at/after 10:00 Tunisia
+	// time. Runs regardless of socket state so queued orders still get sent.
+	go func() {
+		slog.Info("starting in-transit notification scheduler (10:00 Tunisia time)")
+		ticker := time.NewTicker(time.Minute)
+		defer ticker.Stop()
+		for range ticker.C {
+			services.SendPendingInTransitNotifications()
 		}
 	}()
 

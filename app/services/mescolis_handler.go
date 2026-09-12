@@ -32,6 +32,8 @@ func HandleMescolisEvent(evt MescolisEvent) {
 	switch evt.Status {
 	case "in-progress":
 		updates["status"] = "shipped"
+		updates["mescolis_driver_name"] = evt.DeliverymanName
+		updates["mescolis_driver_phone"] = stripNonDigits(evt.DeliverymanPhoneNumber)
 	case "delivered", "delivered-and-paid":
 		updates["status"] = "completed"
 	case "return-sender", "final-return", "cancelled-by-sender":
@@ -51,7 +53,7 @@ func HandleMescolisEvent(evt MescolisEvent) {
 
 	// Send WhatsApp notification to the customer.
 	if evt.Status == "in-progress" {
-		sendWhatsAppInTransit(order, evt)
+		SendPendingInTransitNotifications()
 		return
 	}
 	sendWhatsAppStatusUpdate(order, evt.Status)
@@ -250,11 +252,58 @@ func SendOrderConfirmation(order models.Order, orderURL string) {
 	)
 }
 
-// sendWhatsAppInTransit sends the phase-2 template when MesColis marks a parcel
-// "in-progress" (out for delivery). The template carries the delivery driver's
-// name and phone as plain body variables; WhatsApp linkifies the number if it
-// recognizes it.
-func sendWhatsAppInTransit(order models.Order, evt MescolisEvent) {
+// tunisNow returns the current time in Africa/Tunis (UTC+1, no DST).
+func tunisNow() time.Time {
+	loc, err := time.LoadLocation("Africa/Tunis")
+	if err != nil {
+		return time.Now()
+	}
+	return time.Now().In(loc)
+}
+
+// inTransitWindowOpen reports whether it is at or after 10:00 Tunisia time.
+func inTransitWindowOpen() bool {
+	return tunisNow().Hour() >= 10
+}
+
+// markInTransitNotified stamps an order as notified so it is never sent twice.
+func markInTransitNotified(orderID uint) {
+	if err := db.Get().Model(&models.Order{}).Where("id = ?", orderID).
+		Update("in_transit_notified_at", time.Now().UTC()).Error; err != nil {
+		slog.Error("whatsapp: failed to mark order in-transit notified",
+			"orderID", orderID, "err", err)
+	}
+}
+
+// SendPendingInTransitNotifications sends the phase-2 in-transit template to any
+// order currently out for delivery that hasn't been notified yet. It only sends
+// at/after 10:00 Tunisia time and skips orders already notified or blocked.
+func SendPendingInTransitNotifications() {
+	if !inTransitWindowOpen() {
+		slog.Info("whatsapp: in-transit window not open yet (before 10:00 Tunisia), deferring")
+		return
+	}
+
+	var orders []models.Order
+	if err := db.Get().Where("mescolis_status = ? AND in_transit_notified_at IS NULL",
+		"in-progress").Find(&orders).Error; err != nil {
+		slog.Error("whatsapp: failed to load pending in-transit orders", "err", err)
+		return
+	}
+
+	for _, order := range orders {
+		sendWhatsAppInTransit(order)
+	}
+}
+
+// sendWhatsAppInTransit sends the phase-2 template for an order marked
+// "in-progress" by Mes Colis. The template carries the delivery driver's name
+// and phone as plain body variables; WhatsApp linkifies the number if it
+// recognizes it. On success it stamps in_transit_notified_at.
+func sendWhatsAppInTransit(order models.Order) {
+	if order.InTransitNotifiedAt != nil {
+		return
+	}
 	cfg := loadScopedConfig(order)
 	if !cfg.WhatsApp.Enabled || cfg.WhatsApp.AccessToken == "" || cfg.WhatsApp.PhoneNumberID == "" {
 		return
@@ -289,11 +338,11 @@ func sendWhatsAppInTransit(order models.Order, evt MescolisEvent) {
 		lang = full
 	}
 
-	driverName := strings.TrimSpace(evt.DeliverymanName)
+	driverName := strings.TrimSpace(order.MescolisDriverName)
 	if driverName == "" {
 		driverName = "عامل التوصيل"
 	}
-	driverPhone := normalizeWhatsAppPhone(stripNonDigits(evt.DeliverymanPhoneNumber))
+	driverPhone := normalizeWhatsAppPhone(stripNonDigits(order.MescolisDriverPhone))
 
 	client := NewWhatsAppCloudClient(cfg.WhatsApp.PhoneNumberID, cfg.WhatsApp.AccessToken)
 	err := client.SendTemplate(phone, cfg.WhatsApp.OrderInTransitTemplateName, lang, []string{
@@ -305,6 +354,7 @@ func sendWhatsAppInTransit(order models.Order, evt MescolisEvent) {
 		logSendErr("in-transit update", order, phone, err)
 		return
 	}
+	markInTransitNotified(order.ID)
 	slog.Info("whatsapp: in-transit update sent",
 		"orderID", order.ID,
 		"phone", phone,
