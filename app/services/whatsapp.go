@@ -207,6 +207,42 @@ func (c *WhatsAppCloudClient) SendOrderConfirmationTemplate(phone, orderURLSuffi
 	return c.doSend(phone, msg)
 }
 
+// SendTemplateWithURLButton sends a template with body parameters and one
+// dynamic URL button. The button's static prefix is baked into the template;
+// urlSuffix is the dynamic part appended to it (e.g. a wa.me number suffix).
+func (c *WhatsAppCloudClient) SendTemplateWithURLButton(phone, templateName, langCode string, bodyParams []string, urlSuffix string) error {
+	if c.AccessToken == "" || c.PhoneNumberID == "" {
+		return fmt.Errorf("whatsapp cloud api credentials not configured")
+	}
+
+	msg := cloudTemplateMessage{
+		MessagingProduct: "whatsapp",
+		To:               phone,
+		Type:             "template",
+	}
+	msg.Template.Name = templateName
+	msg.Template.Language.Code = langCode
+
+	comp := cloudTemplateComponent{Type: "body"}
+	for _, p := range bodyParams {
+		comp.Parameters = append(comp.Parameters, cloudTemplateParam{Type: "text", Text: p})
+	}
+	msg.Template.Components = append(msg.Template.Components, comp)
+
+	if urlSuffix != "" {
+		msg.Template.Components = append(msg.Template.Components, cloudTemplateComponent{
+			Type:    "button",
+			SubType: "url",
+			Index:   "0",
+			Parameters: []cloudTemplateParam{
+				{Type: "text", Text: urlSuffix},
+			},
+		})
+	}
+
+	return c.doSend(phone, msg)
+}
+
 // doSend posts a message payload to the Cloud API and decodes the response.
 func (c *WhatsAppCloudClient) doSend(phone string, msg cloudTemplateMessage) error {
 	data, err := json.Marshal(msg)

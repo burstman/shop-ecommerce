@@ -191,12 +191,13 @@ type MescolisConfig struct {
 }
 
 type WhatsAppConfig struct {
-	Enabled       bool   `json:"enabled"`
-	PhoneNumberID string `json:"phone_number_id"`
-	AccessToken   string `json:"access_token"`
-	TemplateName  string `json:"template_name"`
-	TemplateLang  string `json:"template_lang"`
-	VerifyToken   string `json:"verify_token"`
+	Enabled                    bool   `json:"enabled"`
+	PhoneNumberID              string `json:"phone_number_id"`
+	AccessToken                string `json:"access_token"`
+	TemplateName               string `json:"template_name"`
+	TemplateLang               string `json:"template_lang"`
+	OrderInTransitTemplateName string `json:"order_in_transit_template_name"`
+	VerifyToken                string `json:"verify_token"`
 }
 
 type SocialLink struct {
@@ -389,9 +390,9 @@ func defaultConfig() *Config {
 			},
 		},
 		Chat: ChatConfig{
-			Mode:             "standard",
-			PrimaryColor:     "#2E7D32",
-			HeaderTextColor:  "#FFFFFF",
+			Mode:              "standard",
+			PrimaryColor:      "#2E7D32",
+			HeaderTextColor:   "#FFFFFF",
 			ClientBubbleColor: "#2E7D32",
 			ClientTextColor:   "#FFFFFF",
 			AdminBubbleColor:  "#FFFFFF",
@@ -413,12 +414,13 @@ func defaultConfig() *Config {
 			AccountCode:     "",
 		},
 		WhatsApp: WhatsAppConfig{
-			Enabled:       false,
-			PhoneNumberID: "",
-			AccessToken:   "",
-			TemplateName:  "",
-			TemplateLang:  "fr",
-			VerifyToken:   "",
+			Enabled:                    false,
+			PhoneNumberID:              "",
+			AccessToken:                "",
+			TemplateName:               "",
+			TemplateLang:               "fr",
+			OrderInTransitTemplateName: "order_in_transit",
+			VerifyToken:                "",
 		},
 	}
 }

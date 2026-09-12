@@ -30,6 +30,8 @@ func HandleMescolisEvent(evt MescolisEvent) {
 
 	// Map terminal Mes Colis statuses to our order status.
 	switch evt.Status {
+	case "in-progress":
+		updates["status"] = "shipped"
 	case "delivered", "delivered-and-paid":
 		updates["status"] = "completed"
 	case "return-sender", "final-return", "cancelled-by-sender":
@@ -48,6 +50,10 @@ func HandleMescolisEvent(evt MescolisEvent) {
 	)
 
 	// Send WhatsApp notification to the customer.
+	if evt.Status == "in-progress" {
+		sendWhatsAppInTransit(order, evt)
+		return
+	}
 	sendWhatsAppStatusUpdate(order, evt.Status)
 }
 
@@ -242,4 +248,81 @@ func SendOrderConfirmation(order models.Order, orderURL string) {
 		"phone", phone,
 		"template", "order_confirmed_v2",
 	)
+}
+
+// sendWhatsAppInTransit sends the phase-2 template when MesColis marks a parcel
+// "in-progress" (out for delivery). The template carries the delivery driver's
+// name and phone; the dynamic URL button links to wa.me/<driver phone>.
+func sendWhatsAppInTransit(order models.Order, evt MescolisEvent) {
+	cfg := loadScopedConfig(order)
+	if !cfg.WhatsApp.Enabled || cfg.WhatsApp.AccessToken == "" || cfg.WhatsApp.PhoneNumberID == "" {
+		return
+	}
+	if cfg.WhatsApp.OrderInTransitTemplateName == "" {
+		slog.Warn("whatsapp: order_in_transit template name not configured", "orderID", order.ID)
+		return
+	}
+	if order.Phone == "" {
+		return
+	}
+	if order.WhatsappBlocked {
+		slog.Info("whatsapp: skipped in-transit - recipient undeliverable",
+			"orderID", order.ID,
+			"phone", order.Phone,
+		)
+		return
+	}
+
+	phone := normalizeWhatsAppPhone(order.Phone)
+
+	lang := whatsappLangForPhone(phone, cfg.WhatsApp.TemplateLang)
+	if lang == "" {
+		lang = "fr"
+	}
+	langMap := map[string]string{
+		"fr": "fr_FR",
+		"en": "en_US",
+		"ar": "ar",
+	}
+	if full, ok := langMap[lang]; ok {
+		lang = full
+	}
+
+	driverName := strings.TrimSpace(evt.DeliverymanName)
+	if driverName == "" {
+		driverName = "عامل التوصيل"
+	}
+	driverPhone := normalizeWhatsAppPhone(stripNonDigits(evt.DeliverymanPhoneNumber))
+	if driverPhone == "" {
+		driverPhone = "21600000000"
+	}
+
+	client := NewWhatsAppCloudClient(cfg.WhatsApp.PhoneNumberID, cfg.WhatsApp.AccessToken)
+	err := client.SendTemplateWithURLButton(phone, cfg.WhatsApp.OrderInTransitTemplateName, lang, []string{
+		fmt.Sprintf("%d", order.ID),
+		driverName,
+		driverPhone,
+	}, driverPhone)
+	if err != nil {
+		logSendErr("in-transit update", order, phone, err)
+		return
+	}
+	slog.Info("whatsapp: in-transit update sent",
+		"orderID", order.ID,
+		"phone", phone,
+		"template", cfg.WhatsApp.OrderInTransitTemplateName,
+		"driver", driverName,
+		"driver_phone", driverPhone,
+	)
+}
+
+// stripNonDigits keeps only the numeric characters of a phone string.
+func stripNonDigits(s string) string {
+	var b strings.Builder
+	for _, r := range s {
+		if r >= '0' && r <= '9' {
+			b.WriteRune(r)
+		}
+	}
+	return b.String()
 }
