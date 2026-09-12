@@ -171,7 +171,7 @@ func (c *WhatsAppCloudClient) SendTemplate(phone, templateName, langCode string,
 	return c.doSend(phone, msg)
 }
 
-// SendOrderConfirmationTemplate sends the order_confirmation template (Arabic)
+// SendOrderConfirmationTemplate sends the order_confirmed template (Arabic)
 // with 3 body variables and a dynamic URL button pointing to the public order
 // page. orderURLSuffix is the part appended to the button's static URL base.
 func (c *WhatsAppCloudClient) SendOrderConfirmationTemplate(phone, orderURLSuffix string, bodyParams []string) error {
@@ -184,7 +184,7 @@ func (c *WhatsAppCloudClient) SendOrderConfirmationTemplate(phone, orderURLSuffi
 		To:               phone,
 		Type:             "template",
 	}
-	msg.Template.Name = "order_confirmation"
+	msg.Template.Name = "order_confirmed"
 	msg.Template.Language.Code = "ar"
 
 	comp := cloudTemplateComponent{Type: "body"}
