@@ -18,11 +18,11 @@ templ Tracking(order models.Order, cfg *config.Config) {
 			<meta name="color-scheme" content="light"/>
 			<link rel="stylesheet" href="/public/assets/styles.css"/>
 			<style>
-				body { margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1.5rem; background: { cfg.Theme.PageBgColor }; font-family: system-ui, -apple-system, sans-serif; }
+				body { margin: 0; min-height: 100vh; padding: 1.5rem; background: { cfg.Theme.PageBgColor }; font-family: system-ui, -apple-system, sans-serif; }
 			</style>
 		</head>
 		<body>
-			<div style="width:100%; max-width:340px;">
+			<div style="width:100%; max-width:340px; margin:0 auto;">
 				<div style="text-align:center; margin-bottom:1.25rem;">
 					<div style="display:inline-flex; align-items:center; justify-content:center; width:52px; height:52px; border-radius:9999px; background:{ cfg.Theme.PrimaryColor }; color:#fff;">
 						<svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
