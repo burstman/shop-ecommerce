@@ -309,7 +309,7 @@ func sendWhatsAppInTransit(order models.Order) {
 		return
 	}
 	if cfg.WhatsApp.OrderInTransitTemplateName == "" {
-		slog.Warn("whatsapp: order_in_transit template name not configured", "orderID", order.ID)
+		slog.Warn("whatsapp: in-transit template name not configured", "orderID", order.ID)
 		return
 	}
 	if order.Phone == "" {

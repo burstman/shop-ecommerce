@@ -361,7 +361,7 @@ templ whatsappSettingsForm(cfg *config.Config) {
 				</div>
 				<div class="sm:col-span-1">
 					<label class="block text-sm font-medium text-gray-700">In-Transit Template Name</label>
-					<input type="text" name="whatsapp_order_in_transit_template_name" value={ cfg.WhatsApp.OrderInTransitTemplateName } placeholder="e.g. order_in_transit" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm sm:text-sm"/>
+					<input type="text" name="whatsapp_order_in_transit_template_name" value={ cfg.WhatsApp.OrderInTransitTemplateName } placeholder="e.g. in_progress" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm sm:text-sm"/>
 					<p class="mt-1 text-sm text-gray-500">Sent when MesColis marks a parcel "in-progress". Body vars: order #, driver name, driver phone (no button).</p>
 				</div>
 				<div class="sm:col-span-2">

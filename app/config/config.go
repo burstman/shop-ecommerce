@@ -419,7 +419,7 @@ func defaultConfig() *Config {
 			AccessToken:                "",
 			TemplateName:               "",
 			TemplateLang:               "fr",
-			OrderInTransitTemplateName: "order_in_transit",
+			OrderInTransitTemplateName: "in_progress",
 			VerifyToken:                "",
 		},
 	}
