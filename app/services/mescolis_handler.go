@@ -296,6 +296,18 @@ func SendPendingInTransitNotifications() {
 	}
 }
 
+// SendInTransitForOrder sends the phase-2 in-transit template for a single order
+// immediately, ignoring the 10:00 delivery-window check. Intended for manual
+// testing / support use.
+func SendInTransitForOrder(orderID uint) {
+	var order models.Order
+	if err := db.Get().First(&order, orderID).Error; err != nil {
+		slog.Error("whatsapp: in-transit send: order not found", "orderID", orderID, "err", err)
+		return
+	}
+	sendWhatsAppInTransit(order)
+}
+
 // sendWhatsAppInTransit sends the phase-2 template for an order marked
 // "in-progress" by Mes Colis. The template carries the delivery driver's name
 // and phone as plain body variables; WhatsApp linkifies the number if it

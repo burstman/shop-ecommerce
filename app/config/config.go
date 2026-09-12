@@ -550,6 +550,9 @@ func backfill(c *Config) {
 	if c.Chat.Mode == "" {
 		c.Chat.Mode = "standard"
 	}
+	if c.WhatsApp.OrderInTransitTemplateName == "" {
+		c.WhatsApp.OrderInTransitTemplateName = "in_progress"
+	}
 	if len(c.StorefrontSidebar) == 0 {
 		c.StorefrontSidebar = defaultConfig().StorefrontSidebar
 	}
