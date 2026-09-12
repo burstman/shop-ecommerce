@@ -1,6 +1,7 @@
 package orders
 
 import (
+	"context"
 	"fmt"
 	"shopTemplate/app/config"
 	"shopTemplate/app/models"
@@ -8,52 +9,107 @@ import (
 )
 
 templ Tracking(order models.Order, cfg *config.Config) {
-	<div class="max-w-3xl mx-auto px-4 py-8">
-		<div class="bg-white shadow-md rounded-lg overflow-hidden">
-			<div class="px-6 py-5 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
-				<div>
-					<h1 class="text-xl font-bold text-gray-900">{ services.GetI18n().T(ctx, "order_tracking_title") }</h1>
-					<p class="mt-1 text-sm text-gray-500">
-						{ services.GetI18n().T(ctx, "order") } #{ fmt.Sprint(order.ID) }
-					</p>
+	<!DOCTYPE html>
+	<html lang="en" class="h-full" dir={ templateDir(ctx) }>
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<title>{ services.GetI18n().T(ctx, "order_tracking_title") }</title>
+			<meta name="color-scheme" content="light"/>
+			<link rel="stylesheet" href="/public/assets/styles.css"/>
+			<style>
+				body { margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1.5rem; background: { cfg.Theme.PageBgColor }; font-family: system-ui, -apple-system, sans-serif; }
+			</style>
+		</head>
+		<body>
+			<div style="width:100%; max-width:340px;">
+				<div style="text-align:center; margin-bottom:1.25rem;">
+					<div style="display:inline-flex; align-items:center; justify-content:center; width:52px; height:52px; border-radius:9999px; background:{ cfg.Theme.PrimaryColor }; color:#fff;">
+						<svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+					</div>
+					<h1 style="margin:0.75rem 0 0; font-size:1.125rem; font-weight:700;">{ services.GetI18n().T(ctx, "order_tracking_title") }</h1>
+					<p style="margin:0.25rem 0 0; color:#6b7280; font-size:0.875rem;">{ services.GetI18n().T(ctx, "order") } #{ fmt.Sprint(order.ID) }</p>
 				</div>
-				<span class={ "px-3 py-1 text-sm font-semibold rounded-full", 
-					templ.KV("bg-yellow-100 text-yellow-800", order.Status == "pending"),
-					templ.KV("bg-teal-100 text-teal-800", order.Status == "confirmed"),
-					templ.KV("bg-blue-100 text-blue-800", order.Status == "shipped"),
-					templ.KV("bg-green-100 text-green-800", order.Status == "completed"),
-					templ.KV("bg-red-100 text-red-800", order.Status == "cancelled") }>
-					{ order.Status }
-				</span>
+
+				<div style="background:#fff; border:1px solid #e5e7eb; border-radius:0.75rem; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,0.08);">
+					<div style="padding:0.75rem 1rem; border-bottom:1px solid #f3f4f6; text-align:center;">
+						<span style="display:inline-block; padding:0.25rem 0.75rem; border-radius:9999px; font-size:0.75rem; font-weight:600; background:{ statusBg(order.Status) }; color:#fff;">{ statusLabel(order.Status, ctx) }</span>
+					</div>
+					<ul style="list-style:none; margin:0; padding:0.5rem 1rem;">
+
+						for _, item := range order.Items {
+							<li style="display:flex; align-items:center; gap:0.75rem; padding:0.6rem 0; border-bottom:1px solid #f9fafb;">
+								<div style="flex-shrink:0; width:56px; height:56px; border-radius:0.5rem; overflow:hidden; background:#f3f4f6;">
+									if item.ProductImage != "" {
+										<img style="width:100%; height:100%; object-fit:cover;" src={ item.ProductImage } alt={ item.ProductName }/>
+									} else {
+										<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; color:#9ca3af; font-size:0.65rem;">{ services.GetI18n().T(ctx, "no_image") }</div>
+									}
+								</div>
+								<div style="flex:1; min-width:0; text-align:{ statsAlign(ctx) };">
+									<h3 style="margin:0; font-size:0.875rem; font-weight:600; color:#111827;">{ item.ProductName }</h3>
+									<p style="margin:0.15rem 0 0; color:#6b7280; font-size:0.75rem;">{ services.GetI18n().T(ctx, "qty") } { fmt.Sprint(item.Quantity) } x { item.Price.String() } { cfg.Site.Currency }</p>
+								</div>
+								<div style="text-align:right; font-size:0.875rem; font-weight:700; color:#111827;">
+									{item.Price.Multiply(item.Quantity).String() } { cfg.Site.Currency }
+								</div>
+							</li>
+						}
+					</ul>
+					<div style="display:flex; align-items:center; justify-content:space-between; padding:0.85rem 1rem; border-top:1px solid #f3f4f6; background:#f9fafb;">
+						<span style="font-size:0.875rem; font-weight:600; color:#374151;">{ services.GetI18n().T(ctx, "total") }</span>
+						<span style="font-size:1.125rem; font-weight:800; color:#111827;">{ order.Total.String() } { cfg.Site.Currency }</span>
+					</div>
+				</div>
+
+				<p style="margin:1rem 0 0; text-align:center; color:#9ca3af; font-size:0.75rem;">{ services.GetI18n().T(ctx, "order_tracking_desc") }</p>
 			</div>
+		</body>
+	</html>
+}
 
-			<ul class="divide-y divide-gray-200">
-				for _, item := range order.Items {
-					<li class="px-6 py-4 flex items-center gap-4">
-						<div class="flex-shrink-0 h-20 w-20 rounded-md overflow-hidden bg-gray-100">
-							if item.ProductImage != "" {
-								<img class="h-full w-full object-cover" src={ item.ProductImage } alt={ item.ProductName }/>
-							} else {
-								<div class="h-full w-full flex items-center justify-center text-gray-400 text-xs">{ services.GetI18n().T(ctx, "no_image") }</div>
-							}
-						</div>
-						<div class="flex-1 min-w-0">
-							<h3 class="text-sm font-medium text-gray-900">{ item.ProductName }</h3>
-							<p class="mt-1 text-sm text-gray-500">{ services.GetI18n().T(ctx, "qty") } { fmt.Sprint(item.Quantity) } x { item.Price.String() } { cfg.Site.Currency }</p>
-						</div>
-						<div class="text-right">
-							<p class="text-lg font-bold text-gray-900">{ item.Price.Multiply(item.Quantity).String() } { cfg.Site.Currency }</p>
-						</div>
-					</li>
-				}
-			</ul>
+func templateDir(ctx context.Context) string {
+	if lang, ok := ctx.Value("lang").(string); ok && lang == "ar" {
+		return "rtl"
+	}
+	return "ltr"
+}
 
-			<div class="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-between items-center">
-				<span class="text-base font-semibold text-gray-900">{ services.GetI18n().T(ctx, "total") }</span>
-				<span class="text-xl font-bold text-gray-900">{ order.Total.String() } { cfg.Site.Currency }</span>
-			</div>
-		</div>
+func statusLabel(status string, ctx context.Context) string {
+	switch status {
+	case "pending":
+		return services.GetI18n().T(ctx, "pending")
+	case "confirmed":
+		return services.GetI18n().T(ctx, "confirmed")
+	case "shipped":
+		return services.GetI18n().T(ctx, "shipped")
+	case "completed":
+		return services.GetI18n().T(ctx, "completed")
+	case "cancelled":
+		return services.GetI18n().T(ctx, "cancelled")
+	}
+	return status
+}
 
-		<p class="mt-6 text-center text-sm text-gray-500">{ services.GetI18n().T(ctx, "order_tracking_desc") }</p>
-	</div>
+func statusBg(status string) string {
+	switch status {
+	case "pending":
+		return "#D97706"
+	case "confirmed":
+		return "#0EA5E9"
+	case "shipped":
+		return "#3B82F6"
+	case "completed":
+		return "#22C55E"
+	case "cancelled":
+		return "#EF4444"
+	}
+	return "#6B7280"
+}
+
+func statsAlign(ctx context.Context) string {
+	if lang, ok := ctx.Value("lang").(string); ok && lang == "ar" {
+		return "right"
+	}
+	return "left"
 }

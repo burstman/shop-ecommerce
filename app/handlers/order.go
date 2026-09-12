@@ -41,7 +41,7 @@ func HandleOrderTracking(kit *kit.Kit) error {
 	}
 
 	cfg := config.FromContext(kit.Request.Context())
-	return RenderWithLayout(kit, orders.Tracking(order, cfg))
+	return kit.Render(orders.Tracking(order, cfg))
 }
 
 func HandleAdminOrdersIndex(kit *kit.Kit) error {
