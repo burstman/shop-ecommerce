@@ -182,6 +182,7 @@
   "delivery_fees_desc": "Free delivery on all orders above 800 TND. For orders below this amount, delivery fees are calculated at checkout.",
   "order_tracking_title": "Order Tracking",
   "order_tracking_desc": "Once your order is shipped, you will receive a confirmation email with a tracking number.",
+  "order": "Order",
   "returns_title": "Returns and Exchanges",
   "returns_desc": "You have 7 days from receipt to return an item. Products must be in their original condition.",
   "about_us": "About Us",

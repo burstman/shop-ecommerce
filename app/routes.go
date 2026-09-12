@@ -224,6 +224,7 @@ func InitializeRoutes(router *chi.Mux) {
 		app.Get("/checkout", kit.Handler(handlers.HandleCheckoutIndex))
 		app.Post("/checkout/abandoned", kit.Handler(handlers.HandleCheckoutAbandoned))
 		app.Get("/checkout/success", kit.Handler(handlers.HandleCheckoutSuccess))
+		app.Get("/tracking", kit.Handler(handlers.HandleOrderTracking))
 		app.With(handlers.RateLimitCheckout.Middleware).Post("/checkout", kit.Handler(handlers.HandleCheckoutCreate))
 		app.Get("/api/chat/messages", kit.Handler(handlers.HandleChatFetchMessages))
 		app.With(handlers.RateLimitChat.Middleware, ChatEnabledMiddleware).Post("/api/chat/send", kit.Handler(handlers.HandleChatSend))

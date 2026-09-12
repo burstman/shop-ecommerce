@@ -1,0 +1,59 @@
+package orders
+
+import (
+	"fmt"
+	"shopTemplate/app/config"
+	"shopTemplate/app/models"
+	"shopTemplate/app/services"
+)
+
+templ Tracking(order models.Order, cfg *config.Config) {
+	<div class="max-w-3xl mx-auto px-4 py-8">
+		<div class="bg-white shadow-md rounded-lg overflow-hidden">
+			<div class="px-6 py-5 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
+				<div>
+					<h1 class="text-xl font-bold text-gray-900">{ services.GetI18n().T(ctx, "order_tracking_title") }</h1>
+					<p class="mt-1 text-sm text-gray-500">
+						{ services.GetI18n().T(ctx, "order") } #{ fmt.Sprint(order.ID) }
+					</p>
+				</div>
+				<span class={ "px-3 py-1 text-sm font-semibold rounded-full", 
+					templ.KV("bg-yellow-100 text-yellow-800", order.Status == "pending"),
+					templ.KV("bg-teal-100 text-teal-800", order.Status == "confirmed"),
+					templ.KV("bg-blue-100 text-blue-800", order.Status == "shipped"),
+					templ.KV("bg-green-100 text-green-800", order.Status == "completed"),
+					templ.KV("bg-red-100 text-red-800", order.Status == "cancelled") }>
+					{ order.Status }
+				</span>
+			</div>
+
+			<ul class="divide-y divide-gray-200">
+				for _, item := range order.Items {
+					<li class="px-6 py-4 flex items-center gap-4">
+						<div class="flex-shrink-0 h-20 w-20 rounded-md overflow-hidden bg-gray-100">
+							if item.ProductImage != "" {
+								<img class="h-full w-full object-cover" src={ item.ProductImage } alt={ item.ProductName }/>
+							} else {
+								<div class="h-full w-full flex items-center justify-center text-gray-400 text-xs">{ services.GetI18n().T(ctx, "no_image") }</div>
+							}
+						</div>
+						<div class="flex-1 min-w-0">
+							<h3 class="text-sm font-medium text-gray-900">{ item.ProductName }</h3>
+							<p class="mt-1 text-sm text-gray-500">{ services.GetI18n().T(ctx, "qty") } { fmt.Sprint(item.Quantity) } x { item.Price.String() } { cfg.Site.Currency }</p>
+						</div>
+						<div class="text-right">
+							<p class="text-lg font-bold text-gray-900">{ item.Price.Multiply(item.Quantity).String() } { cfg.Site.Currency }</p>
+						</div>
+					</li>
+				}
+			</ul>
+
+			<div class="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-between items-center">
+				<span class="text-base font-semibold text-gray-900">{ services.GetI18n().T(ctx, "total") }</span>
+				<span class="text-xl font-bold text-gray-900">{ order.Total.String() } { cfg.Site.Currency }</span>
+			</div>
+		</div>
+
+		<p class="mt-6 text-center text-sm text-gray-500">{ services.GetI18n().T(ctx, "order_tracking_desc") }</p>
+	</div>
+}

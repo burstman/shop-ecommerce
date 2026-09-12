@@ -19,6 +19,31 @@ import (
 	"gorm.io/gorm"
 )
 
+// HandleOrderTracking renders the public order tracking page reached from the
+// WhatsApp confirmation template button (/tracking?id={id}&t={token}).
+func HandleOrderTracking(kit *kit.Kit) error {
+	idStr := kit.Request.URL.Query().Get("id")
+	token := kit.Request.URL.Query().Get("t")
+	id, err := strconv.ParseUint(idStr, 10, 64)
+	if err != nil || !services.ValidOrderTrackingToken(uint(id), token) {
+		return kit.Render(viewerrors.Error404())
+	}
+
+	var order models.Order
+	if err := db.Get().Preload("Items.Product").First(&order, id).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return kit.Render(viewerrors.Error404())
+		}
+		return err
+	}
+	if order.IsTest {
+		return kit.Render(viewerrors.Error404())
+	}
+
+	cfg := config.FromContext(kit.Request.Context())
+	return RenderWithLayout(kit, orders.Tracking(order, cfg))
+}
+
 func HandleAdminOrdersIndex(kit *kit.Kit) error {
 	user, ok := kit.Auth().(models.AuthUser)
 	if !ok || user.Role != "admin" {
@@ -132,7 +157,8 @@ func HandleAdminOrderUpdateStatus(kit *kit.Kit) error {
 
 	// Notify the client on WhatsApp that their order is confirmed.
 	if newStatus == "confirmed" {
-		services.SendOrderConfirmation(order, fmt.Sprintf("%d", order.ID))
+		orderURL := fmt.Sprintf("?id=%d&t=%s", order.ID, services.OrderTrackingToken(order.ID))
+		services.SendOrderConfirmation(order, orderURL)
 	}
 
 	// Delete the Mes Colis parcel when the order is cancelled.
