@@ -183,6 +183,7 @@
   "order_tracking_title": "Suivi de commande",
   "order_tracking_desc": "Une fois votre commande expédiée, vous recevrez un email de confirmation avec un numéro de suivi.",
   "order": "Commande",
+  "delivered": "Livré",
   "returns_title": "Retours et échanges",
   "returns_desc": "Vous disposez d'un délai de 7 jours à compter de la réception pour retourner un article. Les produits doivent être dans leur état d'origine.",
   "about_us": "À Propos De Nous",
