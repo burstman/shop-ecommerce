@@ -52,11 +52,14 @@ func HandleMescolisEvent(evt MescolisEvent) {
 	)
 
 	// Send WhatsApp notification to the customer.
-	if evt.Status == "in-progress" {
+	switch evt.Status {
+	case "in-progress":
 		SendPendingInTransitNotifications()
-		return
+	case "delivered", "delivered-and-paid":
+		sendWhatsAppDelivered(order)
+	case "return-sender", "final-return", "cancelled-by-sender":
+		// Status updated to cancelled above; no WhatsApp template for returns.
 	}
-	sendWhatsAppStatusUpdate(order, evt.Status)
 }
 
 // whatsappLangForPhone picks the template language for a customer's status update.
@@ -306,6 +309,77 @@ func SendInTransitForOrder(orderID uint) {
 		return
 	}
 	sendWhatsAppInTransit(order)
+}
+
+// markDeliveredNotified stamps an order as notified post-delivery.
+func markDeliveredNotified(orderID uint) {
+	if err := db.Get().Model(&models.Order{}).Where("id = ?", orderID).
+		Update("delivered_notified_at", time.Now().UTC()).Error; err != nil {
+		slog.Error("whatsapp: failed to mark order delivered-notified",
+			"orderID", orderID, "err", err)
+	}
+}
+
+// sendWhatsAppDelivered sends the phase-3 template when MesColis marks a parcel
+// "delivered". Body only: order number + rating link (no button). Stamps
+// delivered_notified_at so it is sent at most once.
+func sendWhatsAppDelivered(order models.Order) {
+	if order.DeliveredNotifiedAt != nil {
+		return
+	}
+	cfg := loadScopedConfig(order)
+	if !cfg.WhatsApp.Enabled || cfg.WhatsApp.AccessToken == "" || cfg.WhatsApp.PhoneNumberID == "" {
+		return
+	}
+	if cfg.WhatsApp.OrderDeliveredTemplateName == "" {
+		slog.Warn("whatsapp: delivered template name not configured", "orderID", order.ID)
+		return
+	}
+	if cfg.WhatsApp.OrderDeliveredRatingURL == "" {
+		slog.Warn("whatsapp: delivered rating URL not configured, skipping", "orderID", order.ID)
+		return
+	}
+	if order.Phone == "" {
+		return
+	}
+	if order.WhatsappBlocked {
+		slog.Info("whatsapp: skipped delivered - recipient undeliverable",
+			"orderID", order.ID,
+			"phone", order.Phone,
+		)
+		return
+	}
+
+	phone := normalizeWhatsAppPhone(order.Phone)
+
+	lang := whatsappLangForPhone(phone, cfg.WhatsApp.TemplateLang)
+	if lang == "" {
+		lang = "fr"
+	}
+	langMap := map[string]string{
+		"fr": "fr_FR",
+		"en": "en_US",
+		"ar": "ar",
+	}
+	if full, ok := langMap[lang]; ok {
+		lang = full
+	}
+
+	client := NewWhatsAppCloudClient(cfg.WhatsApp.PhoneNumberID, cfg.WhatsApp.AccessToken)
+	err := client.SendTemplate(phone, cfg.WhatsApp.OrderDeliveredTemplateName, lang, []string{
+		fmt.Sprintf("%d", order.ID),
+		cfg.WhatsApp.OrderDeliveredRatingURL,
+	})
+	if err != nil {
+		logSendErr("delivered update", order, phone, err)
+		return
+	}
+	markDeliveredNotified(order.ID)
+	slog.Info("whatsapp: delivered update sent",
+		"orderID", order.ID,
+		"phone", phone,
+		"template", cfg.WhatsApp.OrderDeliveredTemplateName,
+	)
 }
 
 // sendWhatsAppInTransit sends the phase-2 template for an order marked

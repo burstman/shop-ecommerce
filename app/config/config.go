@@ -197,6 +197,8 @@ type WhatsAppConfig struct {
 	TemplateName               string `json:"template_name"`
 	TemplateLang               string `json:"template_lang"`
 	OrderInTransitTemplateName string `json:"order_in_transit_template_name"`
+	OrderDeliveredTemplateName string `json:"order_delivered_template_name"`
+	OrderDeliveredRatingURL    string `json:"order_delivered_rating_url"`
 	VerifyToken                string `json:"verify_token"`
 }
 
@@ -420,6 +422,7 @@ func defaultConfig() *Config {
 			TemplateName:               "",
 			TemplateLang:               "fr",
 			OrderInTransitTemplateName: "in_progress",
+			OrderDeliveredTemplateName: "order_delivered",
 			VerifyToken:                "",
 		},
 	}
@@ -552,6 +555,9 @@ func backfill(c *Config) {
 	}
 	if c.WhatsApp.OrderInTransitTemplateName == "" {
 		c.WhatsApp.OrderInTransitTemplateName = "in_progress"
+	}
+	if c.WhatsApp.OrderDeliveredTemplateName == "" {
+		c.WhatsApp.OrderDeliveredTemplateName = "order_delivered"
 	}
 	if len(c.StorefrontSidebar) == 0 {
 		c.StorefrontSidebar = defaultConfig().StorefrontSidebar

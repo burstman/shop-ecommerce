@@ -27,6 +27,7 @@ type Order struct {
 	MescolisDriverName  string
 	MescolisDriverPhone string `gorm:"size:32"`
 	InTransitNotifiedAt *time.Time
+	DeliveredNotifiedAt *time.Time
 	WhatsappBlocked     bool `gorm:"default:false"`
 	Items               []OrderItem
 }

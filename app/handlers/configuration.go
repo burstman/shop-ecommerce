@@ -197,6 +197,8 @@ func HandleAdminSettingsUpdate(kit *kit.Kit) error {
 		cfg.WhatsApp.TemplateName = kit.Request.FormValue("whatsapp_template_name")
 		cfg.WhatsApp.TemplateLang = kit.Request.FormValue("whatsapp_template_lang")
 		cfg.WhatsApp.OrderInTransitTemplateName = kit.Request.FormValue("whatsapp_order_in_transit_template_name")
+		cfg.WhatsApp.OrderDeliveredTemplateName = kit.Request.FormValue("whatsapp_order_delivered_template_name")
+		cfg.WhatsApp.OrderDeliveredRatingURL = kit.Request.FormValue("whatsapp_order_delivered_rating_url")
 		if v := kit.Request.FormValue("whatsapp_verify_token"); v != "" {
 			cfg.WhatsApp.VerifyToken = v
 		}
