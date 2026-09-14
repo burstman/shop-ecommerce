@@ -14,78 +14,78 @@ templ RatingPage(order models.Order, cfg *config.Config, submitted bool) {
 	<html lang="en" class="h-full" dir={ templateDir(ctx) }>
 		<head>
 			<meta charset="UTF-8"/>
-			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
 			<title>{ services.GetI18n().T(ctx, "rating_title") }</title>
 			<meta name="color-scheme" content="light"/>
 			<link rel="stylesheet" href="/public/assets/styles.css"/>
-			<style>
-				body { margin: 0; min-height: 100vh; padding: 1.5rem; background: { cfg.Theme.PageBgColor }; font-family: system-ui, -apple-system, sans-serif; }
-			</style>
 		</head>
-		<body>
+		<body style={ templ.KV("display:flex; align-items:center; justify-content:center; min-height:100vh; margin:0; padding:1.5rem; box-sizing:border-box; background:" + cfg.Theme.PageBgColor + "; font-family:system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; -webkit-text-size-adjust:100%;", true) }>
 			<div style="width:100%; max-width:400px; margin:0 auto;">
 				<div style="text-align:center; margin-bottom:1.25rem;">
-					<div style="display:inline-flex; align-items:center; justify-content:center; width:52px; height:52px; border-radius:9999px; background:{ cfg.Theme.PrimaryColor }; color:#fff;">
-						<svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.196-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
+					<div style={ templ.KV("display:inline-flex; align-items:center; justify-content:center; width:58px; height:58px; border-radius:9999px; background:" + cfg.Theme.PrimaryColor + "; color:#fff;", true) }>
+						<svg width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.196-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
 					</div>
-					<h1 style="margin:0.75rem 0 0; font-size:1.125rem; font-weight:700;">{ services.GetI18n().T(ctx, "rating_title") }</h1>
-					<p style="margin:0.25rem 0 0; color:#6b7280; font-size:0.875rem;">{ services.GetI18n().T(ctx, "order") } #{ fmt.Sprint(order.ID) }</p>
+					<h1 style="margin:0.75rem 0 0; font-size:1.2rem; font-weight:700;">{ services.GetI18n().T(ctx, "rating_title") }</h1>
+					<p style="margin:0.25rem 0 0; color:#6b7280; font-size:0.9rem;">{ services.GetI18n().T(ctx, "order") } #{ fmt.Sprint(order.ID) }</p>
 				</div>
 
 				if submitted {
 					<div style="background:#fff; border:1px solid #e5e7eb; border-radius:0.75rem; padding:2rem 1.5rem; box-shadow:0 1px 3px rgba(0,0,0,0.08); text-align:center;">
-						<div style="width:48px; height:48px; margin:0 auto 1rem; border-radius:9999px; background:{ cfg.Theme.PrimaryColor }; color:#fff; display:flex; align-items:center; justify-content:center;">
-							<svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+						<div style={ templ.KV("width:52px; height:52px; margin:0 auto 1rem; border-radius:9999px; background:" + cfg.Theme.PrimaryColor + "; color:#fff; display:flex; align-items:center; justify-content:center;", true) }>
+							<svg width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
 						</div>
-						<h2 style="margin:0; font-size:1rem; font-weight:700; color:#111827;">{ services.GetI18n().T(ctx, "rating_thanks_title") }</h2>
-						<p style="margin:0.5rem 0 0; color:#6b7280; font-size:0.875rem;">{ services.GetI18n().T(ctx, "rating_thanks_desc") }</p>
+						<h2 style="margin:0; font-size:1.05rem; font-weight:700; color:#111827;">{ services.GetI18n().T(ctx, "rating_thanks_title") }</h2>
+						<p style="margin:0.5rem 0 0; color:#6b7280; font-size:0.9rem;">{ services.GetI18n().T(ctx, "rating_thanks_desc") }</p>
 					</div>
 				} else {
 					<form method="post" action={ fmt.Sprintf("/rating?id=%d&t=%s", order.ID, services.OrderTrackingToken(order.ID)) } style="margin:0;">
 						<div style="background:#fff; border:1px solid #e5e7eb; border-radius:0.75rem; padding:1.25rem 1rem; box-shadow:0 1px 3px rgba(0,0,0,0.08);">
-							<p style="margin:0 0 0.5rem; font-size:0.875rem; font-weight:600; color:#374151;">{ services.GetI18n().T(ctx, "rating_delivery") }</p>
-							<div style="display:flex; justify-content:center; gap:0.5rem; margin-bottom:1rem;">
+							<p style="margin:0 0 0.5rem; font-size:0.95rem; font-weight:600; color:#374151;">{ services.GetI18n().T(ctx, "rating_delivery") }</p>
+							<div style="display:flex; justify-content:center; gap:0.4rem; margin-bottom:1rem;">
 								for i := 1; i <= 5; i++ {
 									<label style="cursor:pointer;" title={ fmt.Sprint(i) }>
 										<input type="radio" name="delivery" value={ fmt.Sprint(i) } required class="sr-only star-radio" data-delivery={ fmt.Sprint(i) }/>
-										<svg class="star" width="34" height="34" fill="none" stroke="#d1d5db" stroke-width="1.5" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+										<svg class="star" width="36" height="36" fill="none" stroke="#d1d5db" stroke-width="1.5" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
 									</label>
 								}
 							</div>
 
-							<p style="margin:0 0 0.5rem; font-size:0.875rem; font-weight:600; color:#374151;">{ services.GetI18n().T(ctx, "rating_product") }</p>
-							<div style="display:flex; justify-content:center; gap:0.5rem; margin-bottom:1.25rem;">
+							<p style="margin:0 0 0.5rem; font-size:0.95rem; font-weight:600; color:#374151;">{ services.GetI18n().T(ctx, "rating_product") }</p>
+							<div style="display:flex; justify-content:center; gap:0.4rem; margin-bottom:1.25rem;">
 								for i := 1; i <= 5; i++ {
 									<label style="cursor:pointer;" title={ fmt.Sprint(i) }>
 										<input type="radio" name="product" value={ fmt.Sprint(i) } required class="sr-only star-radio" data-product={ fmt.Sprint(i) }/>
-										<svg class="star" width="34" height="34" fill="none" stroke="#d1d5db" stroke-width="1.5" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+										<svg class="star" width="36" height="36" fill="none" stroke="#d1d5db" stroke-width="1.5" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
 									</label>
 								}
 							</div>
 
-							<label style="display:block; font-size:0.875rem; font-weight:600; color:#374151; margin-bottom:0.35rem;">{ services.GetI18n().T(ctx, "rating_comment_label") }</label>
-							<textarea name="comment" rows="3" placeholder={ services.GetI18n().T(ctx, "rating_comment_placeholder") } style="width:100%; box-sizing:border-box; border:1px solid #e5e7eb; border-radius:0.5rem; padding:0.6rem; font-size:0.875rem; font-family:inherit; resize:vertical;"></textarea>
+							<label style="display:block; font-size:0.95rem; font-weight:600; color:#374151; margin-bottom:0.35rem;">{ services.GetI18n().T(ctx, "rating_comment_label") }</label>
+							<textarea name="comment" rows="3" placeholder={ services.GetI18n().T(ctx, "rating_comment_placeholder") } style="width:100%; box-sizing:border-box; border:1px solid #e5e7eb; border-radius:0.5rem; padding:0.7rem; font-size:0.95rem; font-family:inherit; resize:vertical;"></textarea>
 
-							<button type="submit" style="width:100%; margin-top:1rem; padding:0.7rem 1rem; border:none; border-radius:0.5rem; background:{ cfg.Theme.PrimaryColor }; color:#fff; font-size:0.9rem; font-weight:700; cursor:pointer;">{ services.GetI18n().T(ctx, "rating_submit") }</button>
+							<button type="submit" style={ templ.KV("width:100%; margin-top:1rem; padding:0.85rem 1rem; border:none; border-radius:0.5rem; background:" + cfg.Theme.PrimaryColor + "; color:#fff; font-size:1rem; font-weight:700; cursor:pointer; touch-action:manipulation;", true) }>{ services.GetI18n().T(ctx, "rating_submit") }</button>
 						</div>
 					</form>
 
-					<script>
-						document.querySelectorAll('.star-radio').forEach(r => {
-							r.addEventListener('change', () => {
-								const all = Array.from(document.querySelectorAll('input[name=' + r.name + ']'));
-								const idx = all.indexOf(r);
-								all.forEach((el, i) => {
-									const star = el.closest('label').querySelector('.star');
-									const on = i <= idx;
-									star.setAttribute('fill', on ? '#{ cfg.Theme.PrimaryColor }' : 'none');
-									star.setAttribute('stroke', on ? '#{ cfg.Theme.PrimaryColor }' : '#d1d5db');
-								});
-							});
-						});
-					</script>
+					<script>{{ ratingStarScript(cfg.Theme.PrimaryColor) }}</script>
 				}
 			</div>
 		</body>
 	</html>
+}
+
+func ratingStarScript(primary string) templ.JSExpression {
+	js := `document.querySelectorAll('.star-radio').forEach(r => {
+  r.addEventListener('change', () => {
+    const all = Array.from(document.querySelectorAll('input[name=' + r.name + ']'));
+    const idx = all.indexOf(r);
+    all.forEach((el, i) => {
+      const star = el.closest('label').querySelector('.star');
+      const on = i <= idx;
+      star.setAttribute('fill', on ? '` + primary + `' : 'none');
+      star.setAttribute('stroke', on ? '` + primary + `' : '#d1d5db');
+    });
+  });
+});`
+	return templ.JSExpression(js)
 }

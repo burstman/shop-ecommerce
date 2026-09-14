@@ -214,6 +214,11 @@ func InitializeRoutes(router *chi.Mux) {
 	router.Get("/webhooks/whatsapp", handlers.HandleWhatsAppWebhook)
 	router.Post("/webhooks/whatsapp", handlers.HandleWhatsAppWebhook)
 
+	// Rating form POST is CSRF-exempt: the /rating link is already protected by a
+	// signed HMAC token (?t=...), so CSRF adds nothing here. Mounted outside the
+	// CSRF middleware so the WhatsApp rating-button form can submit from a phone.
+	router.Post("/rating", kit.Handler(handlers.HandleOrderRating))
+
 	// Routes that "might" have an authenticated user
 	router.Group(func(app chi.Router) {
 		app.Use(kit.WithAuthentication(authConfig, false)) // strict set to false
@@ -240,7 +245,6 @@ func InitializeRoutes(router *chi.Mux) {
 		app.Get("/checkout/success", kit.Handler(handlers.HandleCheckoutSuccess))
 		app.Get("/tracking", kit.Handler(handlers.HandleOrderTracking))
 		app.Get("/rating", kit.Handler(handlers.HandleOrderRating))
-		app.Post("/rating", kit.Handler(handlers.HandleOrderRating))
 		app.With(handlers.RateLimitCheckout.Middleware).Post("/checkout", kit.Handler(handlers.HandleCheckoutCreate))
 		app.Get("/api/chat/messages", kit.Handler(handlers.HandleChatFetchMessages))
 		app.With(handlers.RateLimitChat.Middleware, ChatEnabledMiddleware).Post("/api/chat/send", kit.Handler(handlers.HandleChatSend))
