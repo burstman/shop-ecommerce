@@ -2,6 +2,7 @@ package orders
 
 import (
 	"fmt"
+	"strconv"
 	"shopTemplate/app/config"
 	"shopTemplate/app/models"
 	"shopTemplate/app/services"
@@ -19,7 +20,7 @@ templ RatingPage(order models.Order, cfg *config.Config, submitted bool) {
 			<meta name="color-scheme" content="light"/>
 			<link rel="stylesheet" href="/public/assets/styles.css"/>
 		</head>
-		<body style={ templ.KV("display:flex; align-items:center; justify-content:center; min-height:100vh; margin:0; padding:1.5rem; box-sizing:border-box; background:" + cfg.Theme.PageBgColor + "; font-family:system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; -webkit-text-size-adjust:100%;", true) }>
+		<body style={ templ.KV("display:flex; align-items:center; justify-content:center; min-height:100vh; margin:0; padding:1.5rem; box-sizing:border-box; background:" + cfg.Theme.PageBgColor + "; font-family:system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; -webkit-text-size-adjust:100%;", true) } data-primary={ themeHexColor(cfg.Theme.PrimaryColor) }>
 			<div style="width:100%; max-width:400px; margin:0 auto;">
 				<div style="text-align:center; margin-bottom:1.25rem;">
 					<div style={ templ.KV("display:inline-flex; align-items:center; justify-content:center; width:58px; height:58px; border-radius:9999px; background:" + cfg.Theme.PrimaryColor + "; color:#fff;", true) }>
@@ -67,25 +68,32 @@ templ RatingPage(order models.Order, cfg *config.Config, submitted bool) {
 						</div>
 					</form>
 
-					<script>{{ ratingStarScript(cfg.Theme.PrimaryColor) }}</script>
+					<script>
+						document.querySelectorAll('.star-radio').forEach(r => {
+							r.addEventListener('change', () => {
+								const c = document.body.dataset.primary;
+								const all = Array.from(document.querySelectorAll('input[name=' + r.name + ']'));
+								const idx = all.indexOf(r);
+								all.forEach((el, i) => {
+									const star = el.closest('label').querySelector('.star');
+									const on = i <= idx;
+									star.setAttribute('fill', on ? c : 'none');
+									star.setAttribute('stroke', on ? c : '#d1d5db');
+								});
+							});
+						});
+					</script>
 				}
 			</div>
 		</body>
 	</html>
 }
 
-func ratingStarScript(primary string) templ.JSExpression {
-	js := `document.querySelectorAll('.star-radio').forEach(r => {
-  r.addEventListener('change', () => {
-    const all = Array.from(document.querySelectorAll('input[name=' + r.name + ']'));
-    const idx = all.indexOf(r);
-    all.forEach((el, i) => {
-      const star = el.closest('label').querySelector('.star');
-      const on = i <= idx;
-      star.setAttribute('fill', on ? '` + primary + `' : 'none');
-      star.setAttribute('stroke', on ? '` + primary + `' : '#d1d5db');
-    });
-  });
-});`
-	return templ.JSExpression(js)
+func themeHexColor(v string) string {
+	if len(v) >= 7 && v[0] == '#' {
+		if _, err := strconv.ParseUint(v[1:7], 16, 32); err == nil {
+			return v
+		}
+	}
+	return "#2E7D32"
 }
