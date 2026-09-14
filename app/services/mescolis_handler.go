@@ -320,33 +320,9 @@ func markDeliveredNotified(orderID uint) {
 	}
 }
 
-// orderRatingURL builds the protected per-order rating link
-// (<shop>/rating?id={id}&t={token}) sent in the delivered template. The shop
-// base comes from the affiliate's ShopURL, falling back to the configured
-// WhatsApp rating URL. Returns "" when no base is available.
-func orderRatingURL(order models.Order, cfg *config.Config) string {
-	base := ""
-	if order.AffiliateID != nil {
-		var aff models.Affiliate
-		if err := db.Get().First(&aff, *order.AffiliateID).Error; err == nil && aff.ShopURL != "" {
-			base = strings.TrimSuffix(aff.ShopURL, "/")
-		}
-	}
-	if base == "" {
-		base = strings.TrimSuffix(cfg.WhatsApp.OrderDeliveredRatingURL, "/")
-	}
-	if base == "" {
-		return ""
-	}
-	// WhatsApp only linkifies URLs that start with a scheme.
-	if !strings.HasPrefix(base, "http://") && !strings.HasPrefix(base, "https://") {
-		base = "https://" + base
-	}
-	return fmt.Sprintf("%s/rating?id=%d&t=%s", base, order.ID, OrderTrackingToken(order.ID))
-}
-
 // sendWhatsAppDelivered sends the phase-3 template when MesColis marks a parcel
-// "delivered". Body only: order number + rating link (no button). Stamps
+// "delivered". Body carries the customer name + order number, and a dynamic URL
+// button points at the protected /rating page (?id={id}&t={token}). Stamps
 // delivered_notified_at so it is sent at most once.
 func sendWhatsAppDelivered(order models.Order) {
 	if order.DeliveredNotifiedAt != nil {
@@ -371,10 +347,9 @@ func sendWhatsAppDelivered(order models.Order) {
 		return
 	}
 
-	ratingURL := orderRatingURL(order, cfg)
-	if ratingURL == "" {
-		slog.Warn("whatsapp: no rating URL base available, skipping delivered", "orderID", order.ID)
-		return
+	name := strings.TrimSpace(order.FirstName + " " + order.LastName)
+	if name == "" {
+		name = "العميل"
 	}
 
 	phone := normalizeWhatsAppPhone(order.Phone)
@@ -392,16 +367,12 @@ func sendWhatsAppDelivered(order models.Order) {
 		lang = full
 	}
 
-	name := strings.TrimSpace(order.FirstName + " " + order.LastName)
-	if name == "" {
-		name = "العميل"
-	}
+	ratingSuffix := fmt.Sprintf("?id=%d&t=%s", order.ID, OrderTrackingToken(order.ID))
 
 	client := NewWhatsAppCloudClient(cfg.WhatsApp.PhoneNumberID, cfg.WhatsApp.AccessToken)
-	err := client.SendTemplate(phone, cfg.WhatsApp.OrderDeliveredTemplateName, lang, []string{
+	err := client.SendTemplateWithURLButton(phone, cfg.WhatsApp.OrderDeliveredTemplateName, lang, ratingSuffix, []string{
 		name,
 		fmt.Sprintf("%d", order.ID),
-		ratingURL,
 	})
 	if err != nil {
 		logSendErr("delivered update", order, phone, err)
