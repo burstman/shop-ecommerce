@@ -392,8 +392,14 @@ func sendWhatsAppDelivered(order models.Order) {
 		lang = full
 	}
 
+	name := strings.TrimSpace(order.FirstName + " " + order.LastName)
+	if name == "" {
+		name = "العميل"
+	}
+
 	client := NewWhatsAppCloudClient(cfg.WhatsApp.PhoneNumberID, cfg.WhatsApp.AccessToken)
 	err := client.SendTemplate(phone, cfg.WhatsApp.OrderDeliveredTemplateName, lang, []string{
+		name,
 		fmt.Sprintf("%d", order.ID),
 		ratingURL,
 	})
