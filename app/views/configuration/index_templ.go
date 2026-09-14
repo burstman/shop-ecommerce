@@ -841,7 +841,7 @@ func whatsappSettingsForm(cfg *config.Config) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 73, "\" placeholder=\"e.g. order_delivered\" class=\"mt-1 block w-full border-gray-300 rounded-md shadow-sm sm:text-sm\"><p class=\"mt-1 text-sm text-gray-500\">Sent when MesColis marks a parcel \"delivered\". Body vars: order #, rating link (no button).</p></div><div class=\"sm:col-span-1\"><label class=\"block text-sm font-medium text-gray-700\">Delivered Rating URL</label> <input type=\"url\" name=\"whatsapp_order_delivered_rating_url\" value=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 73, "\" placeholder=\"e.g. order_delivered\" class=\"mt-1 block w-full border-gray-300 rounded-md shadow-sm sm:text-sm\"><p class=\"mt-1 text-sm text-gray-500\">Sent when MesColis marks a parcel \"delivered\". Body vars: order #, rating link (no button).</p></div><div class=\"sm:col-span-1\"><label class=\"block text-sm font-medium text-gray-700\">Rating URL Base (optional)</label> <input type=\"url\" name=\"whatsapp_order_delivered_rating_url\" value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -854,7 +854,7 @@ func whatsappSettingsForm(cfg *config.Config) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 74, "\" placeholder=\"https://g.page/r/review-link\" class=\"mt-1 block w-full border-gray-300 rounded-md shadow-sm sm:text-sm\"><p class=\"mt-1 text-sm text-gray-500\">Sent as the rating link var in the delivered template.</p></div><div class=\"sm:col-span-2\"><label class=\"block text-sm font-medium text-gray-700\">Webhook Verify Token</label> <input type=\"text\" name=\"whatsapp_verify_token\" value=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 74, "\" placeholder=\"https://your-shop.com\" class=\"mt-1 block w-full border-gray-300 rounded-md shadow-sm sm:text-sm\"><p class=\"mt-1 text-sm text-gray-500\">Optional base URL for the rating link. If empty, the affiliate's shop URL is used. The CTA becomes: [base]/rating?id=..&t=..</p></div><div class=\"sm:col-span-2\"><label class=\"block text-sm font-medium text-gray-700\">Webhook Verify Token</label> <input type=\"text\" name=\"whatsapp_verify_token\" value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

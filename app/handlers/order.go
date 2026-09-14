@@ -13,6 +13,7 @@ import (
 	viewerrors "shopTemplate/app/views/errors"
 	"shopTemplate/app/views/orders"
 	"strconv"
+	"strings"
 
 	"github.com/anthdm/superkit/kit"
 	"github.com/go-chi/chi/v5"
@@ -42,6 +43,55 @@ func HandleOrderTracking(kit *kit.Kit) error {
 
 	cfg := config.FromContext(kit.Request.Context())
 	return kit.Render(orders.Tracking(order, cfg))
+}
+
+// HandleOrderRating renders the delivery rating form reached from the WhatsApp
+// delivered template rating link (/rating?id={id}&t={token}). POST submits the
+// rating and shows the thank-you view.
+func HandleOrderRating(kit *kit.Kit) error {
+	idStr := kit.Request.URL.Query().Get("id")
+	token := kit.Request.URL.Query().Get("t")
+	id, err := strconv.ParseUint(idStr, 10, 64)
+	if err != nil || !services.ValidOrderTrackingToken(uint(id), token) {
+		return kit.Render(viewerrors.Error404())
+	}
+
+	var order models.Order
+	if err := db.Get().First(&order, id).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return kit.Render(viewerrors.Error404())
+		}
+		return err
+	}
+	if order.IsTest {
+		return kit.Render(viewerrors.Error404())
+	}
+
+	cfg := config.FromContext(kit.Request.Context())
+
+	if kit.Request.Method == http.MethodPost {
+		delivery, _ := strconv.Atoi(kit.Request.FormValue("delivery"))
+		product, _ := strconv.Atoi(kit.Request.FormValue("product"))
+		comment := strings.TrimSpace(kit.Request.FormValue("comment"))
+		if delivery < 1 || delivery > 5 || product < 1 || product > 5 {
+			return kit.Render(orders.RatingPage(order, cfg, false))
+		}
+
+		rating := models.Rating{
+			OrderID:       uint(id),
+			DeliveryStars: delivery,
+			ProductStars:  product,
+			Comment:       comment,
+			AffiliateID:   order.AffiliateID,
+		}
+		if err := db.Get().Create(&rating).Error; err != nil {
+			slog.Error("rating: failed to save", "orderID", order.ID, "err", err)
+			return err
+		}
+		return kit.Render(orders.RatingPage(order, cfg, true))
+	}
+
+	return kit.Render(orders.RatingPage(order, cfg, false))
 }
 
 func HandleAdminOrdersIndex(kit *kit.Kit) error {

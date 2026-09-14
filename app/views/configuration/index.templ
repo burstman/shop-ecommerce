@@ -370,9 +370,9 @@ templ whatsappSettingsForm(cfg *config.Config) {
 					<p class="mt-1 text-sm text-gray-500">Sent when MesColis marks a parcel "delivered". Body vars: order #, rating link (no button).</p>
 				</div>
 				<div class="sm:col-span-1">
-					<label class="block text-sm font-medium text-gray-700">Delivered Rating URL</label>
-					<input type="url" name="whatsapp_order_delivered_rating_url" value={ cfg.WhatsApp.OrderDeliveredRatingURL } placeholder="https://g.page/r/review-link" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm sm:text-sm"/>
-					<p class="mt-1 text-sm text-gray-500">Sent as the rating link var in the delivered template.</p>
+					<label class="block text-sm font-medium text-gray-700">Rating URL Base (optional)</label>
+					<input type="url" name="whatsapp_order_delivered_rating_url" value={ cfg.WhatsApp.OrderDeliveredRatingURL } placeholder="https://your-shop.com" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm sm:text-sm"/>
+					<p class="mt-1 text-sm text-gray-500">Optional base URL for the rating link. If empty, the affiliate's shop URL is used. The CTA becomes: [base]/rating?id=..&t=..</p>
 				</div>
 				<div class="sm:col-span-2">
 					<label class="block text-sm font-medium text-gray-700">Webhook Verify Token</label>
