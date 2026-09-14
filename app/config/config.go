@@ -421,8 +421,8 @@ func defaultConfig() *Config {
 			AccessToken:                "",
 			TemplateName:               "",
 			TemplateLang:               "fr",
-			OrderInTransitTemplateName: "in_progress",
-			OrderDeliveredTemplateName: "order_delivered",
+			OrderInTransitTemplateName: "shipping",
+			OrderDeliveredTemplateName: "delivred_order",
 			VerifyToken:                "",
 		},
 	}
@@ -554,10 +554,10 @@ func backfill(c *Config) {
 		c.Chat.Mode = "standard"
 	}
 	if c.WhatsApp.OrderInTransitTemplateName == "" {
-		c.WhatsApp.OrderInTransitTemplateName = "in_progress"
+		c.WhatsApp.OrderInTransitTemplateName = "shipping"
 	}
 	if c.WhatsApp.OrderDeliveredTemplateName == "" {
-		c.WhatsApp.OrderDeliveredTemplateName = "order_delivered"
+		c.WhatsApp.OrderDeliveredTemplateName = "delivred_order"
 	}
 	if len(c.StorefrontSidebar) == 0 {
 		c.StorefrontSidebar = defaultConfig().StorefrontSidebar

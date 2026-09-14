@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -66,6 +67,10 @@ func HandleOrderRating(kit *kit.Kit) error {
 	if order.IsTest {
 		return kit.Render(viewerrors.Error404())
 	}
+
+	lang := services.WhatsAppLangForPhone(services.NormalizeWhatsAppPhone(order.Phone), "fr")
+	ctx := context.WithValue(kit.Request.Context(), "lang", lang)
+	kit.Request = kit.Request.WithContext(ctx)
 
 	cfg := config.FromContext(kit.Request.Context())
 

@@ -64,7 +64,7 @@ func HandleMescolisEvent(evt MescolisEvent) {
 
 // whatsappLangForPhone picks the template language for a customer's status update.
 // Tunisian numbers (+216) get Arabic; everyone else falls back to the configured default.
-func whatsappLangForPhone(phone, defaultLang string) string {
+func WhatsAppLangForPhone(phone, defaultLang string) string {
 	if strings.HasPrefix(phone, "216") {
 		return "ar"
 	}
@@ -129,7 +129,7 @@ func loadScopedConfig(order models.Order) *config.Config {
 
 // normalizeWhatsAppPhone turns an order phone (possibly 8-digit local) into
 // international format without "+" (e.g. "21620123456").
-func normalizeWhatsAppPhone(phone string) string {
+func NormalizeWhatsAppPhone(phone string) string {
 	if len(phone) == 8 {
 		return "216" + phone
 	}
@@ -154,9 +154,9 @@ func sendWhatsAppStatusUpdate(order models.Order, mescolisStatus string) {
 	}
 
 	// Format phone: 8-digit local → "216XXXXXXXX" (Tunisia country code, no +)
-	phone := normalizeWhatsAppPhone(order.Phone)
+	phone := NormalizeWhatsAppPhone(order.Phone)
 
-	lang := whatsappLangForPhone(phone, cfg.WhatsApp.TemplateLang)
+	lang := WhatsAppLangForPhone(phone, cfg.WhatsApp.TemplateLang)
 	if lang == "" {
 		lang = "fr"
 	}
@@ -229,7 +229,7 @@ func SendOrderConfirmation(order models.Order, orderURL string) {
 		return
 	}
 
-	phone := normalizeWhatsAppPhone(order.Phone)
+	phone := NormalizeWhatsAppPhone(order.Phone)
 	client := NewWhatsAppCloudClient(cfg.WhatsApp.PhoneNumberID, cfg.WhatsApp.AccessToken)
 
 	name := strings.TrimSpace(order.FirstName + " " + order.LastName)
@@ -364,9 +364,9 @@ func sendWhatsAppDelivered(order models.Order) {
 		name = "العميل"
 	}
 
-	phone := normalizeWhatsAppPhone(order.Phone)
+	phone := NormalizeWhatsAppPhone(order.Phone)
 
-	lang := whatsappLangForPhone(phone, cfg.WhatsApp.TemplateLang)
+	lang := WhatsAppLangForPhone(phone, cfg.WhatsApp.TemplateLang)
 	if lang == "" {
 		lang = "fr"
 	}
@@ -425,9 +425,9 @@ func sendWhatsAppInTransit(order models.Order) {
 		return
 	}
 
-	phone := normalizeWhatsAppPhone(order.Phone)
+	phone := NormalizeWhatsAppPhone(order.Phone)
 
-	lang := whatsappLangForPhone(phone, cfg.WhatsApp.TemplateLang)
+	lang := WhatsAppLangForPhone(phone, cfg.WhatsApp.TemplateLang)
 	if lang == "" {
 		lang = "fr"
 	}
@@ -444,7 +444,7 @@ func sendWhatsAppInTransit(order models.Order) {
 	if driverName == "" {
 		driverName = "عامل التوصيل"
 	}
-	driverPhone := normalizeWhatsAppPhone(stripNonDigits(order.MescolisDriverPhone))
+	driverPhone := NormalizeWhatsAppPhone(stripNonDigits(order.MescolisDriverPhone))
 
 	client := NewWhatsAppCloudClient(cfg.WhatsApp.PhoneNumberID, cfg.WhatsApp.AccessToken)
 	err := client.SendTemplate(phone, cfg.WhatsApp.OrderInTransitTemplateName, lang, []string{
