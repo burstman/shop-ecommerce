@@ -311,6 +311,18 @@ func SendInTransitForOrder(orderID uint) {
 	sendWhatsAppInTransit(order)
 }
 
+// SendDeliveredForOrder advances orderID to the MesColis "delivered" state and
+// sends the phase-3 order_delivered template (rating URL button). Order is KEPT
+// so the rating button link stays live.
+func SendDeliveredForOrder(orderID uint) {
+	var order models.Order
+	if err := db.Get().First(&order, orderID).Error; err != nil {
+		slog.Error("whatsapp: delivered send: order not found", "orderID", orderID, "err", err)
+		return
+	}
+	sendWhatsAppDelivered(order)
+}
+
 // markDeliveredNotified stamps an order as notified post-delivery.
 func markDeliveredNotified(orderID uint) {
 	if err := db.Get().Model(&models.Order{}).Where("id = ?", orderID).
