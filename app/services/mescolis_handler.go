@@ -74,7 +74,7 @@ func HandleMescolisEvent(evt MescolisEvent) {
 	switch evt.Status {
 	case "in-progress":
 		SendPendingInTransitNotifications()
-	case "delivered", "delivered-and-paid":
+	case "delivered":
 		sendWhatsAppDelivered(order)
 	case "return-sender", "final-return", "cancelled-by-sender":
 		// Status updated to cancelled above; no WhatsApp template for returns.
@@ -153,79 +153,6 @@ func NormalizeWhatsAppPhone(phone string) string {
 		return "216" + phone
 	}
 	return phone
-}
-
-// sendWhatsAppStatusUpdate sends a WhatsApp template message with the parcel status.
-func sendWhatsAppStatusUpdate(order models.Order, mescolisStatus string) {
-	cfg := loadScopedConfigFunc(order)
-	if !cfg.WhatsApp.Enabled || cfg.WhatsApp.AccessToken == "" || cfg.WhatsApp.PhoneNumberID == "" || cfg.WhatsApp.TemplateName == "" {
-		return
-	}
-	if order.Phone == "" {
-		return
-	}
-	if order.WhatsappBlocked {
-		slog.Info("whatsapp: skipped - recipient previously undeliverable",
-			"orderID", order.ID,
-			"phone", order.Phone,
-		)
-		return
-	}
-
-	// Format phone: 8-digit local → "216XXXXXXXX" (Tunisia country code, no +)
-	phone := NormalizeWhatsAppPhone(order.Phone)
-
-	lang := WhatsAppLangForPhone(phone, cfg.WhatsApp.TemplateLang)
-	if lang == "" {
-		lang = "fr"
-	}
-	// Map short codes to full Meta locale codes if needed
-	langMap := map[string]string{
-		"fr": "fr_FR",
-		"en": "en_US",
-		"ar": "ar",
-	}
-	if full, ok := langMap[lang]; ok {
-		lang = full
-	}
-
-	trackingURL := fmt.Sprintf("https://mescolis.tn/suivi/%s", order.MescolisBarcode)
-
-		client := newWhatsAppCloudClient(cfg.WhatsApp.PhoneNumberID, cfg.WhatsApp.AccessToken)
-
-	// Tunisian numbers get the Arabic tracking template; everyone else uses the
-	// configured template + language.
-	if strings.HasPrefix(phone, "216") {
-		err := client.SendTemplate(phone, "order_ar_tracking", "ar", []string{
-			fmt.Sprintf("%d", order.ID),
-			arabicDate(time.Now().AddDate(0, 0, 2)),
-		})
-		if err != nil {
-			logSendErr("arabic status update", order, phone, err)
-			return
-		}
-		slog.Info("whatsapp: arabic status update sent",
-			"orderID", order.ID,
-			"phone", phone,
-			"template", "order_ar_tracking",
-		)
-		return
-	}
-
-	err := client.SendTemplate(phone, cfg.WhatsApp.TemplateName, lang, []string{
-		fmt.Sprintf("%d", order.ID),
-		mescolisStatus,
-		trackingURL,
-	})
-	if err != nil {
-		logSendErr("status update", order, phone, err)
-		return
-	}
-	slog.Info("whatsapp: status update sent",
-		"orderID", order.ID,
-		"phone", phone,
-		"status", mescolisStatus,
-	)
 }
 
 // SendOrderConfirmation sends the phase-1 `order_confirmed_v2` template when an
