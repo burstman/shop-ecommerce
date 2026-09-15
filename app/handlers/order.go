@@ -380,6 +380,69 @@ func deleteMescolisParcel(order models.Order, cfg *config.Config) {
 	slog.Info("mescolis parcel deleted", "orderID", order.ID, "barcode", order.MescolisBarcode)
 }
 
+// HandleAdminOrderNewModal returns the "add order manually" modal (rendered
+// into the admin orders index via htmx).
+func HandleAdminOrderNewModal(kit *kit.Kit) error {
+	user, ok := kit.Auth().(models.AuthUser)
+	if !ok || user.Role != "admin" {
+		return kit.Redirect(http.StatusSeeOther, "/")
+	}
+	return kit.Render(orders.NewOrderModal())
+}
+
+// HandleAdminOrderCreate builds a manual order: customer/shipping fields from
+// the admin form plus an explicit status (pending or confirmed). Confirmed
+// orders go through the same side effects as confirming from the order page
+// (Mes Colis parcel + WhatsApp confirmation).
+func HandleAdminOrderCreate(kit *kit.Kit) error {
+	user, ok := kit.Auth().(models.AuthUser)
+	if !ok || user.Role != "admin" {
+		return kit.Redirect(http.StatusSeeOther, "/")
+	}
+
+	status := kit.Request.FormValue("status")
+	if status != "pending" && status != "confirmed" {
+		return fmt.Errorf("invalid order status %q", status)
+	}
+
+	total, err := models.ParseCurrency(kit.Request.FormValue("total"))
+	if err != nil {
+		return err
+	}
+
+	order := models.Order{
+		FirstName:    strings.TrimSpace(kit.Request.FormValue("firstName")),
+		LastName:     strings.TrimSpace(kit.Request.FormValue("lastName")),
+		Email:        strings.TrimSpace(kit.Request.FormValue("email")),
+		Phone:        strings.TrimSpace(kit.Request.FormValue("phone")),
+		Address:      strings.TrimSpace(kit.Request.FormValue("address")),
+		Governorate:  strings.TrimSpace(kit.Request.FormValue("governorate")),
+		City:         strings.TrimSpace(kit.Request.FormValue("city")),
+		Location:     strings.TrimSpace(kit.Request.FormValue("location")),
+		Total:        total,
+		Status:       status,
+		IsTest:       false,
+		AffiliateID:  getAffiliateID(kit.Request.Context()),
+	}
+
+	if order.FirstName == "" || order.LastName == "" || order.Phone == "" {
+		return kit.Redirect(http.StatusSeeOther, "/admin/orders")
+	}
+
+	if err := db.Get().Create(&order).Error; err != nil {
+		return err
+	}
+
+	if status == "confirmed" {
+		cfg := config.FromContext(kit.Request.Context())
+		syncMescolisParcel(order, cfg)
+		orderURL := fmt.Sprintf("?id=%d&t=%s", order.ID, services.OrderTrackingToken(order.ID))
+		services.SendOrderConfirmation(order, orderURL)
+	}
+
+	return kit.Redirect(http.StatusSeeOther, fmt.Sprintf("/admin/orders/%d", order.ID))
+}
+
 func HandleAdminOrderDelete(kit *kit.Kit) error {
 	user, ok := kit.Auth().(models.AuthUser)
 	if !ok || user.Role != "admin" {

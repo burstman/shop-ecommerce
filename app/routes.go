@@ -267,6 +267,8 @@ func InitializeRoutes(router *chi.Mux) {
 		app.Delete("/admin/categories/{id}", kit.Handler(handlers.HandleAdminCategoryDelete))
 		app.Post("/admin/categories/reorder", kit.Handler(handlers.HandleAdminCategoryReorder))
 		app.Get("/admin/orders", kit.Handler(handlers.HandleAdminOrdersIndex))
+		app.Get("/admin/orders/new", kit.Handler(handlers.HandleAdminOrderNewModal))
+		app.Post("/admin/orders", kit.Handler(handlers.HandleAdminOrderCreate))
 		app.Get("/admin/orders/{id}", kit.Handler(handlers.HandleAdminOrderShow))
 		app.Post("/admin/orders/{id}/status", kit.Handler(handlers.HandleAdminOrderUpdateStatus))
 		app.Post("/admin/orders/{id}/info", kit.Handler(handlers.HandleAdminOrderUpdateInfo))
