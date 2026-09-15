@@ -21,8 +21,7 @@ admin panel.
 
 ```bash
 cp .env.example .env      # set DATABASE_URL / DB_* / SUPERKIT_SECRET
-make db-up                # start local Postgres (or use SQLite)
-make db-up                # apply schema migrations (goose)
+make db-up                # apply schema migrations (goose) to the configured DB
 make db-seed              # seed admin + demo shop
 make dev                  # templ + server + Tailwind + esbuild with hot reload
 ```
