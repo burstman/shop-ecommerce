@@ -12,6 +12,25 @@ import (
 	"shopTemplate/app/models"
 )
 
+// whatsappSender is the subset of the WhatsApp Cloud API used by the order-status
+// flow (confirmed → in-transit → delivered). It exists so tests can swap the live
+// HTTP client for a fake recorder without touching the network.
+type whatsappSender interface {
+	SendTemplate(phone, templateName, langCode string, params []string) error
+	SendOrderConfirmationTemplate(phone, orderURLSuffix string, bodyParams []string) error
+	SendTemplateWithURLButton(phone, templateName, langCode, urlSuffix string, bodyParams []string) error
+}
+
+// newWhatsAppCloudClient builds a sender from shop credentials. Tests override it
+// (together with loadScopedConfigFunc) to exercise the flow offline.
+var newWhatsAppCloudClient = func(phoneNumberID, accessToken string) whatsappSender {
+	return NewWhatsAppCloudClient(phoneNumberID, accessToken)
+}
+
+// loadScopedConfigFunc resolves the affiliate-scoped config for an order. Tests
+// override it to return an in-memory config instead of reading the settings table.
+var loadScopedConfigFunc = loadScopedConfig
+
 // HandleMescolisEvent updates an order when Mes Colis sends a status change.
 func HandleMescolisEvent(evt MescolisEvent) {
 	if evt.Barcode == "" || evt.Status == "" {
@@ -138,7 +157,7 @@ func NormalizeWhatsAppPhone(phone string) string {
 
 // sendWhatsAppStatusUpdate sends a WhatsApp template message with the parcel status.
 func sendWhatsAppStatusUpdate(order models.Order, mescolisStatus string) {
-	cfg := loadScopedConfig(order)
+	cfg := loadScopedConfigFunc(order)
 	if !cfg.WhatsApp.Enabled || cfg.WhatsApp.AccessToken == "" || cfg.WhatsApp.PhoneNumberID == "" || cfg.WhatsApp.TemplateName == "" {
 		return
 	}
@@ -172,7 +191,7 @@ func sendWhatsAppStatusUpdate(order models.Order, mescolisStatus string) {
 
 	trackingURL := fmt.Sprintf("https://mescolis.tn/suivi/%s", order.MescolisBarcode)
 
-	client := NewWhatsAppCloudClient(cfg.WhatsApp.PhoneNumberID, cfg.WhatsApp.AccessToken)
+		client := newWhatsAppCloudClient(cfg.WhatsApp.PhoneNumberID, cfg.WhatsApp.AccessToken)
 
 	// Tunisian numbers get the Arabic tracking template; everyone else uses the
 	// configured template + language.
@@ -214,7 +233,7 @@ func sendWhatsAppStatusUpdate(order models.Order, mescolisStatus string) {
 // number, estimated delivery date) and a dynamic URL button pointing at the
 // public order page.
 func SendOrderConfirmation(order models.Order, orderURL string) {
-	cfg := loadScopedConfig(order)
+	cfg := loadScopedConfigFunc(order)
 	if !cfg.WhatsApp.Enabled || cfg.WhatsApp.AccessToken == "" || cfg.WhatsApp.PhoneNumberID == "" {
 		return
 	}
@@ -230,7 +249,7 @@ func SendOrderConfirmation(order models.Order, orderURL string) {
 	}
 
 	phone := NormalizeWhatsAppPhone(order.Phone)
-	client := NewWhatsAppCloudClient(cfg.WhatsApp.PhoneNumberID, cfg.WhatsApp.AccessToken)
+		client := newWhatsAppCloudClient(cfg.WhatsApp.PhoneNumberID, cfg.WhatsApp.AccessToken)
 
 	name := strings.TrimSpace(order.FirstName + " " + order.LastName)
 	if name == "" {
@@ -340,7 +359,7 @@ func sendWhatsAppDelivered(order models.Order) {
 	if order.DeliveredNotifiedAt != nil {
 		return
 	}
-	cfg := loadScopedConfig(order)
+	cfg := loadScopedConfigFunc(order)
 	if !cfg.WhatsApp.Enabled || cfg.WhatsApp.AccessToken == "" || cfg.WhatsApp.PhoneNumberID == "" {
 		return
 	}
@@ -381,7 +400,7 @@ func sendWhatsAppDelivered(order models.Order) {
 
 	ratingSuffix := fmt.Sprintf("?id=%d&t=%s", order.ID, OrderTrackingToken(order.ID))
 
-	client := NewWhatsAppCloudClient(cfg.WhatsApp.PhoneNumberID, cfg.WhatsApp.AccessToken)
+		client := newWhatsAppCloudClient(cfg.WhatsApp.PhoneNumberID, cfg.WhatsApp.AccessToken)
 	err := client.SendTemplateWithURLButton(phone, cfg.WhatsApp.OrderDeliveredTemplateName, lang, ratingSuffix, []string{
 		name,
 		fmt.Sprintf("%d", order.ID),
@@ -406,7 +425,7 @@ func sendWhatsAppInTransit(order models.Order) {
 	if order.InTransitNotifiedAt != nil {
 		return
 	}
-	cfg := loadScopedConfig(order)
+	cfg := loadScopedConfigFunc(order)
 	if !cfg.WhatsApp.Enabled || cfg.WhatsApp.AccessToken == "" || cfg.WhatsApp.PhoneNumberID == "" {
 		return
 	}
@@ -446,7 +465,7 @@ func sendWhatsAppInTransit(order models.Order) {
 	}
 	driverPhone := NormalizeWhatsAppPhone(stripNonDigits(order.MescolisDriverPhone))
 
-	client := NewWhatsAppCloudClient(cfg.WhatsApp.PhoneNumberID, cfg.WhatsApp.AccessToken)
+		client := newWhatsAppCloudClient(cfg.WhatsApp.PhoneNumberID, cfg.WhatsApp.AccessToken)
 	err := client.SendTemplate(phone, cfg.WhatsApp.OrderInTransitTemplateName, lang, []string{
 		fmt.Sprintf("%d", order.ID),
 		driverName,

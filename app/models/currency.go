@@ -79,6 +79,12 @@ func (c *Currency) Scan(value any) error {
 		f, _ = strconv.ParseFloat(v, 64)
 	case float64:
 		f = v
+	case float32:
+		f = float64(v)
+	case int:
+		f = float64(v)
+	case int64:
+		f = float64(v)
 	default:
 		return fmt.Errorf("unsupported type for Currency scan: %T", value)
 	}

@@ -86,6 +86,11 @@ db-seed:
 reset-admin-password:
 	@go run cmd/reset-password/main.go
 
+# run the offline WhatsApp order-event flow tests (no network/DB needed)
+.PHONY: test-whatsapp
+test-whatsapp:
+	@go test ./app/services/ -count=1 -run 'TestWhatsApp' -v
+
 .PHONY: reset-shop
 reset-shop:
 	@if [ -z "$(AFF_ID)" ]; then echo "Usage: make reset-shop AFF_ID=AFF-001"; exit 1; fi
