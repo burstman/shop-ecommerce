@@ -310,7 +310,7 @@ func NewOrderModal(products []models.Product) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "\" @click=\"select($el)\" class=\"w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-indigo-50 transition-colors cursor-pointer\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "\" @click=\"select($event.currentTarget)\" class=\"w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-indigo-50 transition-colors cursor-pointer\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
