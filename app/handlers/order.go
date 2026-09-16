@@ -18,6 +18,7 @@ import (
 
 	"github.com/anthdm/superkit/kit"
 	"github.com/go-chi/chi/v5"
+	"github.com/gorilla/csrf"
 	"gorm.io/gorm"
 )
 
@@ -391,7 +392,7 @@ func HandleAdminOrderNewModal(kit *kit.Kit) error {
 	if err := db.Get().Model(&models.Product{}).Order("name asc").Find(&products).Error; err != nil {
 		return err
 	}
-	return kit.Render(orders.NewOrderModal(products))
+	return kit.Render(orders.NewOrderModal(products, csrf.Token(kit.Request)))
 }
 
 // HandleAdminOrderCreate builds a manual order: customer/shipping fields from

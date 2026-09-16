@@ -6,13 +6,14 @@ import (
 	"shopTemplate/app/services"
 )
 
-templ NewOrderModal(products []models.Product) {
+templ NewOrderModal(products []models.Product, csrfToken string) {
 	<div id="modal" class="fixed inset-0 bg-gray-500/75 flex items-center justify-center z-50">
 		<div class="bg-white rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto" role="dialog" aria-modal="true" @click.away="document.getElementById('modal').remove()">
 			<div class="flex justify-between items-center mb-4 px-6 pt-6">
 				<h2 class="text-xl font-bold text-gray-900">{ services.GetI18n().T(ctx, "new_order_title") }</h2>
 				<button type="button" @click="document.getElementById('modal').remove()" class="text-gray-400 hover:text-gray-600 focus:outline-none text-2xl">&times;</button>
 			</div>
+			<input type="hidden" name="csrf_token" value={ csrfToken }/>
 			<form method="post" action="/admin/orders" class="px-6 pb-6 space-y-4" x-data="{ open: false, selectedId: '', selectedLabel: '', selectedImg: '', price: 0, qty: 1, total: 0, select(btn) { this.selectedId = btn.getAttribute('data-id'); this.selectedLabel = btn.getAttribute('data-label'); this.selectedImg = btn.getAttribute('data-img') || ''; var promo = parseFloat(btn.getAttribute('data-promo')); this.price = promo > 0 ? promo : parseFloat(btn.getAttribute('data-price')); this.calc(); this.open = false; }, calc() { if (this.price <= 0) { this.total = 0; return; } var q = parseInt(this.qty, 10) || 1; this.total = (this.price * q).toFixed(2); } }">
 				<div class="grid grid-cols-2 gap-4">
 					<div>
