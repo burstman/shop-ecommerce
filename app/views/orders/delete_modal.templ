@@ -16,6 +16,9 @@ templ DeleteModal(order models.Order) {
 			<div class="mb-6">
 				<p class="text-gray-700">{ fmt.Sprintf(services.GetI18n().T(ctx, "delete_confirm_text"), fmt.Sprint(order.ID), order.FirstName + " " + order.LastName) }</p>
 				<p class="text-sm text-gray-500 mt-2">{ services.GetI18n().T(ctx, "delete_permanent") }</p>
+				if order.MescolisBarcode != "" {
+					<p class="text-sm text-red-600 font-medium mt-2">{ services.GetI18n().T(ctx, "delete_mescolis_warning") }</p>
+				}
 			</div>
 			<div class="flex justify-end gap-3">
 				<button type="button" @click="document.getElementById('modal').remove()" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors">{ services.GetI18n().T(ctx, "cancel") }</button>

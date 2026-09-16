@@ -117,6 +117,7 @@
   "delete_confirm_text": "هل أنت متأكد من حذف الطلب #%s من %s؟",
   "delete_order": "حذف الطلب",
   "delete_permanent": "هذا الإجراء دائم ولا يمكن التراجع عنه.",
+  "delete_mescolis_warning": "سيتم حذف الطلب نهائيًا أيضًا من ميس كوليس.",
   "description": "الوصف",
   "email_optional": "البريد الإلكتروني (اختياري)",
   "go_back": "رجوع",

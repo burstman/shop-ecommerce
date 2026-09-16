@@ -118,6 +118,7 @@
   "delete_confirm_text": "Are you sure you want to delete order #%s from %s?",
   "delete_order": "Delete Order",
   "delete_permanent": "This action is permanent and cannot be undone.",
+  "delete_mescolis_warning": "The order will also be permanently deleted from Mes Colis.",
   "description": "Description",
   "email_optional": "Email Address (Optional)",
   "go_back": "Go Back",

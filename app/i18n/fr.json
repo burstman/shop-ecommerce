@@ -118,6 +118,7 @@
   "delete_confirm_text": "Êtes-vous sûr de vouloir supprimer la commande #%s de %s\u00a0?",
   "delete_order": "Supprimer la commande",
   "delete_permanent": "Cette action est permanente et irréversible.",
+  "delete_mescolis_warning": "La commande sera également supprimée définitivement de Mes Colis.",
   "description": "Description",
   "email_optional": "Adresse e-mail (facultative)",
   "go_back": "Retour",
