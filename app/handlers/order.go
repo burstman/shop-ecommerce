@@ -421,9 +421,20 @@ func HandleAdminOrderCreate(kit *kit.Kit) error {
 		if err := db.Get().First(&product, productID).Error; err != nil {
 			return fmt.Errorf("product %d not found", productID)
 		}
-		unitPrice = product.Price
-		if product.PromotionPrice > 0 {
-			unitPrice = product.PromotionPrice
+		// Use the admin-edited unit price if provided, otherwise default to the
+		// product price (promotion price wins over base price).
+		if up := strings.TrimSpace(kit.Request.FormValue("unitPrice")); up != "" {
+			up, err := models.ParseCurrency(up)
+			if err != nil {
+				return err
+			}
+			unitPrice = up
+		}
+		if unitPrice <= 0 {
+			unitPrice = product.Price
+			if product.PromotionPrice > 0 {
+				unitPrice = product.PromotionPrice
+			}
 		}
 	}
 
@@ -431,7 +442,8 @@ func HandleAdminOrderCreate(kit *kit.Kit) error {
 	if err != nil {
 		return err
 	}
-	// Auto-compute the total from product quantity unless the admin gave an explicit total.
+	// Auto-compute the total from unit price x quantity unless the admin gave an
+	// explicit total.
 	if total <= 0 && productID > 0 {
 		total = unitPrice.Multiply(quantity)
 	}
