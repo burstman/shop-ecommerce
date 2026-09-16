@@ -13,7 +13,6 @@ import (
 	"github.com/anthdm/superkit/kit"
 	"github.com/joho/godotenv"
 
-	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-sqlite3"
 
 	"gorm.io/driver/postgres"
@@ -83,6 +82,7 @@ func Connect() error {
 
 	var dbinst *sql.DB
 	var err error
+	var postgresDSN string
 
 	if config.Driver == "postgres" {
 		// Prioritize a full DATABASE_URL (trimmed of quotes and spaces)
@@ -108,9 +108,9 @@ func Connect() error {
 			return fmt.Errorf("missing DB config: set DATABASE_URL or DB_NAME")
 		}
 
+		postgresDSN = dsn
 		// Log sanitized connection attempt for debugging
 		slog.Info("initializing postgres connection", "using_url", strings.Contains(dsn, "://"))
-		dbinst, err = sql.Open("postgres", dsn)
 	} else {
 		dbinst, err = db.NewSQL(config)
 	}
@@ -149,8 +149,8 @@ func Connect() error {
 		}
 	case "postgres":
 		dbInstance, errGorm = gorm.Open(postgres.New(postgres.Config{
-			Conn:                 dbinst,
-			PreferSimpleProtocol: true, // Neon pooler: unnamed prepared statements break in transaction mode (pq 26000)
+			DSN:                  postgresDSN,
+			PreferSimpleProtocol: true, // Neon pooler: unnamed prepared statements break in transaction mode (pq 26000 / 08P01)
 		}), &gorm.Config{
 			Logger:      newLogger,
 			PrepareStmt: false,
