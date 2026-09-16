@@ -36,20 +36,14 @@ templ NewOrderModal(products []models.Product) {
 					<label class="block text-xs font-medium text-gray-500 uppercase tracking-wider">{ services.GetI18n().T(ctx, "address") }</label>
 					<input type="text" name="address" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"/>
 				</div>
-				<div class="grid grid-cols-2 gap-4">
-					<div>
-						<label class="block text-xs font-medium text-gray-500 uppercase tracking-wider">{ services.GetI18n().T(ctx, "governorate") }</label>
-						<select name="governorate" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-							<option value="">-- { services.GetI18n().T(ctx, "select") } --</option>
-							for _, g := range governorates {
-								<option value={ g }>{ g }</option>
-							}
-						</select>
-					</div>
-					<div>
-						<label class="block text-xs font-medium text-gray-500 uppercase tracking-wider">{ services.GetI18n().T(ctx, "city") }</label>
-						<input type="text" name="city" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"/>
-					</div>
+				<div>
+					<label class="block text-xs font-medium text-gray-500 uppercase tracking-wider">{ services.GetI18n().T(ctx, "governorate") }</label>
+					<select name="governorate" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+						<option value="">-- { services.GetI18n().T(ctx, "select") } --</option>
+						for _, g := range governorates {
+							<option value={ g }>{ g }</option>
+						}
+					</select>
 				</div>
 				<div>
 					<label class="block text-xs font-medium text-gray-500 uppercase tracking-wider">{ services.GetI18n().T(ctx, "location") }</label>
@@ -57,12 +51,15 @@ templ NewOrderModal(products []models.Product) {
 				</div>
 				<div>
 					<label class="block text-xs font-medium text-gray-500 uppercase tracking-wider">{ services.GetI18n().T(ctx, "product") }</label>
-					<select name="productId" id="order-product" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-						<option value="">-- { services.GetI18n().T(ctx, "select") } --</option>
-						for _, p := range products {
-							<option value={ fmt.Sprintf("%d", p.ID) } data-price={ p.Price.String() } data-promo={ p.PromotionPrice.String() }>{ p.Name }</option>
-						}
-					</select>
+					<div class="flex items-center gap-3">
+						<select name="productId" id="order-product" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+							<option value="">-- { services.GetI18n().T(ctx, "select") } --</option>
+							for _, p := range products {
+								<option value={ fmt.Sprintf("%d", p.ID) } data-price={ p.Price.String() } data-promo={ p.PromotionPrice.String() } data-image={ p.Image }>{ p.Name }</option>
+							}
+						</select>
+						<img id="order-product-preview" src="" alt="" class="mt-1 hidden h-12 w-12 rounded-md object-cover border border-gray-200"/>
+					</div>
 				</div>
 				<div>
 					<label class="block text-xs font-medium text-gray-500 uppercase tracking-wider">{ services.GetI18n().T(ctx, "quantity") }</label>
@@ -97,15 +94,21 @@ templ NewOrderModal(products []models.Product) {
 			var product = document.getElementById('order-product');
 			var qty = document.getElementById('order-quantity');
 			var total = document.getElementById('order-total');
+			var preview = document.getElementById('order-product-preview');
 			if (!product || !qty || !total) return;
 			function update() {
 				var opt = product.options[product.selectedIndex];
-				if (!opt || !opt.value) { total.value = '0'; return; }
+				if (!opt || !opt.value) { total.value = '0'; if (preview) preview.classList.add('hidden'); return; }
 				var price = parseFloat(opt.getAttribute('data-promo')) > 0
 					? parseFloat(opt.getAttribute('data-promo'))
 					: parseFloat(opt.getAttribute('data-price'));
 				var q = parseInt(qty.value, 10) || 1;
 				total.value = (price * q).toFixed(2);
+				if (preview) {
+					var img = opt.getAttribute('data-image');
+					if (img) { preview.src = img; preview.classList.remove('hidden'); }
+					else { preview.classList.add('hidden'); }
+				}
 			}
 			product.addEventListener('change', update);
 			qty.addEventListener('input', update);

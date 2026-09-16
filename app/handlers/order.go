@@ -443,7 +443,7 @@ func HandleAdminOrderCreate(kit *kit.Kit) error {
 		Phone:        strings.TrimSpace(kit.Request.FormValue("phone")),
 		Address:      strings.TrimSpace(kit.Request.FormValue("address")),
 		Governorate:  strings.TrimSpace(kit.Request.FormValue("governorate")),
-		City:         strings.TrimSpace(kit.Request.FormValue("city")),
+		City:         strings.TrimSpace(kit.Request.FormValue("governorate")),
 		Location:     strings.TrimSpace(kit.Request.FormValue("location")),
 		Total:        total,
 		Status:       status,
