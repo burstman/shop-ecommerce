@@ -51,14 +51,20 @@ templ NewOrderModal(products []models.Product) {
 				</div>
 				<div>
 					<label class="block text-xs font-medium text-gray-500 uppercase tracking-wider">{ services.GetI18n().T(ctx, "product") }</label>
-					<div class="flex items-center gap-3">
-						<select name="productId" id="order-product" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-							<option value="">-- { services.GetI18n().T(ctx, "select") } --</option>
-							for _, p := range products {
-								<option value={ fmt.Sprintf("%d", p.ID) } data-price={ p.Price.String() } data-promo={ p.PromotionPrice.String() } data-image={ p.Image }>{ p.Name }</option>
-							}
-						</select>
-						<img id="order-product-preview" src="" alt="" class="mt-1 hidden h-12 w-12 rounded-md object-cover border border-gray-200"/>
+					<input type="hidden" name="productId" id="order-product" required/>
+					<div id="order-product-list" class="mt-1 max-h-48 overflow-y-auto border border-gray-200 rounded-md divide-y divide-gray-100">
+						for _, p := range products {
+							<button type="button" role="option" id={ fmt.Sprintf("order-product-opt-%d", p.ID) } data-id={ fmt.Sprintf("%d", p.ID) } data-price={ p.Price.String() } data-promo={ p.PromotionPrice.String() } class="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-indigo-50 transition-colors cursor-pointer">
+								if p.Image != "" {
+									<img src={ p.Image } alt={ p.Name } class="h-12 w-12 rounded-md object-cover border border-gray-200 flex-shrink-0"/>
+								} else {
+									<div class="h-12 w-12 rounded-md border border-gray-200 flex items-center justify-center text-gray-300 flex-shrink-0">
+										<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+									</div>
+								}
+								<span class="text-sm font-medium text-gray-900">{ p.Name }</span>
+							</button>
+						}
 					</div>
 				</div>
 				<div>
@@ -91,27 +97,31 @@ templ NewOrderModal(products []models.Product) {
 	</div>
 	<script>
 		(function () {
-			var product = document.getElementById('order-product');
+			var input = document.getElementById('order-product');
+			var opts = document.querySelectorAll('#order-product-list button[role="option"]');
 			var qty = document.getElementById('order-quantity');
 			var total = document.getElementById('order-total');
-			var preview = document.getElementById('order-product-preview');
-			if (!product || !qty || !total) return;
-			function update() {
-				var opt = product.options[product.selectedIndex];
-				if (!opt || !opt.value) { total.value = '0'; if (preview) preview.classList.add('hidden'); return; }
+			if (!input || !opts.length || !qty || !total) return;
+			var selected = null;
+			function select(btn) {
+				var opt = btn || selected;
+				if (!opt) { total.value = '0'; input.value = ''; return; }
 				var price = parseFloat(opt.getAttribute('data-promo')) > 0
 					? parseFloat(opt.getAttribute('data-promo'))
 					: parseFloat(opt.getAttribute('data-price'));
 				var q = parseInt(qty.value, 10) || 1;
 				total.value = (price * q).toFixed(2);
-				if (preview) {
-					var img = opt.getAttribute('data-image');
-					if (img) { preview.src = img; preview.classList.remove('hidden'); }
-					else { preview.classList.add('hidden'); }
-				}
+				input.value = opt.getAttribute('data-id');
 			}
-			product.addEventListener('change', update);
-			qty.addEventListener('input', update);
+			opts.forEach(function (btn) {
+				btn.addEventListener('click', function () {
+					if (selected) selected.classList.remove('bg-indigo-50', 'ring-2', 'ring-indigo-500');
+					selected = btn;
+					btn.classList.add('bg-indigo-50', 'ring-2', 'ring-indigo-500');
+					select(btn);
+				});
+			});
+			qty.addEventListener('input', function () { select(null); });
 		})();
 	</script>
 }

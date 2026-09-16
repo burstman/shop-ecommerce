@@ -227,32 +227,32 @@ func NewOrderModal(products []models.Product) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</label><div class=\"flex items-center gap-3\"><select name=\"productId\" id=\"order-product\" class=\"mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm\"><option value=\"\">-- ")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var16 string
-		templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(services.GetI18n().T(ctx, "select"))
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/new_order_modal.templ`, Line: 56, Col: 64}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, " --</option> ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</label> <input type=\"hidden\" name=\"productId\" id=\"order-product\" required><div id=\"order-product-list\" class=\"mt-1 max-h-48 overflow-y-auto border border-gray-200 rounded-md divide-y divide-gray-100\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		for _, p := range products {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "<option value=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "<button type=\"button\" role=\"option\" id=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var16 string
+			templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.ResolveAttributeValue(fmt.Sprintf("order-product-opt-%d", p.ID))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/new_order_modal.templ`, Line: 57, Col: 89}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var16)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "\" data-id=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var17 string
 			templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.ResolveAttributeValue(fmt.Sprintf("%d", p.ID))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/new_order_modal.templ`, Line: 58, Col: 47}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/new_order_modal.templ`, Line: 57, Col: 125}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var17)
 			if templ_7745c5c3_Err != nil {
@@ -265,7 +265,7 @@ func NewOrderModal(products []models.Product) templ.Component {
 			var templ_7745c5c3_Var18 string
 			templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.ResolveAttributeValue(p.Price.String())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/new_order_modal.templ`, Line: 58, Col: 79}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/new_order_modal.templ`, Line: 57, Col: 157}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var18)
 			if templ_7745c5c3_Err != nil {
@@ -278,135 +278,163 @@ func NewOrderModal(products []models.Product) templ.Component {
 			var templ_7745c5c3_Var19 string
 			templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.ResolveAttributeValue(p.PromotionPrice.String())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/new_order_modal.templ`, Line: 58, Col: 120}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/new_order_modal.templ`, Line: 57, Col: 198}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var19)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "\" data-image=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "\" class=\"w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-indigo-50 transition-colors cursor-pointer\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var20 string
-			templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.ResolveAttributeValue(p.Image)
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/new_order_modal.templ`, Line: 58, Col: 143}
+			if p.Image != "" {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "<img src=\"")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var20 string
+				templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.ResolveAttributeValue(p.Image)
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/new_order_modal.templ`, Line: 59, Col: 27}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var20)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "\" alt=\"")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var21 string
+				templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.ResolveAttributeValue(p.Name)
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/new_order_modal.templ`, Line: 59, Col: 42}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var21)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "\" class=\"h-12 w-12 rounded-md object-cover border border-gray-200 flex-shrink-0\"> ")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			} else {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "<div class=\"h-12 w-12 rounded-md border border-gray-200 flex items-center justify-center text-gray-300 flex-shrink-0\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"h-6 w-6\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z\"></path></svg></div>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var20)
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "<span class=\"text-sm font-medium text-gray-900\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "\">")
+			var templ_7745c5c3_Var22 string
+			templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs(p.Name)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/new_order_modal.templ`, Line: 65, Col: 64}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var21 string
-			templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.JoinStringErrs(p.Name)
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/new_order_modal.templ`, Line: 58, Col: 154}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var21))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "</option>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "</span></button>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "</select> <img id=\"order-product-preview\" src=\"\" alt=\"\" class=\"mt-1 hidden h-12 w-12 rounded-md object-cover border border-gray-200\"></div></div><div><label class=\"block text-xs font-medium text-gray-500 uppercase tracking-wider\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var22 string
-		templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs(services.GetI18n().T(ctx, "quantity"))
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/new_order_modal.templ`, Line: 65, Col: 124}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "</label> <input type=\"number\" name=\"quantity\" id=\"order-quantity\" min=\"1\" value=\"1\" class=\"mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm\"></div><div><label class=\"block text-xs font-medium text-gray-500 uppercase tracking-wider\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "</div></div><div><label class=\"block text-xs font-medium text-gray-500 uppercase tracking-wider\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var23 string
-		templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.JoinStringErrs(services.GetI18n().T(ctx, "total"))
+		templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.JoinStringErrs(services.GetI18n().T(ctx, "quantity"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/new_order_modal.templ`, Line: 69, Col: 121}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/new_order_modal.templ`, Line: 71, Col: 124}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var23))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "</label> <input type=\"number\" name=\"total\" id=\"order-total\" min=\"0\" step=\"0.01\" value=\"0\" class=\"mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm\"></div><div><label class=\"block text-xs font-medium text-gray-500 uppercase tracking-wider\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "</label> <input type=\"number\" name=\"quantity\" id=\"order-quantity\" min=\"1\" value=\"1\" class=\"mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm\"></div><div><label class=\"block text-xs font-medium text-gray-500 uppercase tracking-wider\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var24 string
-		templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.JoinStringErrs(services.GetI18n().T(ctx, "status"))
+		templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.JoinStringErrs(services.GetI18n().T(ctx, "total"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/new_order_modal.templ`, Line: 73, Col: 122}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/new_order_modal.templ`, Line: 75, Col: 121}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var24))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "</label><div class=\"mt-2 flex gap-4\"><label class=\"inline-flex items-center\"><input type=\"radio\" name=\"status\" value=\"pending\" checked class=\"h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500\"> <span class=\"ml-2 text-sm text-gray-900\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "</label> <input type=\"number\" name=\"total\" id=\"order-total\" min=\"0\" step=\"0.01\" value=\"0\" class=\"mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm\"></div><div><label class=\"block text-xs font-medium text-gray-500 uppercase tracking-wider\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var25 string
-		templ_7745c5c3_Var25, templ_7745c5c3_Err = templ.JoinStringErrs(services.GetI18n().T(ctx, "pending"))
+		templ_7745c5c3_Var25, templ_7745c5c3_Err = templ.JoinStringErrs(services.GetI18n().T(ctx, "status"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/new_order_modal.templ`, Line: 77, Col: 86}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/new_order_modal.templ`, Line: 79, Col: 122}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var25))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "</span></label> <label class=\"inline-flex items-center\"><input type=\"radio\" name=\"status\" value=\"confirmed\" class=\"h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500\"> <span class=\"ml-2 text-sm text-gray-900\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "</label><div class=\"mt-2 flex gap-4\"><label class=\"inline-flex items-center\"><input type=\"radio\" name=\"status\" value=\"pending\" checked class=\"h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500\"> <span class=\"ml-2 text-sm text-gray-900\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var26 string
-		templ_7745c5c3_Var26, templ_7745c5c3_Err = templ.JoinStringErrs(services.GetI18n().T(ctx, "confirmed"))
+		templ_7745c5c3_Var26, templ_7745c5c3_Err = templ.JoinStringErrs(services.GetI18n().T(ctx, "pending"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/new_order_modal.templ`, Line: 81, Col: 88}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/new_order_modal.templ`, Line: 83, Col: 86}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var26))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "</span></label></div></div><div class=\"flex justify-end gap-3 pt-2\"><button type=\"button\" @click=\"document.getElementById('modal').remove()\" class=\"px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "</span></label> <label class=\"inline-flex items-center\"><input type=\"radio\" name=\"status\" value=\"confirmed\" class=\"h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500\"> <span class=\"ml-2 text-sm text-gray-900\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var27 string
-		templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.JoinStringErrs(services.GetI18n().T(ctx, "cancel"))
+		templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.JoinStringErrs(services.GetI18n().T(ctx, "confirmed"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/new_order_modal.templ`, Line: 86, Col: 206}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/new_order_modal.templ`, Line: 87, Col: 88}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var27))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "</button> <button type=\"submit\" class=\"px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors cursor-pointer\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "</span></label></div></div><div class=\"flex justify-end gap-3 pt-2\"><button type=\"button\" @click=\"document.getElementById('modal').remove()\" class=\"px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var28 string
-		templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.JoinStringErrs(services.GetI18n().T(ctx, "save_order"))
+		templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.JoinStringErrs(services.GetI18n().T(ctx, "cancel"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/new_order_modal.templ`, Line: 87, Col: 175}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/new_order_modal.templ`, Line: 92, Col: 206}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var28))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "</button></div></form></div></div><script>\n\t\t(function () {\n\t\t\tvar product = document.getElementById('order-product');\n\t\t\tvar qty = document.getElementById('order-quantity');\n\t\t\tvar total = document.getElementById('order-total');\n\t\t\tvar preview = document.getElementById('order-product-preview');\n\t\t\tif (!product || !qty || !total) return;\n\t\t\tfunction update() {\n\t\t\t\tvar opt = product.options[product.selectedIndex];\n\t\t\t\tif (!opt || !opt.value) { total.value = '0'; if (preview) preview.classList.add('hidden'); return; }\n\t\t\t\tvar price = parseFloat(opt.getAttribute('data-promo')) > 0\n\t\t\t\t\t? parseFloat(opt.getAttribute('data-promo'))\n\t\t\t\t\t: parseFloat(opt.getAttribute('data-price'));\n\t\t\t\tvar q = parseInt(qty.value, 10) || 1;\n\t\t\t\ttotal.value = (price * q).toFixed(2);\n\t\t\t\tif (preview) {\n\t\t\t\t\tvar img = opt.getAttribute('data-image');\n\t\t\t\t\tif (img) { preview.src = img; preview.classList.remove('hidden'); }\n\t\t\t\t\telse { preview.classList.add('hidden'); }\n\t\t\t\t}\n\t\t\t}\n\t\t\tproduct.addEventListener('change', update);\n\t\t\tqty.addEventListener('input', update);\n\t\t})();\n\t</script>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "</button> <button type=\"submit\" class=\"px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors cursor-pointer\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var29 string
+		templ_7745c5c3_Var29, templ_7745c5c3_Err = templ.JoinStringErrs(services.GetI18n().T(ctx, "save_order"))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/new_order_modal.templ`, Line: 93, Col: 175}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var29))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "</button></div></form></div></div><script>\n\t\t(function () {\n\t\t\tvar input = document.getElementById('order-product');\n\t\t\tvar opts = document.querySelectorAll('#order-product-list button[role=\"option\"]');\n\t\t\tvar qty = document.getElementById('order-quantity');\n\t\t\tvar total = document.getElementById('order-total');\n\t\t\tif (!input || !opts.length || !qty || !total) return;\n\t\t\tvar selected = null;\n\t\t\tfunction select(btn) {\n\t\t\t\tvar opt = btn || selected;\n\t\t\t\tif (!opt) { total.value = '0'; input.value = ''; return; }\n\t\t\t\tvar price = parseFloat(opt.getAttribute('data-promo')) > 0\n\t\t\t\t\t? parseFloat(opt.getAttribute('data-promo'))\n\t\t\t\t\t: parseFloat(opt.getAttribute('data-price'));\n\t\t\t\tvar q = parseInt(qty.value, 10) || 1;\n\t\t\t\ttotal.value = (price * q).toFixed(2);\n\t\t\t\tinput.value = opt.getAttribute('data-id');\n\t\t\t}\n\t\t\topts.forEach(function (btn) {\n\t\t\t\tbtn.addEventListener('click', function () {\n\t\t\t\t\tif (selected) selected.classList.remove('bg-indigo-50', 'ring-2', 'ring-indigo-500');\n\t\t\t\t\tselected = btn;\n\t\t\t\t\tbtn.classList.add('bg-indigo-50', 'ring-2', 'ring-indigo-500');\n\t\t\t\t\tselect(btn);\n\t\t\t\t});\n\t\t\t});\n\t\t\tqty.addEventListener('input', function () { select(null); });\n\t\t})();\n\t</script>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
