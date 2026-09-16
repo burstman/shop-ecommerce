@@ -13,7 +13,7 @@ var governorates = []string{
 	"Sousse", "Tataouine", "Tozeur", "Tunis", "Zaghouan",
 }
 
-templ Show(order models.Order) {
+templ Show(order models.Order, mescolisConnected bool) {
 	<div class="mb-6">
 		<a href="/admin/orders" class="text-indigo-600 hover:text-indigo-900 flex items-center gap-1 mb-4">
 			<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -81,34 +81,38 @@ templ Show(order models.Order) {
 				</div>
 				<div class="p-6 space-y-3">
 					if order.Status == "pending" {
-						<form hx-post={ fmt.Sprintf("/admin/orders/%d/status", order.ID) }>
-							<input type="hidden" name="status" value="confirmed"/>
-							<button type="submit" class="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 cursor-pointer">
-								{ services.GetI18n().T(ctx, "confirm_order") }
-							</button>
-						</form>
+<form hx-post={ fmt.Sprintf("/admin/orders/%d/status", order.ID) }>
+						<input type="hidden" name="status" value="confirmed"/>
+						<button type="submit" class="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 cursor-pointer">
+							{ services.GetI18n().T(ctx, "confirm_order") }
+						</button>
+					</form>
+					if !mescolisConnected {
 						<form hx-post={ fmt.Sprintf("/admin/orders/%d/status", order.ID) }>
 							<input type="hidden" name="status" value="shipped"/>
 							<button type="submit" class="w-full inline-flex justify-center items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 cursor-pointer">
 								{ services.GetI18n().T(ctx, "mark_shipped") }
 							</button>
 						</form>
-						<button 
-							type="button" 
-							hx-get={ fmt.Sprintf("/admin/orders/%d/cancel", order.ID) }
-							hx-target="body"
-							hx-swap="beforeend"
-							class="w-full inline-flex justify-center items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 cursor-pointer"
-						>
-							{ services.GetI18n().T(ctx, "cancel_order") }
-						</button>
-					} else if order.Status == "confirmed" {
+					}
+					<button 
+						type="button" 
+						hx-get={ fmt.Sprintf("/admin/orders/%d/cancel", order.ID) }
+						hx-target="body"
+						hx-swap="beforeend"
+						class="w-full inline-flex justify-center items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 cursor-pointer"
+					>
+						{ services.GetI18n().T(ctx, "cancel_order") }
+					</button>
+				} else if order.Status == "confirmed" {
+					if !mescolisConnected {
 						<form hx-post={ fmt.Sprintf("/admin/orders/%d/status", order.ID) }>
 							<input type="hidden" name="status" value="shipped"/>
 							<button type="submit" class="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 cursor-pointer">
 								{ services.GetI18n().T(ctx, "mark_shipped") }
 							</button>
 						</form>
+					}
 						<form hx-post={ fmt.Sprintf("/admin/orders/%d/status", order.ID) }>
 							<input type="hidden" name="status" value="pending"/>
 							<button type="submit" class="w-full inline-flex justify-center items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 cursor-pointer">

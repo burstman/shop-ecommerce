@@ -154,7 +154,8 @@ func HandleAdminOrderShow(kit *kit.Kit) error {
 
 	activePath := "/admin/orders"
 	sidebar := config.GetAdminSidebarGroups()
-	content := orders.Show(order)
+	cfg := config.FromContext(kit.Request.Context())
+	content := orders.Show(order, cfg.Mescolis.Enabled && cfg.Mescolis.APIKey != "")
 	return RenderAdminWithLayout(kit, sidebar, activePath, content)
 }
 
