@@ -224,6 +224,19 @@ func HandleAdminOrderUpdateStatus(kit *kit.Kit) error {
 		deleteMescolisParcel(order, cfg)
 	}
 
+	// When reverting to pending, remove the Mes Colis parcel too (admin may
+	// need to re-confirm and recreate a fresh parcel).
+	if newStatus == "pending" && order.MescolisBarcode != "" {
+		cfg := config.FromContext(kit.Request.Context())
+		deleteMescolisParcel(order, cfg)
+		if err := db.Get().Model(&order).Updates(map[string]any{
+			"mescolis_barcode": "",
+			"mescolis_status":  "",
+		}).Error; err != nil {
+			slog.Error("failed to clear mes colis parcel on revert", "err", err, "orderID", order.ID)
+		}
+	}
+
 	return kit.Redirect(http.StatusSeeOther, fmt.Sprintf("/admin/orders/%d", id))
 }
 
@@ -317,6 +330,29 @@ func HandleAdminOrderCancelConfirm(kit *kit.Kit) error {
 	}
 
 	return kit.Render(orders.CancelModal(order))
+}
+
+func HandleAdminOrderRevertConfirm(kit *kit.Kit) error {
+	user, ok := kit.Auth().(models.AuthUser)
+	if !ok || user.Role != "admin" {
+		return kit.Redirect(http.StatusSeeOther, "/")
+	}
+
+	idStr := chi.URLParam(kit.Request, "id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		return kit.Render(viewerrors.Error500())
+	}
+
+	var order models.Order
+	if err := db.Get().First(&order, id).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return kit.Render(viewerrors.Error404())
+		}
+		return err
+	}
+
+	return kit.Render(orders.RevertModal(order))
 }
 
 func syncMescolisParcel(order models.Order, cfg *config.Config) {

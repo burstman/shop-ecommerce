@@ -113,12 +113,15 @@ templ Show(order models.Order, mescolisConnected bool) {
 							</button>
 						</form>
 					}
-						<form hx-post={ fmt.Sprintf("/admin/orders/%d/status", order.ID) }>
-							<input type="hidden" name="status" value="pending"/>
-							<button type="submit" class="w-full inline-flex justify-center items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 cursor-pointer">
-								{ services.GetI18n().T(ctx, "revert_pending") }
-							</button>
-						</form>
+						<button 
+							type="button" 
+							hx-get={ fmt.Sprintf("/admin/orders/%d/revert", order.ID) }
+							hx-target="body"
+							hx-swap="beforeend"
+							class="w-full inline-flex justify-center items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 cursor-pointer"
+						>
+							{ services.GetI18n().T(ctx, "revert_pending") }
+						</button>
 						<button 
 							type="button" 
 							hx-get={ fmt.Sprintf("/admin/orders/%d/cancel", order.ID) }
@@ -135,12 +138,15 @@ templ Show(order models.Order, mescolisConnected bool) {
 								{ services.GetI18n().T(ctx, "mark_completed") }
 							</button>
 						</form>
-						<form hx-post={ fmt.Sprintf("/admin/orders/%d/status", order.ID) }>
-							<input type="hidden" name="status" value="pending"/>
-							<button type="submit" class="w-full inline-flex justify-center items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 cursor-pointer">
-								{ services.GetI18n().T(ctx, "revert_pending") }
-							</button>
-						</form>
+						<button 
+							type="button" 
+							hx-get={ fmt.Sprintf("/admin/orders/%d/revert", order.ID) }
+							hx-target="body"
+							hx-swap="beforeend"
+							class="w-full inline-flex justify-center items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 cursor-pointer"
+						>
+							{ services.GetI18n().T(ctx, "revert_pending") }
+						</button>
 					} else if order.Status == "abandoned" {
 						<form hx-post={ fmt.Sprintf("/admin/orders/%d/status", order.ID) }>
 							<input type="hidden" name="status" value="pending"/>
