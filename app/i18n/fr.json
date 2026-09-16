@@ -164,6 +164,8 @@
   "test_order": "Commande test",
   "total": "Total",
   "total_orders": "Total des commandes",
+  "quantity": "Quantité",
+  "product": "Produit",
   "total_revenue": "Revenu total",
   "view_details": "Voir détails",
   "yes_cancel": "Oui, annuler la commande",

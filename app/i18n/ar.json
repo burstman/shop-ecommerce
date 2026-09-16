@@ -163,6 +163,8 @@
   "test_order": "طلب اختبار",
   "total": "المجموع",
   "total_orders": "إجمالي الطلبات",
+  "quantity": "الكمية",
+  "product": "المنتج",
   "total_revenue": "إجمالي الإيرادات",
   "view_details": "عرض التفاصيل",
   "yes_cancel": "نعم، إلغاء الطلب",

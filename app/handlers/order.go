@@ -387,7 +387,11 @@ func HandleAdminOrderNewModal(kit *kit.Kit) error {
 	if !ok || user.Role != "admin" {
 		return kit.Redirect(http.StatusSeeOther, "/")
 	}
-	return kit.Render(orders.NewOrderModal())
+	var products []models.Product
+	if err := db.Get().Model(&models.Product{}).Order("name asc").Find(&products).Error; err != nil {
+		return err
+	}
+	return kit.Render(orders.NewOrderModal(products))
 }
 
 // HandleAdminOrderCreate builds a manual order: customer/shipping fields from
@@ -405,9 +409,31 @@ func HandleAdminOrderCreate(kit *kit.Kit) error {
 		return fmt.Errorf("invalid order status %q", status)
 	}
 
+	productID, _ := strconv.Atoi(kit.Request.FormValue("productId"))
+	quantity, _ := strconv.Atoi(kit.Request.FormValue("quantity"))
+	if quantity < 1 {
+		quantity = 1
+	}
+
+	var product models.Product
+	var unitPrice models.Currency
+	if productID > 0 {
+		if err := db.Get().First(&product, productID).Error; err != nil {
+			return fmt.Errorf("product %d not found", productID)
+		}
+		unitPrice = product.Price
+		if product.PromotionPrice > 0 {
+			unitPrice = product.PromotionPrice
+		}
+	}
+
 	total, err := models.ParseCurrency(kit.Request.FormValue("total"))
 	if err != nil {
 		return err
+	}
+	// Auto-compute the total from product quantity unless the admin gave an explicit total.
+	if total <= 0 && productID > 0 {
+		total = unitPrice.Multiply(quantity)
 	}
 
 	order := models.Order{
@@ -431,6 +457,21 @@ func HandleAdminOrderCreate(kit *kit.Kit) error {
 
 	if err := db.Get().Create(&order).Error; err != nil {
 		return err
+	}
+
+	// Attach the selected product as the order item.
+	if productID > 0 {
+		orderItem := models.OrderItem{
+			OrderID:      order.ID,
+			ProductID:    product.ID,
+			ProductName:  product.Name,
+			ProductImage: product.Image,
+			Quantity:     quantity,
+			Price:        unitPrice,
+		}
+		if err := db.Get().Create(&orderItem).Error; err != nil {
+			slog.Error("failed to create manual order item", "err", err, "orderID", order.ID)
+		}
 	}
 
 	if status == "confirmed" {

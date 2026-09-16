@@ -164,6 +164,8 @@
   "test_order": "Test Order",
   "total": "Total",
   "total_orders": "Total Orders",
+  "quantity": "Quantity",
+  "product": "Product",
   "total_revenue": "Total Revenue",
   "view_details": "View Details",
   "yes_cancel": "Yes, Cancel Order",
