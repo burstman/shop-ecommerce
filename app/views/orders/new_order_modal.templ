@@ -13,8 +13,8 @@ templ NewOrderModal(products []models.Product, csrfToken string) {
 				<h2 class="text-xl font-bold text-gray-900">{ services.GetI18n().T(ctx, "new_order_title") }</h2>
 				<button type="button" @click="document.getElementById('modal').remove()" class="text-gray-400 hover:text-gray-600 focus:outline-none text-2xl">&times;</button>
 			</div>
-			<input type="hidden" name="csrf_token" value={ csrfToken }/>
 			<form method="post" action="/admin/orders" class="px-6 pb-6 space-y-4" x-data="{ open: false, selectedId: '', selectedLabel: '', selectedImg: '', price: 0, qty: 1, total: 0, select(btn) { this.selectedId = btn.getAttribute('data-id'); this.selectedLabel = btn.getAttribute('data-label'); this.selectedImg = btn.getAttribute('data-img') || ''; var promo = parseFloat(btn.getAttribute('data-promo')); this.price = promo > 0 ? promo : parseFloat(btn.getAttribute('data-price')); this.calc(); this.open = false; }, calc() { if (this.price <= 0) { this.total = 0; return; } var q = parseInt(this.qty, 10) || 1; this.total = (this.price * q).toFixed(2); } }">
+				<input type="hidden" name="csrf_token" value={ csrfToken }/>
 				<div class="grid grid-cols-2 gap-4">
 					<div>
 						<label class="block text-xs font-medium text-gray-500 uppercase tracking-wider">{ services.GetI18n().T(ctx, "first_name") }</label>

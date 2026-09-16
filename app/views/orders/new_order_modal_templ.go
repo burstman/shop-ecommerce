@@ -48,20 +48,20 @@ func NewOrderModal(products []models.Product, csrfToken string) templ.Component 
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</h2><button type=\"button\" @click=\"document.getElementById('modal').remove()\" class=\"text-gray-400 hover:text-gray-600 focus:outline-none text-2xl\">&times;</button></div><input type=\"hidden\" name=\"csrf_token\" value=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</h2><button type=\"button\" @click=\"document.getElementById('modal').remove()\" class=\"text-gray-400 hover:text-gray-600 focus:outline-none text-2xl\">&times;</button></div><form method=\"post\" action=\"/admin/orders\" class=\"px-6 pb-6 space-y-4\" x-data=\"{ open: false, selectedId: '', selectedLabel: '', selectedImg: '', price: 0, qty: 1, total: 0, select(btn) { this.selectedId = btn.getAttribute('data-id'); this.selectedLabel = btn.getAttribute('data-label'); this.selectedImg = btn.getAttribute('data-img') || ''; var promo = parseFloat(btn.getAttribute('data-promo')); this.price = promo > 0 ? promo : parseFloat(btn.getAttribute('data-price')); this.calc(); this.open = false; }, calc() { if (this.price <= 0) { this.total = 0; return; } var q = parseInt(this.qty, 10) || 1; this.total = (this.price * q).toFixed(2); } }\"><input type=\"hidden\" name=\"csrf_token\" value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var3 string
 		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.ResolveAttributeValue(csrfToken)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/new_order_modal.templ`, Line: 16, Col: 59}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/orders/new_order_modal.templ`, Line: 17, Col: 60}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var3)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "\"><form method=\"post\" action=\"/admin/orders\" class=\"px-6 pb-6 space-y-4\" x-data=\"{ open: false, selectedId: '', selectedLabel: '', selectedImg: '', price: 0, qty: 1, total: 0, select(btn) { this.selectedId = btn.getAttribute('data-id'); this.selectedLabel = btn.getAttribute('data-label'); this.selectedImg = btn.getAttribute('data-img') || ''; var promo = parseFloat(btn.getAttribute('data-promo')); this.price = promo > 0 ? promo : parseFloat(btn.getAttribute('data-price')); this.calc(); this.open = false; }, calc() { if (this.price <= 0) { this.total = 0; return; } var q = parseInt(this.qty, 10) || 1; this.total = (this.price * q).toFixed(2); } }\"><div class=\"grid grid-cols-2 gap-4\"><div><label class=\"block text-xs font-medium text-gray-500 uppercase tracking-wider\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "\"><div class=\"grid grid-cols-2 gap-4\"><div><label class=\"block text-xs font-medium text-gray-500 uppercase tracking-wider\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
