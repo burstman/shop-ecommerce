@@ -13,7 +13,7 @@ templ NewOrderModal(products []models.Product) {
 				<h2 class="text-xl font-bold text-gray-900">{ services.GetI18n().T(ctx, "new_order_title") }</h2>
 				<button type="button" @click="document.getElementById('modal').remove()" class="text-gray-400 hover:text-gray-600 focus:outline-none text-2xl">&times;</button>
 			</div>
-			<form method="post" action="/admin/orders" class="px-6 pb-6 space-y-4">
+			<form method="post" action="/admin/orders" class="px-6 pb-6 space-y-4" x-data="{ open: false, selectedId: '', selectedLabel: '', selectedImg: '', price: 0, qty: 1, total: 0, select(btn) { this.selectedId = btn.getAttribute('data-id'); this.selectedLabel = btn.getAttribute('data-label'); this.selectedImg = btn.getAttribute('data-img') || ''; var promo = parseFloat(btn.getAttribute('data-promo')); this.price = promo > 0 ? promo : parseFloat(btn.getAttribute('data-price')); this.calc(); this.open = false; }, calc() { if (this.price <= 0) { this.total = 0; return; } var q = parseInt(this.qty, 10) || 1; this.total = (this.price * q).toFixed(2); } }">
 				<div class="grid grid-cols-2 gap-4">
 					<div>
 						<label class="block text-xs font-medium text-gray-500 uppercase tracking-wider">{ services.GetI18n().T(ctx, "first_name") }</label>
@@ -51,7 +51,7 @@ templ NewOrderModal(products []models.Product) {
 				</div>
 				<div>
 					<label class="block text-xs font-medium text-gray-500 uppercase tracking-wider">{ services.GetI18n().T(ctx, "product") }</label>
-					<div class="relative mt-1" x-data="{ open: false, selectedId: '', selectedLabel: '', selectedImg: '', price: 0, qty: 1, total: '', manualTotal: false, select(btn) { this.selectedId = btn.getAttribute('data-id'); this.selectedLabel = btn.getAttribute('data-label'); this.selectedImg = btn.getAttribute('data-img') || ''; var promo = parseFloat(btn.getAttribute('data-promo')); this.price = promo > 0 ? promo : parseFloat(btn.getAttribute('data-price')); this.manualTotal = false; this.calc(); this.open = false; }, calc() { if (this.manualTotal || this.price <= 0) return; var q = parseInt(this.qty, 10) || 1; this.total = (this.price * q).toFixed(2); }, setTotal() { this.manualTotal = true; } }">
+					<div class="relative mt-1">
 						<input type="hidden" name="productId" :value="selectedId" required/>
 						<button type="button" @click="open = !open" :class="selectedId ? 'border-indigo-400 ring-2 ring-indigo-500' : 'border-gray-300'" class="w-full flex items-center gap-3 px-3 py-2 text-left border rounded-md shadow-sm hover:border-indigo-400 bg-white cursor-pointer">
 							<span x-show="!selectedId" class="flex items-center gap-3 w-full text-sm text-gray-400">
@@ -85,7 +85,7 @@ templ NewOrderModal(products []models.Product) {
 						</div>
 					</div>
 				</div>
-				<div class="grid grid-cols-3 gap-4">
+				<div class="grid grid-cols-2 gap-4">
 				<div>
 					<label class="block text-xs font-medium text-gray-500 uppercase tracking-wider">{ services.GetI18n().T(ctx, "unit_price") }</label>
 					<input type="number" name="unitPrice" x-model.number="price" @input="calc()" placeholder="0.00" min="0" step="0.01" value="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"/>
@@ -94,10 +94,13 @@ templ NewOrderModal(products []models.Product) {
 					<label class="block text-xs font-medium text-gray-500 uppercase tracking-wider">{ services.GetI18n().T(ctx, "quantity") }</label>
 					<input type="number" name="quantity" x-model.number="qty" @input="calc()" min="1" value="1" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"/>
 				</div>
-				<div>
-					<label class="block text-xs font-medium text-gray-500 uppercase tracking-wider">{ services.GetI18n().T(ctx, "total") }</label>
-					<input type="number" name="total" x-model="total" @input="setTotal()" placeholder="0.00" min="0" step="0.01" value="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"/>
-				</div>
+			</div>
+			<input type="hidden" name="total" :value="total"/>
+			<div>
+				<label class="block text-xs font-medium text-gray-500 uppercase tracking-wider">{ services.GetI18n().T(ctx, "total") }</label>
+				<p class="mt-1 text-lg font-semibold text-gray-900">
+					<span x-text="total || '0.00'"></span>
+				</p>
 			</div>
 				<div>
 					<label class="block text-xs font-medium text-gray-500 uppercase tracking-wider">{ services.GetI18n().T(ctx, "status") }</label>
