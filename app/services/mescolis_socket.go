@@ -107,27 +107,10 @@ func (s *MescolisSocket) connect() error {
 		return fmt.Errorf("send connect: %w", err)
 	}
 
-	// Start ping ticker
-	pingTicker := time.NewTicker(pingInterval)
-	defer pingTicker.Stop()
-
-	go func() {
-		for {
-			select {
-			case <-pingTicker.C:
-				s.mu.Lock()
-				err := conn.WriteMessage(websocket.TextMessage, []byte("2"))
-				s.mu.Unlock()
-				if err != nil {
-					slog.Error("mescolis socket: ping failed", "err", err)
-					conn.Close()
-					return
-				}
-			case <-s.closeCh:
-				return
-			}
-		}
-	}()
+	// NOTE: No client-initiated ping ticker. In Engine.IO the server sends
+	// pings ("2") and the client only replies with pongs ("3"), which the read
+	// loop handles. Sending "2" ourselves makes the server close the socket
+	// (close 1005) at the first ping interval.
 
 	// Read loop
 	for {
