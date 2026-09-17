@@ -78,8 +78,12 @@ func main() {
 	router.NotFound(kit.Handler(app.NotFoundHandler))
 	app.RegisterEvents()
 
+	// Render (and most PaaS) inject the port to bind via PORT. Prefer it,
+	// then fall back to HTTP_LISTEN_ADDR, then the local default.
 	listenAddr := os.Getenv("HTTP_LISTEN_ADDR")
-	if listenAddr == "" {
+	if port := os.Getenv("PORT"); port != "" {
+		listenAddr = ":" + port
+	} else if listenAddr == "" {
 		listenAddr = ":3000"
 	}
 
