@@ -112,7 +112,9 @@ func (s *MescolisSocket) connect() error {
 	// loop handles. Sending "2" ourselves makes the server close the socket
 	// (close 1005) at the first ping interval.
 
-	// Read loop
+	// Read loop. Refreshed on each server ping below; if the server goes
+	// silent past the timeout the read errors out and we reconnect.
+	conn.SetReadDeadline(time.Now().Add(60 * time.Second))
 	for {
 		_, msg, err := conn.ReadMessage()
 		if err != nil {
@@ -130,9 +132,10 @@ func (s *MescolisSocket) handleMessage(raw []byte) {
 		return
 	}
 
-	// Engine.IO ping - respond with pong
+	// Engine.IO ping - respond with pong and extend the keep-alive deadline
 	if text == "2" {
 		s.mu.Lock()
+		s.conn.SetReadDeadline(time.Now().Add(60 * time.Second))
 		err := s.conn.WriteMessage(websocket.TextMessage, []byte("3"))
 		s.mu.Unlock()
 		if err != nil {
