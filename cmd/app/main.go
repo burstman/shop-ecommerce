@@ -9,6 +9,7 @@ import (
 	"shopTemplate/app"
 	"shopTemplate/app/config"
 	"shopTemplate/app/db"
+	"shopTemplate/app/models"
 	"shopTemplate/app/services"
 	"shopTemplate/public"
 	"time"
@@ -25,13 +26,29 @@ func main() {
 		log.Fatalf("CRITICAL: Failed to connect to database: %v", err)
 	}
 
-	// Start the Mes Colis Express socket listener if enabled.
+	// Start a Mes Colis Express socket listener for every affiliate (shop)
+	// that has Mes Colis enabled. Credentials are per-shop (app_config:AFF-xxx),
+	// so the socket must be authenticated with each shop's API key to receive
+	// that shop's parcel events.
 	go func() {
-		cfg := config.Get()
-		if cfg.Mescolis.Enabled && cfg.Mescolis.APIKey != "" {
-			log.Println("starting Mes Colis Express socket listener...")
+		var affiliates []models.Affiliate
+		if err := db.Get().Find(&affiliates).Error; err != nil {
+			slog.Error("failed to load affiliates for mes colis sockets", "err", err)
+			return
+		}
+		started := 0
+		for _, aff := range affiliates {
+			cfg := config.LoadByAffiliateID(aff.AffiliateID)
+			if !cfg.Mescolis.Enabled || cfg.Mescolis.APIKey == "" {
+				continue
+			}
+			log.Printf("starting Mes Colis Express socket listener for shop %s...", aff.AffiliateID)
 			socket := services.NewMescolisSocket(cfg.Mescolis.APIKey, services.HandleMescolisEvent)
-			socket.Start()
+			go socket.Start()
+			started++
+		}
+		if started == 0 {
+			slog.Info("no Mes Colis sockets started (no affiliate with mescolis enabled)")
 		}
 	}()
 
